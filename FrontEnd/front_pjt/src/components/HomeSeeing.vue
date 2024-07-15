@@ -1,11 +1,10 @@
 <template>
     <div>
-        <HomeSeeing/>
+        seeing
     </div>
 </template>
 
 <script setup>
-import HomeSeeing from "@/components/HomeSeeing.vue"
 
 </script>
 

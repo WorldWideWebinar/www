@@ -1,6 +1,11 @@
 <template>
   <div id="app" class="d-flex">
     <aside class="sidebar d-flex flex-column">
+
+      <button class="btn btn-add" @click="goingHome">
+        <span>🏠</span>
+      </button>
+      <!-- 위에 있는 버튼은 임시로 만들고 수정-->
       <button class="btn btn-add">
         <span>+</span>
       </button>
@@ -52,6 +57,11 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import router from './router';
+
+const goingHome = function(){
+  router.push({name: "HomeView"})
+}
 </script>
 
 <style scoped>
