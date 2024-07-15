@@ -55,89 +55,65 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <style scoped>
-#app {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f5f5;
+header {
+  line-height: 1.5;
+  max-height: 100vh;
 }
 
-.sidebar {
-  width: 70px;
-  height: 100vh;
-  background-color: #f3e5f5;
-  padding: 1rem 0 0.5rem 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.logo {
+  display: block;
+  margin: 0 auto 2rem;
 }
 
-.sidebar .btn-toggle,
-.sidebar .btn-add,
-.sidebar .btn-icon {
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
+nav {
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 2rem;
 }
 
-.sidebar .btn-add {
-  background-color: #f8bbd0;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 1rem auto;
-  font-size: 1.5rem;
+nav a.router-link-exact-active {
+  color: var(--color-text);
 }
 
-.sidebar .nav-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0.4rem 0;
-  color: black;
-  font-weight: bold;
-  background-color: #f3e5f5;
+nav a.router-link-exact-active:hover {
+  background-color: transparent;
 }
 
-.sidebar .nav-link.active {
-  background-color: #e1bee7;
-  color: #6a1b9a;
+nav a {
+  display: inline-block;
+  padding: 0 1rem;
+  border-left: 1px solid var(--color-border);
 }
 
-.sidebar .icon {
-  font-size: 1.5rem;
+nav a:first-of-type {
+  border: 0;
 }
 
-.sidebar .link-text {
-  margin-top: 0.2rem;
-  font-size: 0.75rem;
-}
+@media (min-width: 1024px) {
+  header {
+    display: flex;
+    place-items: center;
+    padding-right: calc(var(--section-gap) / 2);
+  }
 
-.spacer {
-  flex-grow: 1;
-}
+  .logo {
+    margin: 0 2rem 0 0;
+  }
 
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-}
+  header .wrapper {
+    display: flex;
+    place-items: flex-start;
+    flex-wrap: wrap;
+  }
 
-main {
-  flex-grow: 1;
-  padding: 1.5rem;
-  background-color: #fff;
-  margin-left: 60px;
-}
+  nav {
+    text-align: left;
+    margin-left: -1rem;
+    font-size: 1rem;
 
-body {
-  font-family: 'Nanum Gothic', sans-serif;
+    padding: 1rem 0;
+    margin-top: 1rem;
+  }
 }
 </style>

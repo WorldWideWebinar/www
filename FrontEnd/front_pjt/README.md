@@ -1,35 +1,29 @@
-# front-skeleton
+# A501 주영 업고 튀어 FE Readme
 
-This template should help get you started developing with Vue 3 in Vite.
+## 구성원
 
-## Recommended IDE Setup
+* 박준영
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+* 권용수
 
-## Customize configuration
+* 이선재
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## Sprint 1회(7/15~)
 
-## Project Setup
+### 7/15 월요일
 
-```sh
-npm install
-```
+* 유저 정보 페이지
+  * 담당자: 박준영
+  * 상태: 진행중
+  
+* 랜딩 페이지 디자인
+  * 담당자: 권용수
+  * 상태: 진행중
 
-### Compile and Hot-Reload for Development
+* 회의 페이지 디자인
+  * 담당자: 이선제
+  * 상태: 진행중
 
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+* 목업 완성 및 화면 구성
+  * 담당자: 이선재
+  * 상태: 완료

@@ -1,3 +1,5 @@
+import './assets/main.css'
+import 'flatpickr/dist/flatpickr.css';
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniapluginPersistedstate from 'pinia-plugin-persistedstate'
