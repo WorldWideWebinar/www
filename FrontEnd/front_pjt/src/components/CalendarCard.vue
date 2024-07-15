@@ -1,11 +1,11 @@
 <template>
   <div class="card">
-    <h2>Meetings on {{ formatDate(selectedDate) }}</h2>
+    <h3 class="datetime">{{ formatDate(selectedDate) }}</h3>
     <ul>
       <li v-for="meeting in meetings" :key="meeting.id">
-        <h3>{{ meeting.title }}</h3>
-        <p>Host: {{ meeting.host }}</p>
-        <p>Participants: {{ meeting.participants.length }}</p>
+        <h2 class="title">{{ meeting.title }}</h2>
+        <p class="host">Host: {{ meeting.host }}</p>
+        <p class="participants">Participants: {{ meeting.participants.length }}</p>
       </li>
     </ul>
   </div>
@@ -44,6 +44,17 @@ export default {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+
+ul{
+  list-style:none;
+}
+
 .card {
   border: 1px solid #ccc;
   padding: 1em;
@@ -51,5 +62,13 @@ export default {
   border-radius: 20px;
   background-color: #fff;
   color: #1d252c;
+}
+
+.datetime {
+  text-align: center; 
+}
+
+.title {
+  text-align: center;
 }
 </style>
