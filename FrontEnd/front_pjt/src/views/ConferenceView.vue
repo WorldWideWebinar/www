@@ -1,7 +1,7 @@
 <template>
   <div class="conference-container">
     <header class="header">
-      <h3>Welcome to 웹 RTC Meeting</h3>
+      <h3>Welcome to <span style="color:blueviolet">웹 RTC</span> Meeting</h3>
     </header>
     <main class="main-content">
       <div class="left-side">
@@ -31,42 +31,66 @@
           </div>
         </div>
         <div class="translation-container">
-          <div class="translation-section">
+          <div class="translation-section original">
             <h5>원문</h5>
             <div class="translation-content">
-              <p><strong>Robert:</strong> Please brief me on this month’s inventory status.</p>
-              <p>
-                <strong>Lisa:</strong>
-                包括预计明天到益山港的400吨在内，共有5600吨。这个季度的生产没有问题。
-              </p>
+              <div class="message-group">
+                <div class="speaker-info">
+                  <strong>Robert</strong>
+                  <div class="language"><span>🌐 영어</span></div>
+                </div>
+                <div class="message">
+                  <span>Please brief me on this month’s inventory status.</span>
+                </div>
+              </div>
+              <div class="message-group">
+                <div class="speaker-info">
+                  <strong>Lisa</strong>
+                  <div class="language"><span>🌐 중국어</span></div>
+                </div>
+                <div class="message">
+                  <span>包括预计明天到益山港的400吨在内，共有5600吨。这个季度的生产没有问题。</span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="translation-section">
-            <h5>번역</h5>
+            <h5>번역 <span class="language-icon">🌐 한국어</span></h5>
             <div class="translation-content">
-              <p><strong>로버트:</strong> 이번달 재고 현황에 대해 브리핑 부탁해.</p>
-              <p>
-                <strong>리사:</strong> 내일 부산항에 도착 예정인 400톤을 포함하면 총 5600톤이야.
-                이번 분기 생산에는 문제 없을 것으로 예상돼.
-              </p>
+              <div class="message-group">
+                <div class="speaker-info">
+                  <strong>로버트</strong>
+                </div>
+                <div class="message">
+                  <span>이번달 재고 현황에 대해 브리핑 부탁해.</span>
+                </div>
+              </div>
+              <div class="message-group">
+                <div class="speaker-info">
+                  <strong>리사</strong>
+                </div>
+                <div class="message">
+                  <span>내일 부산항에 도착 예정인 400톤을 포함하면 총 5600톤이야. 이번 분기 생산에는 문제 없을 것으로 예상돼.</span>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="footer-left">
+            <span style="font-weight: bold;">Duration</span>
+            <span>1:27:31 30min left</span>
+          </div>
+          <div class="footer-center">
+            <span style="font-weight: bold;">Attendance</span>
+            <span>4 / 6</span>
+          </div>
+          <div class="footer-right">
+            <span>Invite Alex, Joy</span>
           </div>
         </div>
       </div>
     </main>
-    <footer class="footer">
-      <div class="footer-left">
-        <span style="font-weight: bold;">Duration</span>
-        <span>1:27:31 30min left</span>
-      </div>
-      <div class="footer-center">
-        <span style="font-weight: bold;">Attendance</span>
-        <span>4 / 6</span>
-      </div>
-      <div class="footer-right">
-        <span>Invite Alex, Joy</span>
-      </div>
-    </footer>
     <div class="bottom-toolbar">
       <button class="btn-icon">🎤</button>
       <button class="btn-icon">🎥</button>
@@ -101,9 +125,8 @@ export default {
 
 .header {
   text-align: center;
-  padding: 0.5rem 0;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1rem;
+  background-color: #ffffff;;
 }
 
 .main-content {
@@ -140,6 +163,7 @@ export default {
 
 .left-side {
   margin: 0 0 0 1rem;
+  border-radius: 8px 8px 0px 8px;
 }
 
 .right-side {
@@ -195,17 +219,19 @@ export default {
 .translation-container {
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
+  border: 2px dashed lightgray;
+  border-radius: 8px;
+  margin: 1rem;
   font-size: 90%;
 }
 
 .translation-section {
   flex: 1;
   padding: 1rem;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  margin-right: 1rem;
-  border: 1px dashed lightgray;
+}
+
+.original {
+  border-right: 2px dashed lightgray;
 }
 
 .translation-section:last-child {
@@ -213,17 +239,46 @@ export default {
 }
 
 .translation-content {
-  background-color: #f5f5f5;
+  background-color: #e0e0e0;
   padding: 1rem;
   border-radius: 8px;
+}
+
+.message-group {
+  margin-bottom: 1rem;
+}
+
+.speaker-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.speaker-info .language {
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.message {
+  background-color: #d3d3d3;
+  padding: 0.5rem;
+  border-radius: 16px;
+  margin: 0.5rem 0;
+}
+
+.language-icon {
+  font-size: 1rem;
+  margin-left: 0.5rem;
 }
 
 .footer {
   display: flex;
   justify-content: space-between;
   padding: 1rem;
-  background-color: #e1bee7;
-  border-top: 1px solid #e0e0e0;
+  background-color: #f3e5f5;
+  margin: 1rem 1rem 0 0;
+  border-radius: 0 8px 8px 0;
 }
 
 .footer-left,
@@ -238,7 +293,6 @@ export default {
   justify-content: center;
   padding: 1rem;
   background-color: #ffffff;
-  border-top: 1px solid #e0e0e0;
 }
 
 .bottom-toolbar .btn-icon {
