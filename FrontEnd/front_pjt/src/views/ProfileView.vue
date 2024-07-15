@@ -1,35 +1,21 @@
-<script setup>
-import { ref } from 'vue'
-import ProfileCard from '../components/ProfileCard.vue';
-import Calendar from '../components/Calendar.vue'
-import CalendarCard from '../components/CalendarCard.vue'
-
-const selectedEvent = ref(null)
-
-const handleEventSelect = (event) => {
-  selectedEvent.value = event
-}
-</script>
-
 <template>
-  <div class="app-container">
-    <ProfileCard />
+  <div class="profile-view">
     <Calendar />
-    <CalendarCard v-if="selectedEvent" :event="selectedEvent" @close="selectedEvent = null" />
+    <ProfileCard />
   </div>
-    
 </template>
 
-
+<script setup>
+import Calendar from '@/components/Calendar.vue';
+import ProfileCard from '@/components/ProfileCard.vue';
+</script>
 
 <style scoped>
-.app-container {
+.profile-view {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  height: 100vh;
-  padding: 20px;
-  gap: 100px; /* 카드 사이의 간격 조절 */
+  padding: 2rem;
+  background-color: #f5f5f5;
 }
 
 .profile-card, .calendar-card {
@@ -50,3 +36,4 @@ const handleEventSelect = (event) => {
   }
 }
 </style>
+

@@ -4,9 +4,9 @@
       <h3>Calendar</h3>
       <div id="calendar">
         <div class="calendar-header">
-          <button @click="previousMonth" class="nav-button">Previous</button>
+          <button @click="previousMonth" class="nav-button">&lt;</button>
           <h2>{{ currentMonth.format('MMMM YYYY') }}</h2>
-          <button @click="nextMonth" class="nav-button">Next</button>
+          <button @click="nextMonth" class="nav-button">&gt;</button>
         </div>
         <div class="calendar">
           <div class="calendar-row calendar-header-row">
@@ -19,13 +19,12 @@
                  :class="{ 'hasMeeting': hasMeeting(day.date), 'currentMonth': day.currentMonth, 'selected': isSelected(day) }"
                  @click="selectDay(day)">
               {{ day.date.format('D') }}
+              <span v-if="hasMeeting(day.date)" class="meeting-marker"></span>
             </div>
           </div>
         </div>
-        <button @click="openModal" class="add-event-button">Add Event</button>
       </div>
       <CalendarCard v-if="selectedMeetings.length" :meetings="selectedMeetings" />
-      <EventModal :isOpen="isModalOpen" @close="closeModal" @eventCreated="addEvent" />
     </div>
   </div>
 </template>
@@ -34,16 +33,14 @@
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import CalendarCard from './CalendarCard.vue';
-import EventModal from './EventModal.vue';
 import dayjs from 'dayjs';
 
 export default {
-  components: { CalendarCard, EventModal },
+  components: { CalendarCard },
   setup() {
     const userStore = useUserStore();
     const currentMonth = ref(dayjs().startOf('month'));
     const selectedDate = ref(null);
-    const isModalOpen = ref(false);
 
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -102,18 +99,6 @@ export default {
       currentMonth.value = currentMonth.value.add(1, 'month');
     }
 
-    function openModal() {
-      isModalOpen.value = true;
-    }
-
-    function closeModal() {
-      isModalOpen.value = false;
-    }
-
-    function addEvent(newEvent) {
-      userStore.addMeeting(newEvent);
-    }
-
     return {
       daysOfWeek,
       calendarDays,
@@ -124,10 +109,6 @@ export default {
       hasMeeting,
       previousMonth,
       nextMonth,
-      openModal,
-      closeModal,
-      addEvent,
-      isModalOpen,
       currentMonth
     };
   }
@@ -135,31 +116,22 @@ export default {
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 500;
-}
-
-body {
-  padding: 0;
-  margin: 0;
-}
-
 .cal-container {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   height: 100vh;
+  background-color: #f5f5f5; /* 연한 회색 배경색 추가 */
 }
 
 .cal-content {
-  background: #1d252c;
-  color: #fff;
+  background: #ffffff;
+  color: #1d252c;
   padding: 40px 60px;
   text-align: center;
   margin-right: 20px;
   border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cal-content h3 {
@@ -180,8 +152,8 @@ body {
 }
 
 .nav-button {
-  background-color: #3dae2b;
-  color: white;
+  background-color: #BBE8F8; /* 보색 2 */
+  color: #1d252c;
   border: none;
   padding: 10px 20px;
   border-radius: 10px;
@@ -189,7 +161,7 @@ body {
 }
 
 .nav-button:hover {
-  background-color: #218838;
+  background-color: #A0D1E0; /* 보색 2 음영 */
 }
 
 .calendar {
@@ -203,55 +175,50 @@ body {
 }
 
 .calendar-cell {
+  position: relative;
   padding: 10px;
   text-align: center;
   border-radius: 10px;
   cursor: pointer;
-  background-color: #343f48;
+  background-color: #f3e5f5; /* 기본 날짜의 약한 색상 */
   transition: background-color 0.3s;
 }
 
 .calendar-header-row .calendar-cell {
   font-weight: bold;
-  background-color: #343f48;
+  background-color: #f3e5f5; /* 메인 색상 */
 }
 
 .calendar-cell.currentMonth {
-  background-color: #1d252c;
+  background-color: #f8bbd0; /* 보색 1 */
 }
 
 .calendar-cell:not(.currentMonth) {
-  background-color: #2a2f36;
+  background-color: #f8eafc; /* 기본 날짜의 약한 색상 */
 }
 
-.calendar-cell.hasMeeting {
-  font-weight: bold;
-  color: #3dae2b;
+.calendar-cell.hasMeeting .meeting-marker {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  background-color: #F8EFBB; /* 보색 1 */
+  border-radius: 50%;
 }
 
 .calendar-cell.selected {
-  background-color: #3dae2b;
-  color: white;
+  background-color: #F8EFBB; /* 보색 1 */
+  color: #1d252c;
 }
 
 .calendar-cell:hover {
-  background-color: #3dae2b;
-  color: white;
-}
-
-.add-event-button {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top: 20px;
-}
-
-.add-event-button:hover {
-  background-color: #218838;
+  background-color: #f3e5f5; /* hover 색상 및 daysOfWeek 색상 */
+  color: #1d252c;
 }
 </style>
+
+
+
 
 
