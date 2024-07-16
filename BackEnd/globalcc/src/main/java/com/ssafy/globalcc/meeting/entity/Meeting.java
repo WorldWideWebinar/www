@@ -17,9 +17,6 @@ public class Meeting {
     @Column(name = "meeting_id")
     private Integer meetingId;
 
-    @Column(name = "team_id", nullable = false)
-    private Integer teamId;
-
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -39,8 +36,8 @@ public class Meeting {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "team_id", referencedColumnName = "team_id", insertable=false, updatable=false)
-    private Team team;
+    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    private Team teamId;
 
     @PreUpdate
     protected void onUpdate() {

@@ -18,29 +18,23 @@ public class Chat {
     @Column(name = "chat_id")
     private Integer chatId;
 
-    @Column(name = "sender_id", nullable = false)
-    private Integer senderId;
-
-    @Column(name = "team_id", nullable = false)
-    private Integer teamId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type")
     private ContentType contentType;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "sender_id", referencedColumnName = "user_id", insertable=false, updatable=false)
-    private User sender;
+    @JoinColumn(name = "sender_id", referencedColumnName = "user_id")
+    private User senderId;
 
     @ManyToOne
-    @JoinColumn(name = "team_id", referencedColumnName = "team_id", insertable=false, updatable=false)
-    private Team team;
+    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    private Team teamId;
 
     public enum ContentType {
         TEXT,
