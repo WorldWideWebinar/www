@@ -146,7 +146,6 @@ const sessions = computed(() => sessionStore.sessions); // sessionStore에서 se
 
 main {
   flex-grow: 1;
-  padding: 1.5rem;
   background-color: #fff;
   margin-left: 60px;
 }
