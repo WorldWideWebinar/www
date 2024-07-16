@@ -1,7 +1,7 @@
 <template>
   <div class="conference-container">
     <header class="header">
-      <h3>Welcome to <span style="color:blueviolet">웹 RTC</span> Meeting</h3>
+      <h3>Welcome to <span class="highlight">웹 RTC</span> Meeting</h3>
     </header>
     <main class="main-content">
       <div class="left-side">
@@ -103,6 +103,15 @@
 <script>
 export default {
   name: 'ConferenceView',
+  beforeRouteLeave(to, from, next) {
+    if (to.name === 'rnd') {
+      next(vm => {
+        vm.$parent.inConference = false
+      })
+    } else {
+      next()
+    }
+  },
   data() {
     return {
       participants: [
@@ -125,14 +134,18 @@ export default {
 
 .header {
   text-align: center;
-  padding-bottom: 1rem;
+  padding: 1rem;
   background-color: #ffffff;;
+}
+
+.highlight {
+  color: blueviolet;
 }
 
 .main-content {
   display: flex;
   flex: 1;
-  padding: 1rem 0;
+  padding: 1rem 0 0 1rem;
   box-sizing: border-box;
 }
 

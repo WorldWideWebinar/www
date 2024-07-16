@@ -132,7 +132,6 @@ import { RouterLink, RouterView } from 'vue-router'
 
 main {
   flex-grow: 1;
-  padding: 1.5rem;
   background-color: #fff;
   margin-left: 60px;
 }
