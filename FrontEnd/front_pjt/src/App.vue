@@ -10,28 +10,18 @@
         <span>+</span>
       </button>
       <ul class="nav flex-column">
-        <li class="nav-item">
-          <RouterLink class="nav-link" :to="{ name: 'rnd' }" active-class="active">
-            <span class="icon">🚀</span>
-            <span class="link-text">R&D</span>
-          </RouterLink>
-        </li>
-        <li class="nav-item">
-          <RouterLink class="nav-link" :to="{ name: 'dev' }" active-class="active">
-            <span class="icon">💻</span>
-            <span class="link-text">개발</span>
-          </RouterLink>
-        </li>
-        <li class="nav-item">
-          <RouterLink class="nav-link" :to="{ name: 'purchase' }" active-class="active">
-            <span class="icon">💼</span>
-            <span class="link-text">구매</span>
-          </RouterLink>
-        </li>
-        <li class="nav-item">
-          <RouterLink class="nav-link" :to="{ name: 'sales' }" active-class="active">
-            <span class="icon">📈</span>
-            <span class="link-text">영업</span>
+        <li 
+          class="nav-item" 
+          v-for="session in sessions" 
+          :key="session.id"
+        >
+          <RouterLink 
+            class="nav-link" 
+            :to="{ name: 'ready', params: { name: session.name } }" 
+            active-class="active"
+          >
+            <span class="icon">{{ session.icon }}</span>
+            <span class="link-text">{{ session.displayName }}</span>
           </RouterLink>
         </li>
       </ul>
@@ -56,12 +46,22 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router';
+import { onMounted } from 'vue';
+import { useUserStore } from './stores/userStore';
 import router from './router';
 
-const goingHome = function(){
-  router.push({name: "HomeView"})
-}
+const userStore = useUserStore();
+
+const goingHome = () => {
+  router.push({ name: 'HomeView' });
+};
+
+onMounted(async () => {
+  await userStore.fetchUserSessions('sampleUserId');
+});
+
+const sessions = userStore.sessions;
 </script>
 
 <style scoped>

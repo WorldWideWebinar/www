@@ -1,7 +1,7 @@
 <template>
   <div class="conference-container">
     <header class="header">
-      <h3>Welcome to 웹 RTC Meeting</h3>
+      <h3>Welcome to {{ departmentName }} Meeting</h3>
     </header>
     <main class="main-content">
       <div class="left-side">
@@ -86,6 +86,11 @@ export default {
         { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
         { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
       ]
+    }
+  },
+  computed: {
+    departmentName() {
+      return this.$route.params.name;
     }
   }
 }

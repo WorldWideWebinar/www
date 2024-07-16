@@ -13,8 +13,8 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/rnd',
-      name: 'rnd',
+      path: '/:name',
+      name: 'ready',
       component: MeetingList,
       children: [
         {
@@ -23,21 +23,6 @@ const router = createRouter({
           component: ConferenceView
         }
       ]
-    },
-    {
-      path: '/dev',
-      name: 'dev',
-      component: MeetingList
-    },
-    {
-      path: '/purchase',
-      name: 'purchase',
-      component: MeetingList
-    },
-    {
-      path: '/sales',
-      name: 'sales',
-      component: MeetingList
     },
     {
       path: '/profile/',
