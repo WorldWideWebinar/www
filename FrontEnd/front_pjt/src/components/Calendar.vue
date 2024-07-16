@@ -13,14 +13,14 @@
             <div class="calendar-cell" v-for="day in daysOfWeek" :key="day">{{ day }}</div>
           </div>
           <div class="calendar-row" v-for="week in calendarDays" :key="week[0].date">
-            <div class="calendar-cell"
-                 v-for="day in week"
-                 :key="day.date"
-                 :class="{ 'hasMeeting': hasMeeting(day.date), 'currentMonth': day.currentMonth, 'selected': isSelected(day) }"
-                 @click="selectDay(day)">
-              {{ day.date.format('D') }}
-              <span v-if="hasMeeting(day.date)" class="meeting-marker"></span>
-            </div>
+            <CalendarCell
+              v-for="day in week"
+              :key="day.date"
+              :day="day"
+              :has-meeting="hasMeeting(day.date)"
+              :selected="isSelected(day)"
+              @select="selectDay(day)"
+            />
           </div>
         </div>
       </div>
@@ -29,92 +29,77 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import { useMeetingStore } from '@/stores/meetingStore';
 import CalendarCard from './CalendarCard.vue';
+import CalendarCell from './CalendarCell.vue';
 import dayjs from 'dayjs';
 
-export default {
-  components: { CalendarCard },
-  setup() {
-    const userStore = useUserStore();
-    const currentMonth = ref(dayjs().startOf('month'));
-    const selectedDate = ref(null);
+const userStore = useUserStore();
+const meetingStore = useMeetingStore();
 
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const currentMonth = ref(dayjs().startOf('month'));
+const selectedDate = ref(null);
 
-    const calendarDays = computed(() => {
-      const startOfMonth = currentMonth.value.startOf('month');
-      const endOfMonth = currentMonth.value.endOf('month');
-      const startDate = startOfMonth.startOf('week');
-      const endDate = endOfMonth.endOf('week');
-      
-      const days = [];
-      let date = startDate;
-      
-      while (date.isBefore(endDate, 'day')) {
-        const week = [];
-        for (let i = 0; i < 7; i++) {
-          week.push({
-            date,
-            currentMonth: date.isSame(currentMonth.value, 'month')
-          });
-          date = date.add(1, 'day');
-        }
-        days.push(week);
-      }
-      return days;
-    });
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    const selectedMeetings = computed(() => {
-      if (!selectedDate.value) return [];
-      return userStore.meetings.filter(meeting =>
-        meeting.date === selectedDate.value.format('YYYY-MM-DD')
-      );
-    });
-
-    onMounted(() => {
-      // 백엔드 구축 후 주석 해제
-      // userStore.fetchUserSessions('userId'); // 적절한 userId로 변경하세요.
-    });
-
-    function selectDay(day) {
-      selectedDate.value = day.date;
+const calendarDays = computed(() => {
+  const startOfMonth = currentMonth.value.startOf('month');
+  const endOfMonth = currentMonth.value.endOf('month');
+  const startDate = startOfMonth.startOf('week');
+  const endDate = endOfMonth.endOf('week');
+  
+  const days = [];
+  let date = startDate;
+  
+  while (date.isBefore(endDate, 'day')) {
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      week.push({
+        date: date.clone(),
+        currentMonth: date.isSame(currentMonth.value, 'month')
+      });
+      date = date.add(1, 'day');
     }
-
-    function isSelected(day) {
-      return selectedDate.value && selectedDate.value.isSame(day.date, 'day');
-    }
-
-    function hasMeeting(date) {
-      return userStore.meetings.some(meeting => meeting.date === date.format('YYYY-MM-DD'));
-    }
-
-    function previousMonth() {
-      currentMonth.value = currentMonth.value.subtract(1, 'month');
-    }
-
-    function nextMonth() {
-      currentMonth.value = currentMonth.value.add(1, 'month');
-    }
-
-    return {
-      daysOfWeek,
-      calendarDays,
-      selectedDate,
-      selectedMeetings,
-      selectDay,
-      isSelected,
-      hasMeeting,
-      previousMonth,
-      nextMonth,
-      currentMonth
-    };
+    days.push(week);
   }
-};
-</script>
+  return days;
+});
 
+const selectedMeetings = computed(() => {
+  if (!selectedDate.value || !meetingStore.meetings) return [];
+  return meetingStore.meetings.filter(meeting =>
+    meeting.date === selectedDate.value.format('YYYY-MM-DD')
+  );
+});
+
+onMounted(async () => {
+  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
+  console.log('Meetings:', meetingStore.meetings); // 디버깅용
+});
+
+function selectDay(day) {
+  selectedDate.value = day.date;
+}
+
+function isSelected(day) {
+  return selectedDate.value && selectedDate.value.isSame(day.date, 'day');
+}
+
+function hasMeeting(date) {
+  return meetingStore.meetings && meetingStore.meetings.some(meeting => meeting.date === date.format('YYYY-MM-DD'));
+}
+
+function previousMonth() {
+  currentMonth.value = currentMonth.value.subtract(1, 'month');
+}
+
+function nextMonth() {
+  currentMonth.value = currentMonth.value.add(1, 'month');
+}
+</script>
 <style scoped>
 .cal-container {
   display: flex;
@@ -217,8 +202,4 @@ export default {
   color: #1d252c;
 }
 </style>
-
-
-
-
 

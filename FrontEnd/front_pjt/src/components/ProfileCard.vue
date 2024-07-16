@@ -15,22 +15,28 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import { useMeetingStore } from '@/stores/meetingStore';
+import { useSessionStore } from '@/stores/sessionStore';
 
 const userStore = useUserStore();
+const meetingStore = useMeetingStore();
+const sessionStore = useSessionStore();
 
 const name = ref('박준영'); // 임시 데이터
 const profileImage = ref('https://via.placeholder.com/150'); // 임시 데이터
-const totalMeetingTime = computed(() => {
-  return userStore.meetings.reduce((total, meeting) => total + meeting.duration, 0); // 임시 계산
-});
-const hostedSessions = ref([
-  { id: 1, name: 'Frontend' },
-  { id: 2, name: 'CS Study' }
-]); // 임시 데이터
 
-onMounted(() => {
-  // 사용자 데이터 가져오기 로직 (백엔드 연동 시 사용)
-  // userStore.fetchUserData();
+const totalMeetingTime = computed(() => {
+  return meetingStore.meetings.reduce((total, meeting) => total + (meeting.duration || 0), 0);
+});
+
+const hostedSessions = computed(() => {
+  return sessionStore.sessions.filter(session => session.host === userStore.userId);
+});
+
+onMounted(async () => {
+  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
+  console.log('Meetings:', meetingStore.meetings); // 디버깅용
+  console.log('Sessions:', sessionStore.sessions); // 디버깅용
 });
 </script>
 

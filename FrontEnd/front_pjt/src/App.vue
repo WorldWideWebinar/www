@@ -1,7 +1,6 @@
 <template>
   <div id="app" class="d-flex">
     <aside class="sidebar d-flex flex-column">
-
       <button class="btn btn-add" @click="goingHome">
         <span>🏠</span>
       </button>
@@ -17,7 +16,7 @@
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ready', params: { name: session.name } }" 
+            :to="{ name: 'ReadyView', params: { name: session.name } }" 
             active-class="active"
           >
             <span class="icon">{{ session.icon }}</span>
@@ -47,22 +46,27 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useUserStore } from './stores/userStore';
+import { useSessionStore } from './stores/sessionStore'; // sessionStore import 추가
 import router from './router';
 
 const userStore = useUserStore();
+const sessionStore = useSessionStore(); // sessionStore 사용
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  await userStore.fetchUserSessions('sampleUserId');
+  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
+  console.log('Sessions:', sessionStore.sessions); // 디버깅용
 });
 
-const sessions = userStore.sessions;
+const sessions = computed(() => sessionStore.sessions); // sessionStore에서 sessions 가져오기
 </script>
+
+
 
 <style scoped>
 #app {
