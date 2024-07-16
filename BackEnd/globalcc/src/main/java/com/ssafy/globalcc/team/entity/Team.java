@@ -29,7 +29,7 @@ public class Team {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "owner_id", referencedColumnName = "user_id")
+    @JoinColumn(name = "owner_id", referencedColumnName = "user_id", insertable=false, updatable=false)
     private User owner;
 
     @PreUpdate

@@ -35,11 +35,11 @@ public class Chat {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "sender_id", referencedColumnName = "user_id")
+    @JoinColumn(name = "sender_id", referencedColumnName = "user_id", insertable=false, updatable=false)
     private User sender;
 
     @ManyToOne
-    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    @JoinColumn(name = "team_id", referencedColumnName = "team_id", insertable=false, updatable=false)
     private Team team;
 
     public enum ContentType {

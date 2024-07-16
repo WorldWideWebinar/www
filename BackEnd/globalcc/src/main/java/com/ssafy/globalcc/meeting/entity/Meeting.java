@@ -39,7 +39,7 @@ public class Meeting {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    @JoinColumn(name = "team_id", referencedColumnName = "team_id", insertable=false, updatable=false)
     private Team team;
 
     @PreUpdate
