@@ -5,7 +5,7 @@
     <div class="Main-Explanation">Explanation</div>
     <div class="main-btn">
       <div v-if="!session">
-        <button @click="router.push({name:login})">login</button> <!-- name을 수정-->
+        <button @click="router.push({name:'SignView'})">login</button> <!-- name을 수정-->
       </div>
       <div v-else>
         <button @click="router.push({name:mypage})">mypage</button>  <!-- name을 수정-->
