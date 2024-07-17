@@ -13,14 +13,14 @@
         <font-awesome-icon icon="search" />
       </button>
     </div>
-    <ul v-if="showResults && filteredTeams.length" class="results">
-      <li v-for="team in filteredTeams" :key="team.id" @click="selectTeam(team)">
+    <ul v-if="showTeams && filteredTeams.length" class="results">
+      <li v-for="team in filteredTeams" :key="team.id" @click="searchTeam(team)">
         {{ team.name }}
       </li>
     </ul>
   </div>
-  <div class="results-wrap">
-    <TeamSearchResult v-if="teamInfo" :team="teamInfo" />
+  <div class="results-wrap" v-if="showResults">
+    <TeamSearchResult v-for="team in displayedTeams" :key="team.id" :team="team" />
   </div>
 </template>
 
@@ -32,29 +32,41 @@ import TeamSearchResult from '@/components/TeamSearchResult.vue';
 
 const teamStore = useTeamStore();
 const searchQuery = ref('');
+const showTeams = ref(false);
 const showResults = ref(false);
-const teamInfo = ref(null);
+const selectedTeam = ref(null);
 const router = useRouter();
 
 const filteredTeams = computed(() =>
   teamStore.teams.filter(team => team.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
 );
 
+const displayedTeams = computed(() => {
+  if (selectedTeam.value) {
+    return [selectedTeam.value];
+  } else {
+    return filteredTeams.value;
+  }
+});
+
 const handleInput = () => {
-  showResults.value = searchQuery.value.length > 0;
+  showTeams.value = searchQuery.value.length > 0;
 };
 
 const searchTeams = () => {
-  if (filteredTeams.value.length === 1) {
-    selectTeam(filteredTeams.value[0]);
+  if (filteredTeams.value.length) {
+    selectedTeam.value = null;
+    showResults.value = true;
+    showTeams.value = false
+  } else {
+    showResults.value = false;
   }
 };
 
-const selectTeam = team => {
-  teamInfo.value = team;
-  console.log(teamInfo.value);
-  searchQuery.value = '';
-  showResults.value = false;
+const searchTeam = (team) => {
+  selectedTeam.value = team;
+  showTeams.value = false;
+  showResults.value = true;
 };
 </script>
 
