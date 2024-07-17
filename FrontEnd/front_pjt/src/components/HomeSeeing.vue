@@ -5,16 +5,39 @@
     <div class="Main-Explanation">Explanation</div>
     <div class="main-btn">
       <div v-if="!session">
-        <button @click="router.push({name:login})">login</button> <!-- name을 수정-->
+        <button @click="router.push({name:'SignView'})">login</button> <!-- name을 수정-->
       </div>
       <div v-else>
-        <button @click="router.push({name:mypage})">mypage</button>  <!-- name을 수정-->
+        <button @click="router.push({name:'ProfileView'})">mypage</button>  <!-- name을 수정-->
       </div>
     </div>
     <div class="spacer"></div>
   </div>
-  <div class="lower">
-    <div class="my-meeting">
+  <div class="lower" >
+    <div class="sub-discription carousel my-meeting" v-if="!session">
+      <div class="discription">
+        <p> 1번 설명</p>
+        <br>
+        <p>
+          {{ discriptionContent[0] }}
+        </p>
+      </div>
+      <div class="discription">
+        <p> 2번 설명</p>
+        <br>
+        <p>
+          {{ discriptionContent[1] }}
+        </p>
+      </div>
+      <div class="discription">
+        <p> 3번 설명</p>
+        <br>
+        <p>
+          {{ discriptionContent[2] }}
+        </p>
+      </div>
+    </div>
+    <div class="my-meeting" v-if="session">
       <h2>My Meeting</h2>
       <div class="carousel">
         <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
@@ -64,7 +87,7 @@ let session = ref(!(sessionStorage.getItem('logInInfo') == null));
 
 
 const handleSessionChange = () => {
-  if (sessionStorage.getItem('logInInfo') == null) {
+  if (sessionStorage.getItem('loginInfo') == null) {
     session.value = false;
   } else {
     session.value = true;
@@ -76,6 +99,12 @@ onMounted(() => {
 watch(session, () => {
   
 });
+
+const discriptionContent = ref([
+  '첫 번째 설명 내용입니다. 이 설명은 예시를 위한 것이며, 다양한 정보를 포함할 수 있습니다. 예를 들어, 이 내용에는 사용 방법이나 주요 특징 등이 포함될 수 있습니다. 이를 통해 사용자는 해당 항목에 대해 보다 자세히 이해할 수 있습니다.',
+  '두 번째 설명 내용입니다. 이 설명은 사용자에게 유용한 정보를 제공하는 데 목적이 있습니다. 예를 들어, 이 설명에는 제품의 장점이나 혜택, 사용 시 주의사항 등이 포함될 수 있습니다. 이를 통해 사용자는 제품이나 서비스를 더욱 효과적으로 활용할 수 있습니다.',
+  '세 번째 설명 내용입니다. 이 설명은 다른 내용과의 조화를 이루며 전체적인 이해를 돕습니다. 예를 들어, 이 설명에는 관련된 추가 정보나 참고 자료, FAQ 등이 포함될 수 있습니다. 이를 통해 사용자는 보다 포괄적인 정보를 얻고 궁금증을 해결할 수 있습니다.'
+]);
 
 const carouselContent = ref([
   {
@@ -104,6 +133,19 @@ const carouselContent = ref([
 </script>
 
 <style scoped>
+.discription{
+  width: 30%;
+  min-height: 400px;
+  background-color: #fce9ff;
+  padding : 20px 10px 10px 10px
+}
+
+.sub-discription{
+  display: flex;
+  justify-content: space-around;
+  padding-top: 30px;
+  padding-bottom: 40px
+}
 
 .spacer{
   flex-grow: 1;
@@ -156,7 +198,8 @@ button:hover {
 
 .lower {
   height: 600px;
-  background-color: #FFF;
+  /* background-color: #FFF; */
+  background-color: #FEF7FF;
   padding: 20px;
 }
 
@@ -211,9 +254,10 @@ button:hover {
 
 .carousel-section {
   padding: 10px;
-  background-color: #FEF7FF;
+  background-color: #fce9ff;
   height: 300px;
   width: 400px;
+  border-radius: 30px;
 }
 
 .meeting-details {
