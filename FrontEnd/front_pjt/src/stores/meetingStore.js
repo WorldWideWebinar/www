@@ -15,7 +15,7 @@ export const useMeetingStore = defineStore('meeting', {
           date: dayjs().format('YYYY-MM-DD'),
           host: 'Host 1',
           participants: ['Participant 1', 'Participant 2'],
-          sessionId: 1 // R&D
+          teamId: 1 // R&D
         },
         {
           id: 2,
@@ -23,7 +23,7 @@ export const useMeetingStore = defineStore('meeting', {
           date: dayjs().add(1, 'day').format('YYYY-MM-DD'),
           host: 'Host 2',
           participants: ['Participant 3', 'Participant 4'],
-          sessionId: 2 // Development
+          teamId: 2 // Development
         },
         {
           id: 3,
@@ -31,7 +31,7 @@ export const useMeetingStore = defineStore('meeting', {
           date: dayjs().add(2, 'day').format('YYYY-MM-DD'),
           host: 'Host 3',
           participants: ['Participant 5', 'Participant 6'],
-          sessionId: 3 // Purchase
+          teamId: 3 // Purchase
         },
         {
           id: 4,
@@ -39,7 +39,7 @@ export const useMeetingStore = defineStore('meeting', {
           date: dayjs().add(3, 'day').format('YYYY-MM-DD'),
           host: 'Host 4',
           participants: ['Participant 7', 'Participant 8'],
-          sessionId: 4 // Sales
+          teamId: 4 // Sales
         }
       ];
       console.log('Meetings fetched:', this.meetings); // 디버깅용
@@ -49,8 +49,8 @@ export const useMeetingStore = defineStore('meeting', {
     }
   },
   getters: {
-    getMeetingsBySessionId: (state) => (sessionId) => {
-      return state.meetings.filter(meeting => meeting.sessionId === sessionId);
+    getMeetingsByTeamId: (state) => (teamId) => {
+      return state.meetings.filter(meeting => meeting.teamId === teamId);
     },
   }
 });

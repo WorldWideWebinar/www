@@ -4,7 +4,8 @@ import MeetingList from '@/components/MeetingList.vue'
 import ConferenceView from '@/views/ConferenceView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SignView from '@/views/SignView.vue'
-import SessionFindView from '@/views/SessionFindView.vue'
+import TeamFindView from '@/views/TeamFindView.vue'
+import TeamCreateView from '@/views/TeamCreateView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,9 +33,9 @@ const router = createRouter({
     ]
     },
     {
-      path: '/session/find',
-      name: 'SessionFindView',
-      component: SessionFindView,
+      path: '/team/find',
+      name: 'TeamFindView',
+      component: TeamFindView,
     },
     {
       path: '/:name',

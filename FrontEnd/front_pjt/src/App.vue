@@ -11,16 +11,16 @@
       <ul class="nav flex-column">
         <li 
           class="nav-item" 
-          v-for="session in sessions" 
-          :key="session.id"
+          v-for="team in teams" 
+          :key="team.id"
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ReadyView', params: { name: session.name } }" 
+            :to="{ name: 'ReadyView', params: { name: team.name } }" 
             active-class="active"
           >
-            <span class="icon">{{ session.icon }}</span>
-            <span class="link-text">{{ session.displayName }}</span>
+            <span class="icon">{{ team.icon }}</span>
+            <span class="link-text">{{ team.displayName }}</span>
           </RouterLink>
         </li>
       </ul>
@@ -48,22 +48,22 @@
 import { RouterLink, RouterView } from 'vue-router';
 import { onMounted, computed } from 'vue';
 import { useUserStore } from './stores/userStore';
-import { useSessionStore } from './stores/sessionStore'; // sessionStore import 추가
+import { useTeamStore } from './stores/teamStore';
 import router from './router';
 
 const userStore = useUserStore();
-const sessionStore = useSessionStore(); // sessionStore 사용
+const teamStore = useTeamStore(); // 
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
-  console.log('Sessions:', sessionStore.sessions); // 디버깅용
+  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
+  console.log('Teams:', teamStore.teams); // 디버깅용
 });
 
-const sessions = computed(() => sessionStore.sessions); // sessionStore에서 sessions 가져오기
+const teams = computed(() => teamStore.teams);
 </script>
 
 
@@ -146,7 +146,6 @@ const sessions = computed(() => sessionStore.sessions); // sessionStore에서 se
 
 main {
   flex-grow: 1;
-  padding: 1.5rem;
   background-color: #fff;
   margin-left: 60px;
 }

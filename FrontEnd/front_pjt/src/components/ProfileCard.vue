@@ -6,7 +6,7 @@
       <p>Total Meeting Time: {{ totalMeetingTime }} hours</p>
       <h3>Hosted Sessions</h3>
       <ul>
-        <li v-for="session in hostedSessions" :key="session.id">{{ session.name }}</li>
+        <li v-for="team in hostedTeams" :key="team.id">{{ team.name }}</li>
       </ul>
     </div>
   </div>
@@ -16,11 +16,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
+import { useTeamStore } from '@/stores/teamStore';
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
+const teamStore = useTeamStore();
 
 const name = ref('박준영'); // 임시 데이터
 const profileImage = ref('https://via.placeholder.com/150'); // 임시 데이터

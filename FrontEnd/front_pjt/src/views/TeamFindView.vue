@@ -1,9 +1,9 @@
 <template>
-  <SessionFind />
+  <TeamFind />
 </template>
 
 <script setup>
-import SessionFind from '@/components/SessionFind.vue'
+import TeamFind from '@/components/TeamFind.vue'
 </script>
 
 <style lang="scss" scoped>
