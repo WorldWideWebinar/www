@@ -1,11 +1,9 @@
 <template>
-  <div>
-    검색창
-  </div>
+  <TeamSearch />
 </template>
 
 <script setup>
-
+import TeamSearch from '@/components/TeamSearch.vue'
 </script>
 
 <style scoped>

@@ -6,7 +6,12 @@
       </button>
       <!-- 위에 있는 버튼은 임시로 만들고 수정-->
       <button class="btn btn-add">
-        <span>+</span>
+        <RouterLink
+          class="no-decoration"
+          :to="{ name: 'TeamSearchView'}"
+        >
+          <span>+</span>
+        </RouterLink>
       </button>
       <ul class="nav flex-column">
         <li 
@@ -52,18 +57,15 @@ import { useTeamStore } from './stores/teamStore';
 import router from './router';
 
 const userStore = useUserStore();
-const teamStore = useTeamStore(); // 
+// const teamStore = useTeamStore();
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
-onMounted(async () => {
-  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-  console.log('Teams:', teamStore.teams); // 디버깅용
-});
 
-const teams = computed(() => teamStore.teams);
+
+const teams = computed(() => userStore.teams);
 </script>
 
 
@@ -73,6 +75,11 @@ const teams = computed(() => teamStore.teams);
   display: flex;
   min-height: 100vh;
   background-color: #f5f5f5;
+}
+
+.no-decoration {
+  text-decoration: none;
+  color: inherit;
 }
 
 .sidebar {
@@ -119,7 +126,8 @@ const teams = computed(() => teamStore.teams);
   background-color: #f3e5f5;
 }
 
-.sidebar .nav-link.active {
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
   background-color: #e1bee7;
   color: #6a1b9a;
 }

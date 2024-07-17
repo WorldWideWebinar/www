@@ -32,14 +32,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-import { useMeetingStore } from '@/stores/meetingStore';
 import CalendarCard from './CalendarCard.vue';
 import CalendarCell from './CalendarCell.vue';
 import dayjs from 'dayjs';
 
 const userStore = useUserStore();
-const meetingStore = useMeetingStore();
-
 const currentMonth = ref(dayjs().startOf('month'));
 const selectedDate = ref(null);
 
@@ -69,15 +66,15 @@ const calendarDays = computed(() => {
 });
 
 const selectedMeetings = computed(() => {
-  if (!selectedDate.value || !meetingStore.meetings) return [];
-  return meetingStore.meetings.filter(meeting =>
+  if (!selectedDate.value || !userStore.meetings) return [];
+  return userStore.meetings.filter(meeting =>
     meeting.date === selectedDate.value.format('YYYY-MM-DD')
   );
 });
 
 onMounted(async () => {
-  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
-  console.log('Meetings:', meetingStore.meetings); // 디버깅용
+  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
+  console.log('Meetings:', userStore.meetings); // 디버깅용
 });
 
 function selectDay(day) {
@@ -89,7 +86,7 @@ function isSelected(day) {
 }
 
 function hasMeeting(date) {
-  return meetingStore.meetings && meetingStore.meetings.some(meeting => meeting.date === date.format('YYYY-MM-DD'));
+  return userStore.meetings && userStore.meetings.some(meeting => meeting.date === date.format('YYYY-MM-DD'));
 }
 
 function previousMonth() {

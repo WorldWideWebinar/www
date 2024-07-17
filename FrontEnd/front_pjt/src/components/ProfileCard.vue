@@ -4,7 +4,7 @@
       <img :src="profileImage" alt="Profile Image" class="profile-image" />
       <h2>{{ name }}</h2>
       <p>Total Meeting Time: {{ totalMeetingTime }} hours</p>
-      <h3>Hosted Sessions</h3>
+      <h3>Hosted Teams</h3>
       <ul>
         <li v-for="team in hostedTeams" :key="team.id">{{ team.name }}</li>
       </ul>
@@ -16,11 +16,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useTeamStore } from '@/stores/teamStore';
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const teamStore = useTeamStore();
 
 const name = ref('박준영'); // 임시 데이터
 const profileImage = ref('https://via.placeholder.com/150'); // 임시 데이터
@@ -29,15 +27,10 @@ const totalMeetingTime = computed(() => {
   return meetingStore.meetings.reduce((total, meeting) => total + (meeting.duration || 0), 0);
 });
 
-const hostedSessions = computed(() => {
-  return sessionStore.sessions.filter(session => session.host === userStore.userId);
+const hostedTeams = computed(() => {
+  return userStore.teams.filter(team => team.host === userStore.userId);
 });
 
-onMounted(async () => {
-  await userStore.fetchUserSessionsAndMeetings(userStore.userId);
-  console.log('Meetings:', meetingStore.meetings); // 디버깅용
-  console.log('Sessions:', sessionStore.sessions); // 디버깅용
-});
 </script>
 
 <style scoped>

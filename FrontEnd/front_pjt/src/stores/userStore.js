@@ -4,7 +4,7 @@ import { useMeetingStore } from './meetingStore';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 'sampleUserId',
+    userId: 1,
     teams: [],
     meetings: [],
   }),
@@ -17,6 +17,9 @@ export const useUserStore = defineStore('user', {
 
       await teamStore.fetchUserTeams(userId);
       await meetingStore.fetchAllMeetingsByUser(userId);
+
+      this.teams = teamStore.teams;
+      this.meetings = meetingStore.meetings;
     },
   }
 });
