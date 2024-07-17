@@ -65,6 +65,7 @@ const searchTeams = () => {
 
 const searchTeam = (team) => {
   selectedTeam.value = team;
+  searchQuery.value = team.name
   showTeams.value = false;
   showResults.value = true;
 };
