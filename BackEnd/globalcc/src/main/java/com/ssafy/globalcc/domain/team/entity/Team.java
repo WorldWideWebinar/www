@@ -1,6 +1,6 @@
-package com.ssafy.globalcc.team.entity;
+package com.ssafy.globalcc.domain.team.entity;
 
-import com.ssafy.globalcc.user.entity.User;
+import com.ssafy.globalcc.domain.user.entity.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;

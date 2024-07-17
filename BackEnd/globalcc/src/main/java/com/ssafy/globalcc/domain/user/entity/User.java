@@ -1,4 +1,4 @@
-package com.ssafy.globalcc.user.entity;
+package com.ssafy.globalcc.domain.user.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

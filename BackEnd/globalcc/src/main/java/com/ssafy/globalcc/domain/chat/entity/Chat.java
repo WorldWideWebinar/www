@@ -1,7 +1,7 @@
-package com.ssafy.globalcc.chat.entity;
+package com.ssafy.globalcc.domain.chat.entity;
 
-import com.ssafy.globalcc.team.entity.Team;
-import com.ssafy.globalcc.user.entity.User;
+import com.ssafy.globalcc.domain.team.entity.Team;
+import com.ssafy.globalcc.domain.user.entity.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
