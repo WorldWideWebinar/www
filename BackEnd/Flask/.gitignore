@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,flask,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,flask,venv
 
+.venv
+
+
 ### Flask ###
 instance/*
 !instance/.gitignore
@@ -271,4 +274,26 @@ pyrightconfig.json
 pyvenv.cfg
 pip-selfcheck.json
 
-# End of https://www.toptal.com/developers/gitignore/api/python,flask,venv
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# model by ctranslate2 
+nllb-200-distilled-600M/
+
+# End of https://www.toptal.com/developers/gitignore/api/python,flask,venv,VSCode
