@@ -32,7 +32,7 @@
         </div>
         <div class="translation-container">
           <div class="translation-section original">
-            <h5>원문</h5>
+            <h5>Original Version</h5>
             <div class="translation-content">
               <div class="message-group">
                 <div class="speaker-info">
@@ -55,7 +55,7 @@
             </div>
           </div>
           <div class="translation-section">
-            <h5>번역 <span class="language-icon">🌐 한국어</span></h5>
+            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
             <div class="translation-content">
               <div class="message-group">
                 <div class="speaker-info">

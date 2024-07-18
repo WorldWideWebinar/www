@@ -19,10 +19,10 @@
                 </div>
                 <div class="notice-middle">
                   <p>{{ todayMeeting.time }}</p>
-                  <p class="before-dropdown" @click="toggleSelectedMeetingMembersList">{{ selectedMeeting ? selectedMeeting.members : 'No meeting selected' }} members joined!</p>
-                    <ul v-show="showSelectedMeetingMembersList" class="notice-dropdown dropdown">
-                      <li v-for="member in selectedMeetingMembers" :key="member.name">{{ member.name }}</li>
-                    </ul>
+                  <p class="before-dropdown" @click="toggleTodayMembersList">{{ todayMeeting.members }} members joined!</p>
+                  <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
+                    <li v-for="member in todayMeetingMembers" :key="member.name">{{ member.name }}</li>
+                  </ul>
                 </div>
                 <div class="notice-right">
                   <button @click="joinConference" class="join-button">
@@ -73,31 +73,62 @@
           <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
           <button class="add-meeting-btn">+</button>
         </div>
+        <ul class="nav nav-tabs">
+          <li class="nav-item" @click="activeTab = 'PREV'">
+            <a :class="{'nav-link': true, active: activeTab === 'PREV'}" aria-current="page" href="#">PREV</a>
+          </li>
+          <li class="nav-item" @click="activeTab = 'TODAY'">
+            <a :class="{'nav-link': true, active: activeTab === 'TODAY'}" aria-current="page" href="#">TODAY</a>
+          </li>
+          <li class="nav-item" @click="activeTab = 'NEXT'">
+            <a :class="{'nav-link': true, active: activeTab === 'NEXT'}" aria-current="page" href="#">NEXT</a>
+          </li>
+        </ul>
+
         <table class="meeting-list">
           <thead>
             <tr>
-              <th>TYPE</th>
               <th>DATE</th>
+              <th>TIME</th>
               <th>AGENDA</th>
               <th>JOIN</th>
             </tr>
           </thead>
           <tbody>
-            <template v-for="(group, type) in groupedMeetings">
-              <tr v-for="(meeting, index) in group" :key="meeting.date">
-                <template v-if="index === 0">
-                  <td :rowspan="group.length">{{ type }}</td>
-                </template>
+            <template v-if="activeTab === 'PREV'">
+              <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
                 <td>{{ meeting.date }}</td>
+                <td>{{ meeting.time }}</td>
                 <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
                 <td>
-                  <button :class="buttonClass(type, meeting.status)" @click="toggleStatus(meeting, type)">{{ buttonText(type, meeting.status) }}</button>
+                  <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('PREV', meeting.status) }}</button>
+                </td>
+              </tr>
+            </template>
+            <template v-if="activeTab === 'TODAY'">
+              <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
+                <td>{{ meeting.date }}</td>
+                <td>{{ meeting.time }}</td>
+                <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                <td>
+                  <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('TODAY', meeting.status) }}</button>
+                </td>
+              </tr>
+            </template>
+            <template v-if="activeTab === 'NEXT'">
+              <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
+                <td>{{ meeting.date }}</td>
+                <td>{{ meeting.time }}</td>
+                <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                <td>
+                  <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('NEXT', meeting.status) }}</button>
                 </td>
               </tr>
             </template>
           </tbody>
         </table>
       </section>
+
       <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
         <template v-if="selectedMeeting">
           <div class="meeting-detail-header">
@@ -169,7 +200,8 @@ export default {
       selectedMeeting: null,
       detailType: '',
       showMembersList: false, // 멤버 목록 표시 여부
-      showSelectedMeetingMembersList: false, // 선택된 미팅 멤버 목록 표시 여부
+      showTodayMembersList: false, // 오늘 미팅 멤버 목록 표시 여부
+      todayMeetingMembers: [], // 오늘 미팅 멤버 목록
       selectedMeetingMembers: [],
       members: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
@@ -185,7 +217,7 @@ export default {
           agenda: '뱅킹 서비스',
           status: 'IN',
           description: 'Detailed description of 뱅킹 서비스',
-          time: '14PM-16PM',
+          time: '8AM-10AM',
           members: 8,
           files: [
             { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
@@ -197,16 +229,16 @@ export default {
           agenda: '인스타그램',
           status: 'OUT',
           description: 'Detailed description of 인스타그램',
-          time: '14PM-16PM',
+          time: '11AM-13PM',
           members: 5,
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-17',
+          date: '2024-07-18',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
-          time: '14PM-16PM',
+          time: '15PM-17PM',
           members: 8,
           files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
         },
@@ -224,7 +256,7 @@ export default {
           agenda: 'AI 요약',
           status: 'OUT',
           description: 'Detailed description of AI 요약',
-          time: '14PM-16PM',
+          time: '17PM-18PM',
           members: 4,
           files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }]
         },
@@ -233,7 +265,7 @@ export default {
           agenda: 'STT',
           status: 'IN',
           description: 'Detailed description of STT',
-          time: '14PM-16PM',
+          time: '20PM-22PM',
           members: 7,
           files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }]
         }
@@ -329,8 +361,11 @@ export default {
     showMemberList() {
       this.showMembersList = !this.showMembersList;
     },
-    toggleSelectedMeetingMembersList() {
-      this.showSelectedMeetingMembersList = !this.showSelectedMeetingMembersList;
+    toggleTodayMembersList() {
+      this.showTodayMembersList = !this.showTodayMembersList;
+      if (this.todayMeeting) {
+        this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members);
+      }
     },
   },
   watch: {
@@ -342,6 +377,7 @@ export default {
   }
 }
 </script>
+
 
 
 <style scoped>
@@ -594,15 +630,15 @@ export default {
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 2rem;
 }
 
 .meeting-detail-section {
-  flex: 1.05;
+  flex: 1.07;
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-left: 1rem;
   width: calc(100% - (1.3 * 4rem + 1rem)); /* member-section과 chat-section을 합친 가로 길이 */
 }
 
@@ -633,12 +669,12 @@ export default {
 
 .meeting-list th:nth-child(2),
 .meeting-list td:nth-child(2) {
-  width: 20%; /* DATE 열 너비 */
+  width: 15%; /* DATE 열 너비 */
 }
 
 .meeting-list th:nth-child(3),
 .meeting-list td:nth-child(3) {
-  width: 50%; /* AGENDA 열 너비 */
+  width: auto; /* AGENDA 열 너비 */
 }
 
 
@@ -752,13 +788,6 @@ button {
   text-decoration: underline;
 }
 
-.member-list-section {
-  background-color: #ffffff;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 1rem;
-}
 
 /* dropdown 공통 스타일 */
 .before-dropdown {
