@@ -41,6 +41,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.3'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// openvidu
+	implementation group: 'io.openvidu', name: 'openvidu-java-client', version: '2.25.0'
 }
 
 tasks.named('test') {

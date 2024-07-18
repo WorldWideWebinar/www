@@ -19,6 +19,6 @@ public class MeetingSTT {
     @JoinColumn(name = "meeting_id", referencedColumnName = "meeting_id")
     private Meeting meeting;
 
-    @Column(name = "content", columnDefinition = "VARCHAR")
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 }
