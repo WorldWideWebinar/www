@@ -35,6 +35,9 @@ public class Meeting {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "session_id")
+    private String sessionId;
+
     @ManyToOne
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
     private Team teamId;
