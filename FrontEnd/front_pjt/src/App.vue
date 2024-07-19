@@ -63,7 +63,10 @@ const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
-
+onMounted(async () => {
+  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
+  console.log('Teams:', userStore.teams); // 디버깅용
+});
 
 const teams = computed(() => userStore.teams);
 </script>
