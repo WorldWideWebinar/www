@@ -149,6 +149,7 @@ class ServerProcessor:
                 break
             self.online_asr_proc.insert_audio_chunk(a)
             o = online.process_iter()
+            
             try:
                 self.send_result(o)
             except BrokenPipeError:
@@ -162,9 +163,10 @@ class ServerProcessor:
 
 # server loop
 
+
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((args.host, args.port))
-    s.listen(1)
+    s.listen(2)
     logger.info('Listening on'+str((args.host, args.port)))
     while True:
         conn, addr = s.accept()
@@ -175,3 +177,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         conn.close()
         logger.info('Connection to client closed')
 logger.info('Connection closed, terminating.')
+
+
+from fastapi import FastAPI,WebSocket,WebSocketDisconnect
+
+app = FastAPI()
+@app.websocket("/stream/{src_lang}/{tgt_lang}")
+async def stream_data(src_lang : str, tgt_lang: str, websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            
+            break
+    except:
+        await websocket.close()
