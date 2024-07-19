@@ -71,8 +71,6 @@ onMounted(async () => {
 const teams = computed(() => userStore.teams);
 </script>
 
-
-
 <style scoped>
 #app {
   display: flex;
