@@ -66,6 +66,7 @@ const goingHome = () => {
 onMounted(async () => {
   await userStore.fetchUserTeamsAndMeetings(userStore.userId);
   console.log('Teams:', userStore.teams); // 디버깅용
+  await userStore.fetchAllUsers() 
 });
 
 const teams = computed(() => userStore.teams);

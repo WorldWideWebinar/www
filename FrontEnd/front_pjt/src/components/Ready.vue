@@ -71,7 +71,9 @@
       <section class="meeting-list-section">
         <div class="meeting-header">
           <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
-          <button class="add-meeting-btn">+</button>
+          <button class="add-meeting-btn" >
+              +
+          </button>
         </div>
         <ul class="nav nav-tabs">
           <li class="nav-item" @click="activeTab = 'PREV'">

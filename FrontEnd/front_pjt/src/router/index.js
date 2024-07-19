@@ -6,6 +6,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import SignView from '@/views/SignView.vue'
 import TeamSearchView from '@/views/TeamSearchView.vue'
 import TeamCreateView from '@/views/TeamCreateView.vue'
+import MeetingCreateView from '@/views/MeetingCreateView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +15,11 @@ const router = createRouter({
       path: '/',
       name: 'HomeView',
       component: HomeView
+    },
+    {
+      path: '/meeting',
+      name: 'MeetingCreateView',
+      component: MeetingCreateView,
     },
     {
       path: '/accounts',
@@ -54,9 +60,11 @@ const router = createRouter({
               path: 'conference',
               name: 'ConferenceView',
               component: ConferenceView
-            }
+            },
+            
           ]
         },
+
       ],
     },
 
