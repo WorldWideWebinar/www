@@ -1,12 +1,10 @@
 <template>
   <div v-if="!inConference" class="ready-page-container">
-    <div class="top-and-chat">
+    <header class="header">
+      <h3>Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</h3>
+    </header>
+    <div class="sub-container">
       <div class="top-section">
-        <header class="header">
-          <h3>
-            Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
-          </h3>
-        </header>
         <div class="notice-and-member">
           <section class="notice-section">
             <div class="notice-header">
@@ -26,7 +24,7 @@
                 </div>
                 <div class="notice-right">
                   <button @click="joinConference" class="join-button">
-                    <span>▶ GO!</span>
+                    <img class="play-button" src="../assets/img/playbutton.png" alt="play">
                   </button>
                 </div>
               </div>
@@ -37,7 +35,7 @@
           </section>
           <section class="member-section">
             <div class="member-header">
-              <h5 style="font-weight: bolder">👤 Member</h5>
+              <h5 style="font-weight: bolder">👤</h5>
               <span>{{ members.length }}</span>
             </div>
             <div class="members">
@@ -50,146 +48,132 @@
           </section>
         </div>
       </div>
-      <aside class="chat-section">
-        <h5 style="font-weight: bolder">🔈 Chat</h5>
-        <div class="chat-content">
-          <div class="chat-message" v-for="message in messages" :key="message.id">
-            <img :src="message.avatar" :alt="message.sender" />
-            <div>
-              <p>{{ message.sender }}</p>
-              <p>{{ message.text }}</p>
+      <main class="main-section">
+        <section class="meeting-list-section">
+          <div class="meeting-header">
+            <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
+            <button class="add-meeting-btn">+</button>
+          </div>
+          <ul class="nav nav-tabs">
+            <li class="nav-item" @click="activeTab = 'PREV'">
+              <a :class="{'nav-link': true, active: activeTab === 'PREV'}" aria-current="page" href="#">PREV</a>
+            </li>
+            <li class="nav-item" @click="activeTab = 'TODAY'">
+              <a :class="{'nav-link': true, active: activeTab === 'TODAY'}" aria-current="page" href="#">TODAY</a>
+            </li>
+            <li class="nav-item" @click="activeTab = 'NEXT'">
+              <a :class="{'nav-link': true, active: activeTab === 'NEXT'}" aria-current="page" href="#">NEXT</a>
+            </li>
+          </ul>
+
+          <table class="meeting-list">
+            <thead>
+              <tr>
+                <th>DATE</th>
+                <th>TIME</th>
+                <th>AGENDA</th>
+                <th>JOIN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-if="activeTab === 'PREV'">
+                <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
+                  <td>{{ meeting.date }}</td>
+                  <td>{{ meeting.time }}</td>
+                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td>
+                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('PREV', meeting.status) }}</button>
+                  </td>
+                </tr>
+              </template>
+              <template v-if="activeTab === 'TODAY'">
+                <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
+                  <td>{{ meeting.date }}</td>
+                  <td>{{ meeting.time }}</td>
+                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td>
+                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('TODAY', meeting.status) }}</button>
+                  </td>
+                </tr>
+              </template>
+              <template v-if="activeTab === 'NEXT'">
+                <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
+                  <td>{{ meeting.date }}</td>
+                  <td>{{ meeting.time }}</td>
+                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td>
+                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('NEXT', meeting.status) }}</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </section>
+
+        <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
+          <template v-if="selectedMeeting">
+            <div class="meeting-detail-header">
+              <h5 style="font-weight: bolder; color: blueviolet; margin: 0 auto;">{{ selectedMeeting?.agenda }}</h5>
+              <button @click="closeMeetingDetails">X</button>
             </div>
-          </div>
-        </div>
-        <div class="chat-input">
-          <input type="text" placeholder="메시지를 입력하세요" />
-          <button>보내기</button>
-        </div>
-      </aside>
-    </div>
-    <main class="main-section">
-      <section class="meeting-list-section">
-        <div class="meeting-header">
-          <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
-          <button class="add-meeting-btn">+</button>
-        </div>
-        <ul class="nav nav-tabs">
-          <li class="nav-item" @click="activeTab = 'PREV'">
-            <a :class="{'nav-link': true, active: activeTab === 'PREV'}" aria-current="page" href="#">PREV</a>
-          </li>
-          <li class="nav-item" @click="activeTab = 'TODAY'">
-            <a :class="{'nav-link': true, active: activeTab === 'TODAY'}" aria-current="page" href="#">TODAY</a>
-          </li>
-          <li class="nav-item" @click="activeTab = 'NEXT'">
-            <a :class="{'nav-link': true, active: activeTab === 'NEXT'}" aria-current="page" href="#">NEXT</a>
-          </li>
-        </ul>
-
-        <table class="meeting-list">
-          <thead>
-            <tr>
-              <th>DATE</th>
-              <th>TIME</th>
-              <th>AGENDA</th>
-              <th>JOIN</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template v-if="activeTab === 'PREV'">
-              <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
-                <td>{{ meeting.date }}</td>
-                <td>{{ meeting.time }}</td>
-                <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
-                <td>
-                  <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('PREV', meeting.status) }}</button>
-                </td>
-              </tr>
-            </template>
-            <template v-if="activeTab === 'TODAY'">
-              <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
-                <td>{{ meeting.date }}</td>
-                <td>{{ meeting.time }}</td>
-                <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
-                <td>
-                  <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('TODAY', meeting.status) }}</button>
-                </td>
-              </tr>
-            </template>
-            <template v-if="activeTab === 'NEXT'">
-              <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
-                <td>{{ meeting.date }}</td>
-                <td>{{ meeting.time }}</td>
-                <td class="agenda" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
-                <td>
-                  <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('NEXT', meeting.status) }}</button>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </section>
-
-      <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
-        <template v-if="selectedMeeting">
-          <div class="meeting-detail-header">
-            <h5 style="font-weight: bolder; color: blueviolet">{{ selectedMeeting?.agenda }}</h5>
-            <button @click="closeMeetingDetails">X</button>
-          </div>
-          <div class="meeting-detail-content">
-            <table class="meeting-detail-table">
-              <tr>
-                <td><strong>Date</strong></td>
-                <td>{{ selectedMeeting?.date }}</td>
-              </tr>
-              <tr>
-                <td><strong>Time</strong></td>
-                <td>{{ selectedMeeting?.time }}</td>
-              </tr>
-              <tr>
-                <td><strong>Status</strong></td>
-                <td>
-                  <button :class="buttonClass(detailType, selectedMeeting?.status)" @click="toggleDetailStatus(selectedMeeting)">
-                    {{ buttonText(detailType, selectedMeeting?.status) }}
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Members</strong></td>
-                <td class="show-member before-dropdown" @click="showMemberList">
-                  {{ selectedMeeting?.members }} members joined!
-                  <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                    <li v-for="member in selectedMeetingMembers" :key="member.name">{{ member.name }}</li>
-                  </ul>
-                </td>
-              </tr>
-            </table>
-            <table class="files-section">
-              <thead>
+            <div class="meeting-detail-content">
+              <table class="meeting-detail-table">
                 <tr>
-                  <th colspan="2">
-                    <div>
-                      <a href="#" class="file-link">AI_summary</a>
-                      <a href="#" class="file-link">AI_record</a>
-                    </div>
-                  </th>
+                  <td><strong>Date</strong></td>
+                  <td>{{ selectedMeeting?.date }}</td>
                 </tr>
-              </thead>
-              <tbody>
-                <tr v-for="file in selectedMeeting?.files" :key="file.name">
-                  <td><a :href="file.link" download>{{ file.name }}</a></td>
-                  <td>uploaded by {{ file.uploader }}</td>
+                <tr>
+                  <td><strong>Time</strong></td>
+                  <td>{{ selectedMeeting?.time }}</td>
                 </tr>
-              </tbody>
-            </table>
-            <a href="#" class="more-files-link">> more files</a>
-          </div>
-        </template>
-      </section>
-      
-    </main>
+                <tr>
+                  <td><strong>Status</strong></td>
+                  <td>
+                    <button :class="buttonClass(detailType, selectedMeeting?.status)" @click="toggleDetailStatus(selectedMeeting)">
+                      {{ buttonText(detailType, selectedMeeting?.status) }}
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Members</strong></td>
+                  <td class="show-member before-dropdown" @click="showMemberList">
+                    {{ selectedMeeting?.members }} members joined!
+                    <ul v-show="showMembersList" class="detail-dropdown dropdown">
+                      <li v-for="member in selectedMeetingMembers" :key="member.name">{{ member.name }}</li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Files</strong></td>
+                  <td class="before-dropdown" @click="toggleFilesList">
+                    {{ selectedMeeting?.files.length }} files uploaded
+                    <ul v-show="showFilesList" class="detail-dropdown dropdown">
+                      <li v-for="file in selectedMeeting?.files" :key="file.name">
+                        <a :href="file.link" download>{{ file.name }}</a> uploaded by {{ file.uploader }}
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+              <div class="dash-separator"></div>
+              <table class="files-section">
+                <thead>
+                  <tr>
+                    <td><a href="#" class="file-link">AI_summary</a></td>
+                    <td><a href="#" class="file-link">AI_record</a></td>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </template>
+        </section>
+      </main>
+    </div>
   </div>
   <router-view v-else></router-view>
 </template>
+
+
 
 <script>
 export default {
@@ -201,8 +185,10 @@ export default {
       detailType: '',
       showMembersList: false, // 멤버 목록 표시 여부
       showTodayMembersList: false, // 오늘 미팅 멤버 목록 표시 여부
+      showFilesList: false, // 파일 목록 표시 여부
       todayMeetingMembers: [], // 오늘 미팅 멤버 목록
       selectedMeetingMembers: [],
+      activeTab: 'TODAY', // 초기 활성화 탭 설정
       members: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
         { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
@@ -234,7 +220,7 @@ export default {
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-18',
+          date: '2024-07-19',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
@@ -324,11 +310,13 @@ export default {
       this.detailType = this.computeDetailType(meeting.date);
       this.selectedMeetingMembers = this.members.slice(0, meeting.members);
       this.showMembersList = false; // 초기에는 멤버 목록을 숨김
+      this.showFilesList = false; // 초기에는 파일 목록을 숨김
     },
     closeMeetingDetails() {
       this.selectedMeeting = null;
       this.selectedMeetingMembers = [];
       this.showMembersList = false;
+      this.showFilesList = false;
     },
     toggleStatus(meeting) {
       meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
@@ -342,14 +330,11 @@ export default {
       } else if (type === 'PREV') {
         return 'btn-gray';
       } else if (type === 'TODAY') {
-        return status === 'IN' ? 'btn-play' : 'btn-red';
+        return status === 'IN' ? 'btn-green' : 'btn-red';
       }
       return '';
     },
     buttonText(type, status) {
-      if (type === 'TODAY' && status === 'IN') {
-        return '▶ GO!';
-      }
       return status;
     },
     computeDetailType(date) {
@@ -367,11 +352,28 @@ export default {
         this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members);
       }
     },
+    selectLatestTodayMeeting() {
+      const todayMeetings = this.groupedMeetings.TODAY;
+      if (todayMeetings.length > 0) {
+        this.selectMeeting(todayMeetings[0]);
+      }
+    },
+    toggleFilesList() {
+      this.showFilesList = !this.showFilesList;
+    }
+  },
+  mounted() {
+    this.selectLatestTodayMeeting(); // 페이지 로드 시 최신 today 회의 선택
   },
   watch: {
     $route(to, from) {
       if (to.name === 'rnd' && from.name === 'ConferenceView') {
         this.inConference = false
+      }
+    },
+    activeTab(newTab) {
+      if (newTab === 'TODAY') {
+        this.selectLatestTodayMeeting();
       }
     }
   }
@@ -380,44 +382,46 @@ export default {
 
 
 
+
 <style scoped>
 .ready-page-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #f5f5f5;
+  min-height: 110vh;
   padding: 1rem;
-}
-
-.top-and-chat {
-  display: flex;
-  justify-content: space-between;
-  height: auto;
-}
-
-.top-section {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
+  box-sizing: border-box;
+  background-color: #fcf9fc;
 }
 
 .header {
   text-align: center;
-  padding: 0.5rem 0 0.5rem 0;
-  /* background-color: #ffffff; */
+  padding: 1rem;
 }
 
 .highlight {
   color: blueviolet;
 }
 
+.sub-container {
+  width: 80%;
+  margin: 0 auto; 
+}
+
+.top-section {
+  display: flex;
+  justify-content: space-between;
+  height: auto;
+  flex-direction: column;
+  padding: 1rem;
+}
+
 /* notice-and-member */
 .notice-and-member {
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
-  gap: 1rem;
+  gap: 2rem;
   width: 100%;
+  border-radius: 8px 8px 0 0;
 }
 
 .notice-section {
@@ -425,15 +429,13 @@ export default {
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .member-section {
-  flex: 1.3;
+  flex: 1.5;
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
 }
@@ -445,7 +447,6 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  /* font-weight: bold; */
 }
 
 .notice-header h5 .icon {
@@ -512,23 +513,24 @@ export default {
 
 .notice-right button {
   display: flex;
-  /* flex-direction: column; GO! 가로 배치*/
   align-items: center;
   justify-content: center;
-  background-color: #e1bee7;
   border: none;
   border-radius: 50%;
   padding: 0.5rem;
   cursor: pointer;
   font-size: 1rem;
-  border-radius: 8px;
+  border-radius: 100px;
+  background-color: none;
 }
 
 .notice-right {
   font-size: 1.2rem;
   padding: 5px;
-  /* margin-right: 0.5rem; */
-  /* margin-bottom: 0.5rem; */
+}
+
+.play-button {
+  width: 50px;
 }
 
 /* member */
@@ -576,70 +578,31 @@ export default {
   margin: 0 auto;
 }
 
-/* chat */
-.chat-section {
-  flex: 1;
-  margin-left: 1rem;
-  background-color: #ffffff;
-  padding: 1rem 1rem 0 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.chat-content {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-}
-
-.chat-message {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 0;
-}
-
-.chat-message img {
-  border-radius: 50%;
-  margin-right: 0.5rem;
-}
-
-.chat-input {
-  display: flex;
-  align-items: center;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-right: 0.5rem;
-}
-
 /* main-section */
 .main-section {
   display: flex;
-  padding: 1rem 0 1rem 1rem;
+  padding: 1rem;
   justify-content: space-between;
   width: 100%;
+  gap: 2rem;
+  box-sizing: border-box;
+  height: 420px;
 }
 
 .meeting-list-section {
-  flex: 3;
+  flex: 4;
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-right: 2rem;
+  box-sizing: border-box;
 }
 
 .meeting-detail-section {
-  flex: 1.07;
+  flex: 1.5;
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: calc(100% - (1.3 * 4rem + 1rem)); /* member-section과 chat-section을 합친 가로 길이 */
+  box-sizing: border-box;
 }
 
 /* meeting-list */
@@ -650,9 +613,28 @@ export default {
   margin-bottom: 1rem;
 }
 
+ul.nav-tabs .nav-item .nav-link {
+  color: black;
+}
+
+ul.nav-tabs .nav-item .nav-link:hover,
+ul.nav-tabs .nav-item .nav-link.active {
+  font-weight: bolder;
+}
+
+ul.nav {
+  width: 100%;
+}
+
+ul.nav li {
+  width: 33.33%;
+  text-align: center;
+}
+
 .meeting-list {
   width: 100%;
   border-collapse: collapse;
+  margin: 20px 0 0 0;
 }
 
 .meeting-list th,
@@ -664,81 +646,84 @@ export default {
 
 .meeting-list th:nth-child(1),
 .meeting-list td:nth-child(1) {
-  width: 15%; /* TYPE 열 너비 */
+  width: 20%;
 }
 
 .meeting-list th:nth-child(2),
 .meeting-list td:nth-child(2) {
-  width: 15%; /* DATE 열 너비 */
+  width: 20%;
 }
 
 .meeting-list th:nth-child(3),
 .meeting-list td:nth-child(3) {
-  width: auto; /* AGENDA 열 너비 */
+  width: auto;
 }
-
 
 .meeting-list th:nth-child(4),
 .meeting-list td:nth-child(4) {
-  width: 15%; /* JOIN 열 너비 */
+  width: 20%;
 }
 
-.meeting-list td:nth-child(3):hover,
 .meeting-list td:nth-child(4):hover,
-.meeting-list td:nth-child(3):hover *,
 .meeting-list td:nth-child(4):hover *,
 .meeting-list td.agenda:hover {
   font-weight: bolder;
   cursor: pointer;
 }
 
+.meeting-list td:nth-child(3):hover,
+.meeting-list td:nth-child(3):hover *,
+.meeting-list td.agenda:hover {
+  font-weight: bolder;
+  color: blueviolet;
+  cursor: pointer;
+}
 
+.bold-agenda {
+  font-weight: bolder !important;
+  color: blueviolet;
+}
 
-/* additional styling */
 .meeting-list th {
   background-color: #f5f5f5;
   font-weight: bold;
 }
 
-.meeting-list td button {
+td button {
   border: none;
-  border-radius: 8px;
-  width: 80px;
-  padding: 5px 10px;
+  border-radius: 50px;
+  width: 60px;
+  padding: 5px;
   cursor: pointer;
   text-align: center;
 }
 
 button {
   border: none;
-  border-radius: 8px;
-  width: 80px;
-  padding: 5px 10px;
   cursor: pointer;
   text-align: center;
 }
 
 .btn-green {
-  background-color: rgba(139, 195, 74, 0.5); /* 초록색 배경을 흐리게 */
+  background-color: rgba(139, 195, 74, 0.5);
   color: black;
 }
 
 .btn-red {
-  background-color: rgba(244, 67, 54, 0.5); /* 빨간색 배경을 흐리게 */
+  background-color: rgba(244, 67, 54, 0.5);
   color: black;
 }
 
 .btn-gray {
-  background-color: rgba(108, 117, 125, 0.5); /* 회색 배경을 흐리게 */
+  background-color: rgba(108, 117, 125, 0.5);
   color: black;
 }
 
 .btn-play {
-  /* background-color: rgba(225, 190, 231, 0.5); 보라색 배경을 흐리게 */
   background-color: rgba(225, 190, 231, 1);
   padding: 5px;
   border-radius: 50%;
-  border: 2px dashed black; /* dashed border 추가 */
+  border: 2px dashed black;
 }
 
 /* detail */
@@ -753,31 +738,32 @@ button {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
+  font-size: medium;
 }
 
 .meeting-detail-table td {
-  padding: 0.5rem;
-  /* border: 1px solid #ddd; */
+  padding: 0.3rem 0.5rem;
+  font-size: medium
 }
 
 .files-section {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  border-top: 2px dashed #ccc;
+  /* border-top: 2px dashed #ccc; */
   padding-top: 1rem;
 }
 
 .files-section th,
 .files-section td {
   padding: 0.5rem;
-  /* border: 1px solid #ddd; */
 }
 
 .file-link {
   display: inline-block;
-  margin-right: 1rem;
-  color: #28a745;
+  color: blueviolet;
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .more-files-link {
@@ -788,10 +774,15 @@ button {
   text-decoration: underline;
 }
 
+.dash-separator {
+  border-top: 2px dashed #ccc;
+  margin: 1rem 0;
+}
 
 /* dropdown 공통 스타일 */
 .before-dropdown {
   text-decoration: underline;
+  font-size: medium;
 }
 
 .dropdown {
@@ -817,28 +808,25 @@ button {
   background: #f5f5f5;
 }
 
-/* notice-dropdown 특정 스타일 */
 .notice-dropdown {
   width: 150px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* details-dropdown 특정 스타일 */
 .details-dropdown {
   width: 150px;
 }
 
-
-
-
 .add-member-btn,
 .add-meeting-btn,
 .chat-input button {
-  background-color: #f8bbd0;
+  background-color: #808080;
   border: none;
   border-radius: 8px;
-  padding: 0.5rem;
+  height: 30px;
+  width: 33px;
+  padding: 0 0.5rem;
   cursor: pointer;
   text-align: center;
 }
@@ -848,27 +836,15 @@ button {
   margin: 0;
 }
 
-
-/* 화면 축소 시 member-section과 chat-section 숨기기 */
 @media (max-width: 768px) {
   .member-section,
-  .chat-section {
-    display: none;
-  }
-
-  .notice-and-member {
-    flex-direction: column;
-  }
-
-  .notice-section {
-    flex: 1;
-  }
-}
-
-/* 화면 축소 시 meeting-detail-section 숨기기 */
-@media (max-width: 768px) {
+  .chat-section,
   .meeting-detail-section {
     display: none;
+  }
+
+  .sub-container {
+    width: 100%;
   }
 }
 </style>
