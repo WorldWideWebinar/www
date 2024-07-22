@@ -27,7 +27,7 @@ public class Team {
 
     @ManyToOne
     @JoinColumn(name = "owner_id", referencedColumnName = "user_id")
-    private User ownerId;
+    private User owner;
 
     @PreUpdate
     protected void onUpdate() {
