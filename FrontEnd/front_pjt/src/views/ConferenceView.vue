@@ -22,7 +22,8 @@
           <div class="right-side">
             <div class="participant">
               <div class="participant-video">
-                <img src="https://via.placeholder.com/150x110" alt="Your avatar" />
+                <!-- <img src="https://via.placeholder.com/150x110" alt="Your avatar" /> -->
+                <div id="video-container"></div>
               </div>
               <div class="participant-info">
                 <span>나</span>
@@ -101,33 +102,124 @@
 </template>
 
 <script>
+import { OpenVidu } from 'openvidu-browser';
+import axios from 'axios';
+
 export default {
-  name: 'ConferenceView',
-  beforeRouteLeave(to, from, next) {
-    if (to.name === 'rnd') {
-      next(vm => {
-        vm.$parent.inConference = false
-      })
-    } else {
-      next()
-    }
-  },
+  name: 'SessionView',
   data() {
     return {
       participants: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
         { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
         { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
-      ]
-    }
+      ],
+      session: null,
+      audioContext: null,
+      processor: null,
+      input: null,
+      stream: null,
+      userId: 'user_' + Math.floor(Math.random() * 10000)
+    };
   },
   computed: {
     departmentName() {
       return this.$route.params.name;
     }
+  },
+  methods: {
+    async joinSession() {
+      const OV = new OpenVidu();
+      this.session = OV.initSession();
+
+      this.session.on('streamCreated', (event) => {
+        const subscriber = this.session.subscribe(event.stream, 'video-container');
+      });
+
+      try {
+        const sessionResponse = await axios.post('http://localhost:5000/api/sessions', { customSessionId: "TestSession" });
+        const sessionId = sessionResponse.data.id;
+
+        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${sessionId}/connection`);
+        const token = tokenResponse.data.token;
+
+        await this.session.connect(token, { clientData: 'Participant' });
+
+        const publisher = OV.initPublisher('video-container', {
+          videoSource: undefined,
+          audioSource: undefined,
+          publishVideo: true,
+          publishAudio: true,
+          resolution: '240x135',
+          frameRate: 30,
+          insertMode: 'APPEND'
+        });
+        this.session.publish(publisher);
+
+        this.startCapturing();
+      } catch (error) {
+        console.error('Error connecting to session:', error);
+      }
+    },
+    leaveSession() {
+      if (this.session) {
+        this.session.disconnect();
+        this.session = null;
+      }
+      this.stopCapturing();
+    },
+    async startCapturing() {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.input = this.audioContext.createMediaStreamSource(this.stream);
+      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+      this.processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        const float32Array = new Float32Array(inputData);
+        console.log(`Captured Audio Data from ${this.userId}:`, float32Array);
+        this.sendData(float32Array);
+      };
+
+      this.input.connect(this.processor);
+      this.processor.connect(this.audioContext.destination);
+    },
+    stopCapturing() {
+      if (this.processor) {
+        this.processor.disconnect();
+      }
+      if (this.input) {
+        this.input.disconnect();
+      }
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => track.stop());
+      }
+      if (this.audioContext) {
+        this.audioContext.close();
+      }
+    },
+    sendData(data) {
+      axios.post('http://localhost:5000/api/audio', { userId: this.userId, audioData: Array.from(data) }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        console.log('Data sent successfully:', response.data);
+      }).catch(error => {
+        console.error('Error sending data:', error);
+      });
+    }
+  },
+  mounted() {
+    this.joinSession();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.leaveSession();
+    next();
   }
-}
+};
 </script>
+
 
 <style scoped>
 .conference-container {
@@ -315,5 +407,13 @@ export default {
 
 .bottom-toolbar .btn-icon {
   margin: 0 0.5rem;
+}
+
+/* 화상 영역 */
+
+.video-container {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 </style>

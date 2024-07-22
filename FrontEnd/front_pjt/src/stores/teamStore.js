@@ -4,40 +4,62 @@ import { defineStore } from 'pinia';
 export const useTeamStore = defineStore('team', {
   state: () => ({
     teams: [
-      { id: 1, name: 'R&D', displayName: 'R&D', icon: '🚀', userList: [1, 3] },
-      { id: 2, name: 'Development', displayName: '개발', icon: '💻', userList: [1, 3] },
-      { id: 3, name: 'Purchase', displayName: '구매', icon: '💼', userList: [1, 3] },
-      { id: 4, name: 'Sales', displayName: '영업', icon: '📈', userList: [1, 3] },
+      { id: 1, teamName: 'R&D', ownerId: 1, icon: '🚀', userList: [1, 3] },
+      { id: 2, teamName: 'Dev', ownerId: 1, icon: '💻', userList: [1, 3] },
+      { id: 3, teamName: 'Pur', ownerId: 1, icon: '💼', userList: [1, 3] },
+      { id: 4, teamName: 'Sales', ownerId: 1, icon: '📈', userList: [1, 3] },
     ],
     userTeams: [],
+    isOwner: false,
   }),
   actions: {
-    async fetchAllTeams() {
+    async fetchTeamById(teamId) {
       // 주석 처리된 axios 호출
       // try {
-      //   const response = await axios.get(`${API_URL}/teams`);
-      //   this.teams = response.data;
-      //   console.log('Teams fetched:', this.teams);
-      // } catch (error) {
-      //   console.error('Failed to fetch teams:', error);
-      // }
-      console.log('Using static team data:', this.teams);
-    },
+      //   const response = await axios.get(`http://localhost:8000/api/teams/${teamId}`);
+      //   const teamData = response.data.data;
 
-    async fetchUserTeams(userId) {
-      // 주석 처리된 axios 호출
-      // try {
-      //   const response = await axios.get(`${API_URL}/users/${userId}/teams`);
-      //   this.userTeams = response.data;
-      //   console.log('User teams fetched:', this.userTeams);
+      //   // 이미 존재하는 팀인지 확인
+      //   const existingTeam = this.teams.find(team => team.id === teamId);
+      //   if (!existingTeam) {
+      //     this.teams.push(teamData);
+      //   }
+
+      //   // userTeams에도 추가
+      //   const userTeamExists = this.userTeams.find(team => team.id === teamId);
+      //   if (!userTeamExists) {
+      //     this.userTeams.push(teamData);
+      //   }
+
+      //   console.log(`Team ${teamId} fetched:`, teamData);
       // } catch (error) {
-      //   console.error('Failed to fetch user teams:', error);
-      //   // API 호출이 실패할 경우 가상의 데이터를 사용
-      //   this.userTeams = this.teams.filter(team => team.userList.includes(userId));
+      //   console.error(`Failed to fetch team ${teamId}:`, error);
       // }
+
       // 임시 데이터 사용
-      this.userTeams = this.teams.filter(team => team.userList.includes(userId));
-      console.log('User teams fetched (static data):', this.userTeams);
+      const teamData = this.teams.find(team => team.id === teamId);
+
+      if (teamData) {
+        // 이미 존재하는 팀인지 확인
+        const existingTeam = this.teams.find(team => team.id === teamId);
+        if (!existingTeam) {
+          this.teams.push(teamData);
+        }
+
+        // userTeams에도 추가
+        const userTeamExists = this.userTeams.find(team => team.id === teamId);
+        if (!userTeamExists) {
+          this.userTeams.push(teamData);
+        }
+
+        console.log(`Team ${teamId} fetched (static data):`, teamData);
+      } else {
+        console.error(`Team ${teamId} not found in static data`);
+      }
+    },
+    checkIfUserIsOwner(userId, teamName) {
+      const team = this.teams.find(t => t.teamName === teamName);
+      this.isOwner = team && team.ownerId === userId;
     },
 
     addTeam(team) {

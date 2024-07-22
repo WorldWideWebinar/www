@@ -21,11 +21,11 @@
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ReadyView', params: { name: team.name } }" 
+            :to="{ name: 'ReadyView', params: { name: team.teamName } }" 
             active-class="active"
           >
             <span class="icon">{{ team.icon }}</span>
-            <span class="link-text">{{ team.displayName }}</span>
+            <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
       </ul>
