@@ -7,6 +7,7 @@ import SignView from '@/views/SignView.vue'
 import TeamSearchView from '@/views/TeamSearchView.vue'
 import TeamCreateView from '@/views/TeamCreateView.vue'
 import MeetingCreateView from '@/views/MeetingCreateView.vue'
+import SessionView from '../views/SessionView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,9 @@ const router = createRouter({
       name: 'MeetingCreateView',
       component: MeetingCreateView,
     },
+    { path: '/session', 
+      name: 'Session', 
+      component: SessionView },
     {
       path: '/accounts',
       name: 'AccountView',
