@@ -91,3 +91,13 @@ CREATE TABLE IF NOT EXISTS chat (
     FOREIGN KEY (sender_id) REFERENCES user(user_id),
     FOREIGN KEY (team_id) REFERENCES team(team_id)
 );
+
+-- 테이블 수정
+
+-- 팀 별로 이미지 정보 저장
+ALTER TABLE team ADD COLUMN emoji TEXT;
+ALTER TABLE team MODIFY COLUMN emoji TEXT NOT NULL;
+-- 암호화 위해 사이즈 변경
+ALTER TABLE user MODIFY COLUMN password VARCHAR(512) NOT NULL;
+-- meeting 테이블에 session_id 추가
+ALTER TABLE meeting ADD COLUMN session_id VARCHAR(255);
