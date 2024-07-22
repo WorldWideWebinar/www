@@ -60,12 +60,8 @@ const router = createRouter({
               path: 'conference',
               name: 'ConferenceView',
               component: ConferenceView
-            },
-            
-          ]
-        },
-
-      ],
+            },]
+        },]
     },
 
     // {
