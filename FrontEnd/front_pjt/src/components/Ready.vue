@@ -1,11 +1,12 @@
 <template>
   <div v-if="!inConference" class="ready-page-container">
     <header class="header">
-      <h3>Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</h3>
+      <span>Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</span>
     </header>
+    <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <div class="top-section">
-        <div class="notice-and-member">
+        <div class="notice-and-intro">
           <section class="notice-section">
             <div class="notice-header">
               <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
@@ -17,14 +18,14 @@
                 </div>
                 <div class="notice-middle">
                   <p>{{ todayMeeting.time }}</p>
-                  <p class="before-dropdown" @click="toggleTodayMembersList">{{ todayMeeting.members }} members joined!</p>
+                  <p class="before-dropdown" @click="toggleTodayMembersList">{{ todayMeeting.members }} members will join!</p>
                   <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-                    <li v-for="member in todayMeetingMembers" :key="member.name">{{ member.name }}</li>
+                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
                   </ul>
                 </div>
                 <div class="notice-right">
                   <button @click="joinConference" class="join-button">
-                    <img class="play-button" src="../assets/img/playbutton.png" alt="play">
+                    <img class="play-button" src="../assets/img/play.png" alt="play">
                   </button>
                 </div>
               </div>
@@ -33,18 +34,67 @@
               </div>
             </div>
           </section>
-          <section class="member-section">
-            <div class="member-header">
-              <h5 style="font-weight: bolder">👤</h5>
-              <span>{{ members.length }}</span>
-            </div>
-            <div class="members">
-              <div v-for="member in members" :key="member.name" class="member">
-                <img :src="member.avatar" :alt="member.name" />
-                <p>{{ member.name }}</p>
+          <section class="intro-section">
+            <div class="total-meeting-hours">
+              <p>We have meetings for {{ totalMeetingHours }} hours</p>
+              <div class="meeting-hours-bar">
+                <div
+                  class="meeting-hours-segment prev-meetings"
+                  :style="{ width: prevMeetingHoursPercentage + '%' }"
+                  v-if="prevMeetingHours > 0"
+                ></div>
+                <div
+                  class="meeting-hours-segment today-meetings"
+                  :style="{ width: todayMeetingHoursPercentage + '%' }"
+                  v-if="todayMeetingHours > 0"
+                ></div>
+                <div
+                  class="meeting-hours-segment next-meetings"
+                  :style="{ width: nextMeetingHoursPercentage + '%' }"
+                  v-if="nextMeetingHours > 0"
+                ></div>
+              </div>
+              <div class="meeting-hours-legend">
+                <div class="legend-item">
+                  <span class="legend-color prev-meetings"></span>
+                  <span class="legend-label">Previous {{ prevMeetingHours }}</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color today-meetings"></span>
+                  <span class="legend-label">Today {{ todayMeetingHours }}</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color next-meetings"></span>
+                  <span class="legend-label">Next {{ nextMeetingHours }}</span>
+                </div>
               </div>
             </div>
-            <button class="add-member-btn">+</button>
+            <div class="department-info">
+              <table class="department-table">
+                <tbody>
+                  <tr>
+                    <td><strong>Name</strong></td>
+                    <td>{{ departmentName }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Members</strong></td>
+                    <td>
+                      <div class="members-row" @click="toggleMemberListDropdown">
+                        {{ members.length }} members
+                        <button class="add-member-btn">+</button>
+                      </div>
+                      <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
+                        <li v-for="member in members" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                      </ul>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Created Date</strong></td>
+                    <td>{{ departmentCreationDate }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
         </div>
       </div>
@@ -113,7 +163,7 @@
         <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <h5 style="font-weight: bolder; color: blueviolet; margin: 0 auto;">{{ selectedMeeting?.agenda }}</h5>
+              <p>&nbsp;{{ selectedMeeting?.agenda }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
             <div class="meeting-detail-content">
@@ -136,10 +186,10 @@
                 </tr>
                 <tr>
                   <td><strong>Members</strong></td>
-                  <td class="show-member before-dropdown" @click="showMemberList">
+                  <td class="show-member before-dropdown" @click="toggleMembersList">
                     {{ selectedMeeting?.members }} members joined!
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                      <li v-for="member in selectedMeetingMembers" :key="member.name">{{ member.name }}</li>
+                      <li v-for="member in selectedMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
                     </ul>
                   </td>
                 </tr>
@@ -149,21 +199,27 @@
                     {{ selectedMeeting?.files.length }} files uploaded
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
-                        <a :href="file.link" download>{{ file.name }}</a> uploaded by {{ file.uploader }}
+                        <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded by {{ file.uploader }}
                       </li>
                     </ul>
                   </td>
                 </tr>
               </table>
               <div class="dash-separator"></div>
-              <table class="files-section">
-                <thead>
-                  <tr>
-                    <td><a href="#" class="file-link">AI_summary</a></td>
-                    <td><a href="#" class="file-link">AI_record</a></td>
-                  </tr>
-                </thead>
-              </table>
+              <div class="files-section">
+                <table class="files-table">
+                  <thead>
+                    <tr>
+                      <td><a href="#" @click.prevent="previewFile({name: 'summary.pdf', link: selectedMeeting.summary})" class="file-link">📂summary</a></td>
+                      <td><a href="#" @click.prevent="previewFile({name: 'record.pdf', link: selectedMeeting.record})" class="file-link">📁record</a></td>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              <div v-if="previewUrl" class="file-preview">
+                <iframe :src="previewUrl" width="100%" height="400px"></iframe>
+                <a :href="previewUrl" download>Download</a>
+              </div>
             </div>
           </template>
         </section>
@@ -186,9 +242,12 @@ export default {
       showMembersList: false, // 멤버 목록 표시 여부
       showTodayMembersList: false, // 오늘 미팅 멤버 목록 표시 여부
       showFilesList: false, // 파일 목록 표시 여부
+      showMemberListDropdown: false, // department 멤버 목록 표시 여부
+      showOverlay: false,
       todayMeetingMembers: [], // 오늘 미팅 멤버 목록
       selectedMeetingMembers: [],
       activeTab: 'TODAY', // 초기 활성화 탭 설정
+      departmentCreationDate: '2022-01-01', // 예시 생성일
       members: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
         { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
@@ -198,10 +257,43 @@ export default {
         { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
       ],
       meetings: [
+        { 
+          date: '2024-11-15',
+          agenda: '현대자동차',
+          status: 'IN',
+          description: 'Detailed description of 현대자동차',
+          time: '13PM-16PM',
+          members: 7,
+          files: [
+            { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
+            { name: 'services.png', link: '#', uploader: 'Robert' }
+          ]
+        },
+        { 
+          date: '2024-10-29',
+          agenda: '현대오토에버',
+          status: 'IN',
+          description: 'Detailed description of 현대오토에버',
+          time: '8AM-11AM',
+          members: 3,
+          files: [
+            { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
+            { name: 'services.png', link: '#', uploader: 'Robert' }
+          ]
+        },
+        {
+          date: '2024-10-05',
+          agenda: '현대케피코',
+          status: 'IN',
+          description: 'Detailed description of 현대케피코',
+          time: '16PM-18PM',
+          members: 5,
+          files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
+        },
         {
           date: '2024-09-15',
           agenda: '뱅킹 서비스',
-          status: 'IN',
+          status: 'OUT',
           description: 'Detailed description of 뱅킹 서비스',
           time: '8AM-10AM',
           members: 8,
@@ -220,12 +312,12 @@ export default {
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-19',
+          date: '2024-07-22',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
           time: '15PM-17PM',
-          members: 8,
+          members: 4,
           files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
         },
         {
@@ -235,7 +327,9 @@ export default {
           description: 'Detailed description of TTS',
           time: '14PM-16PM',
           members: 6,
-          files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }]
+          files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
+          summary: '/path/to/tts_summary.pdf',
+          record: '/path/to/tts_record.pdf'
         },
         {
           date: '2024-06-22',
@@ -244,7 +338,9 @@ export default {
           description: 'Detailed description of AI 요약',
           time: '17PM-18PM',
           members: 4,
-          files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }]
+          files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
+          summary: '/path/to/ai_summary.pdf',
+          record: '/path/to/ai_record.pdf'
         },
         {
           date: '2024-06-13',
@@ -253,8 +349,21 @@ export default {
           description: 'Detailed description of STT',
           time: '20PM-22PM',
           members: 7,
-          files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }]
-        }
+          files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
+          summary: '/path/to/stt_summary.pdf',
+          record: '/path/to/stt_record.pdf'
+        },
+        {
+          date: '2024-05-14',
+          agenda: '다국어 화상회의',
+          status: 'IN',
+          description: 'Detailed description of 다국어화상회의',
+          time: '11AM-15PM',
+          members: 4,
+          files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
+          summary: '/path/to/다국어 화상회의_summary.pdf',
+          record: '/path/to/다국어 화상회의_record.pdf'
+        },
       ],
       messages: [
         {
@@ -269,7 +378,8 @@ export default {
           text: '공유 감사합니다!',
           avatar: 'https://via.placeholder.com/32'
         }
-      ]
+      ],
+      previewUrl: null // 추후에 넣기
     }
   },
   computed: {
@@ -299,6 +409,39 @@ export default {
       })
       return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV }
     },
+    totalMeetingHours() {
+      return this.meetings.reduce((total, meeting) => {
+        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
+        return total + (end - start);
+      }, 0);
+    },
+    prevMeetingHours() {
+      return this.groupedMeetings.PREV.reduce((total, meeting) => {
+        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
+        return total + (end - start);
+      }, 0);
+    },
+    todayMeetingHours() {
+      return this.groupedMeetings.TODAY.reduce((total, meeting) => {
+        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
+        return total + (end - start);
+      }, 0);
+    },
+    nextMeetingHours() {
+      return this.groupedMeetings.NEXT.reduce((total, meeting) => {
+        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
+        return total + (end - start);
+      }, 0);
+    },
+    prevMeetingHoursPercentage() {
+      return (this.prevMeetingHours / this.totalMeetingHours) * 100;
+    },
+    todayMeetingHoursPercentage() {
+      return (this.todayMeetingHours / this.totalMeetingHours) * 100;
+    },
+    nextMeetingHoursPercentage() {
+      return (this.nextMeetingHours / this.totalMeetingHours) * 100;
+    }
   },
   methods: {
     joinConference() {
@@ -311,12 +454,16 @@ export default {
       this.selectedMeetingMembers = this.members.slice(0, meeting.members);
       this.showMembersList = false; // 초기에는 멤버 목록을 숨김
       this.showFilesList = false; // 초기에는 파일 목록을 숨김
+      this.previewUrl = null; // 초기에는 파일 미리보기 URL 숨김
+      this.showOverlay = true; // 오버레이 표시
     },
     closeMeetingDetails() {
       this.selectedMeeting = null;
       this.selectedMeetingMembers = [];
       this.showMembersList = false;
       this.showFilesList = false;
+      this.previewUrl = null; // 파일 미리보기 URL 초기화
+      this.showOverlay = false; // 오버레이 숨김
     },
     toggleStatus(meeting) {
       meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
@@ -343,14 +490,16 @@ export default {
       else if (date > today) return 'NEXT';
       else return 'PREV';
     },
-    showMemberList() {
-      this.showMembersList = !this.showMembersList;
+    toggleMemberListDropdown() {
+      this.showMemberListDropdown = !this.showMemberListDropdown;
+      this.showOverlay = this.showMemberListDropdown; // 오버레이 표시
     },
     toggleTodayMembersList() {
       this.showTodayMembersList = !this.showTodayMembersList;
       if (this.todayMeeting) {
         this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members);
       }
+      this.showOverlay = this.showTodayMembersList; // 오버레이 표시
     },
     selectLatestTodayMeeting() {
       const todayMeetings = this.groupedMeetings.TODAY;
@@ -360,6 +509,21 @@ export default {
     },
     toggleFilesList() {
       this.showFilesList = !this.showFilesList;
+      this.showOverlay = this.showFilesList;
+    },
+    toggleMembersList() {
+      this.showMembersList = !this.showMembersList;
+      this.showOverlay = this.showMembersList;
+    },
+    previewFile(file) {
+      this.previewUrl = file.link;
+    },
+    closeDropdowns() {
+      this.showMemberListDropdown = false;
+      this.showTodayMembersList = false;
+      this.showFilesList = false;
+      this.showMembersList = false;
+      this.showOverlay = false; // 오버레이 숨김
     }
   },
   mounted() {
@@ -382,7 +546,6 @@ export default {
 
 
 
-
 <style scoped>
 .ready-page-container {
   display: flex;
@@ -395,15 +558,17 @@ export default {
 
 .header {
   text-align: center;
-  padding: 1rem;
+  padding: 1rem 0 1.5rem 0;
+  font-weight: bolder;
+  font-size: xx-large;
 }
 
 .highlight {
-  color: blueviolet;
+  color: rgb(166, 125, 247);
 }
 
 .sub-container {
-  width: 80%;
+  width: 82%;
   margin: 0 auto; 
 }
 
@@ -415,8 +580,8 @@ export default {
   padding: 1rem;
 }
 
-/* notice-and-member */
-.notice-and-member {
+/* notice-and-intro */
+.notice-and-intro {
   display: flex;
   justify-content: space-between;
   gap: 2rem;
@@ -431,17 +596,18 @@ export default {
   border-radius: 8px;
 }
 
-.member-section {
+.intro-section {
   flex: 1.5;
   background-color: #ffffff;
-  padding: 1rem;
+  padding: 1.5rem 1rem;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
+  border: 2px dashed rgb(232, 231, 234);
+  font-size: small;
 }
 
 .notice-header,
-.member-header,
 .meeting-header {
   display: flex;
   justify-content: space-between;
@@ -533,6 +699,96 @@ export default {
   width: 50px;
 }
 
+/* department-info */
+.department-table {
+  width: 100%;
+  border-collapse: collapse;
+  /* margin-bottom: 1rem; */
+}
+
+.department-table td {
+  padding: 0.3rem 0.5rem;
+}
+
+/* total-meeting-hours */
+.total-meeting-hours {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.total-meeting-hours p {
+  margin-bottom: 15px;
+}
+
+.meeting-hours-bar {
+  display: flex;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  /* margin-top: 10px; */
+}
+
+.meeting-hours-segment {
+  height: 100%;
+}
+
+.prev-meetings {
+  background-color: #e0dfdf;
+}
+
+.today-meetings {
+  background-color: #d6b3f7;
+}
+
+.next-meetings {
+  background-color: #f7b3d5;
+}
+
+/* label */
+.meeting-hours-legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.legend-item:last-child {
+  margin-right: 0;
+}
+
+.legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  margin-right: 5px;
+}
+
+.legend-color.prev-meetings {
+  background-color: #e0dfdf;
+}
+
+.legend-color.today-meetings {
+  background-color: #d6b3f7;
+}
+
+.legend-color.next-meetings {
+  background-color: #f7b3d5;
+}
+
+.legend-label {
+  /* font-size: xx-small; */
+  font-size: 9px;
+  font-weight: bpld;
+}
+
+
 /* member */
 .members {
   max-height: 100px;
@@ -565,17 +821,22 @@ export default {
   padding-left: 5px;
 }
 
+.members-row {
+  display: flex;
+  align-items: center;
+}
+
 .add-member-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8bbd0;
+  background-color: #808080;
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  margin: 0 auto;
+  margin: 0 0 0 15px;
 }
 
 /* main-section */
@@ -586,7 +847,7 @@ export default {
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  height: 420px;
+  height: 385px;
 }
 
 .meeting-list-section {
@@ -600,9 +861,12 @@ export default {
 .meeting-detail-section {
   flex: 1.5;
   background-color: #ffffff;
-  padding: 1rem;
+  padding: 0 1rem;
   border-radius: 8px;
   box-sizing: border-box;
+  border: 2px dashed rgb(232, 231, 234);
+  width: 100%;
+  height: auto;
 }
 
 /* meeting-list */
@@ -632,9 +896,10 @@ ul.nav li {
 }
 
 .meeting-list {
-  width: 100%;
+  width: 102.5%;
   border-collapse: collapse;
   margin: 20px 0 0 0;
+  font-size: 95%;
 }
 
 .meeting-list th,
@@ -667,21 +932,23 @@ ul.nav li {
 .meeting-list td:nth-child(4):hover,
 .meeting-list td:nth-child(4):hover *,
 .meeting-list td.agenda:hover {
-  font-weight: bolder;
+  font-weight: bold;
   cursor: pointer;
 }
 
 .meeting-list td:nth-child(3):hover,
 .meeting-list td:nth-child(3):hover *,
 .meeting-list td.agenda:hover {
-  font-weight: bolder;
-  color: blueviolet;
   cursor: pointer;
+  text-decoration-line: underline;  
+  text-decoration-style: line;
+  text-decoration-color: rgba(154, 130, 253, 0.4);
+  text-decoration-thickness: 3px;
 }
 
-.bold-agenda {
-  font-weight: bolder !important;
-  color: blueviolet;
+.meeting-list .bold-agenda {
+  font-weight: bolder;
+  color: rgb(154, 130, 253);
 }
 
 .meeting-list th {
@@ -726,12 +993,41 @@ button {
   border: 2px dashed black;
 }
 
+.meeting-list tbody {
+  display: block;
+  max-height: 140px; /* 원하는 최대 높이 설정 */
+  overflow-y: scroll;
+}
+
+.meeting-list tbody::-webkit-scrollbar {
+  width: 0; /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent; /* 스크롤바 배경을 투명하게 설정 */
+}
+
+.meeting-list tr {
+  display: table;
+  width: calc(100% - 1rem); /* 테이블 너비를 100%에서 약간 줄임 */
+  table-layout: fixed;
+}
+
+
 /* detail */
 .meeting-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-left: 25px;
+}
+
+.meeting-detail-header p {
+  text-align: center;
+  margin: 1rem auto;
+  font-size: larger;
+  font-weight: bolder;
+  text-decoration-line: underline;  
+  text-decoration-style: line;
+  text-decoration-color: rgba(154, 130, 253, 0.4);
+  text-decoration-thickness: 5px;
 }
 
 .meeting-detail-table {
@@ -743,46 +1039,57 @@ button {
 
 .meeting-detail-table td {
   padding: 0.3rem 0.5rem;
-  font-size: medium
+  font-size: medium;
 }
 
-.files-section {
+/* .files-section p {
+  font-weight: bold;
+  text-align: center;
+  text-decoration-line: underline;  
+  text-decoration-style: wavy;
+  text-decoration-color: rgb(154, 130, 253);
+  text-decoration-thickness: auto;
+  margin-bottom: 5px;
+} */
+
+.files-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
-  /* border-top: 2px dashed #ccc; */
-  padding-top: 1rem;
+  margin: 5px;
 }
 
-.files-section th,
-.files-section td {
-  padding: 0.5rem;
+.files-table th,
+.files-table td {
+  padding: 0.3rem;
 }
 
 .file-link {
   display: inline-block;
-  color: blueviolet;
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-.more-files-link {
-  display: inline-block;
-  margin-top: 1rem;
-  color: #007bff;
-  cursor: pointer;
-  text-decoration: underline;
+  color: black;
+  font-size: medium;
+  text-decoration: none;
 }
 
 .dash-separator {
   border-top: 2px dashed #ccc;
-  margin: 1rem 0;
+  margin: 1.5rem 0 0.7rem 0;
+}
+
+.file-preview {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.file-preview iframe {
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 /* dropdown 공통 스타일 */
 .before-dropdown {
   text-decoration: underline;
   font-size: medium;
+  cursor: pointer;
 }
 
 .dropdown {
@@ -818,7 +1125,21 @@ button {
   width: 150px;
 }
 
-.add-member-btn,
+.dropdown-hidden {
+  display: none;
+}
+
+/* 배경 클릭 시 dropdown 닫기 */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 500;
+}
+
 .add-meeting-btn,
 .chat-input button {
   background-color: #808080;
@@ -836,8 +1157,8 @@ button {
   margin: 0;
 }
 
-@media (max-width: 768px) {
-  .member-section,
+@media (max-width: 992px) {
+  .intro-section,
   .chat-section,
   .meeting-detail-section {
     display: none;
