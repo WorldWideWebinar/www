@@ -101,3 +101,20 @@ ALTER TABLE team MODIFY COLUMN emoji TEXT NOT NULL;
 ALTER TABLE user MODIFY COLUMN password VARCHAR(512) NOT NULL;
 -- meeting 테이블에 session_id 추가
 ALTER TABLE meeting ADD COLUMN session_id VARCHAR(255);
+
+
+-- user 테이블
+ALTER TABLE user 
+DROP COLUMN last_team_id,
+DROP COLUMN last_meeting_id;
+
+CREATE TABLE IF NOT EXISTS user_detail (
+    user_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    last_team_id INT,
+    last_meeting_id INT,
+    total_meeting_time INT,
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
+
