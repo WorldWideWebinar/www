@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface MeetingRepository extends JpaRepository<Meeting, String> {
-    Optional<Meeting> findById(String meetingId);
+public interface MeetingRepository extends JpaRepository<Meeting, Integer> {
+    Optional<Meeting> findById(Integer meetingId);
 }
