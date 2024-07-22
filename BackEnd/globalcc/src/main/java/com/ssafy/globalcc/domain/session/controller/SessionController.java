@@ -1,5 +1,7 @@
-package com.ssafy.globalcc.session.controller;
+package com.ssafy.globalcc.domain.session.controller;
 
+import com.ssafy.globalcc.domain.meeting.entity.Meeting;
+import com.ssafy.globalcc.domain.meeting.service.MeetingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,23 +35,50 @@ public class SessionController {
 
     private OpenVidu openvidu;
 
+    private final MeetingService meetingService;
+
+    public SessionController(MeetingService meetingService) {
+        this.meetingService = meetingService;
+    }
+
+
     @PostConstruct
     public void init() {
         this.openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
     }
 
     /**
-     * 세션 초기화 /api/sessions
+     * 세션 초기화 /api/sessions/{meetingId}/{userId}
      *
      * @param params The Session properties
      * @return The Session ID
      */
-    @PostMapping
-    public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params)
+    @PostMapping("/{meetingId}/{userId}")
+    public ResponseEntity<String> initializeSession(@PathVariable("meetingId") Integer meetingId,
+                                                    @PathVariable("userId") Integer userId,
+                                                    @RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
+        Meeting meeting = meetingService.findMeetingById(meetingId);
+
+        // 이미 sessionId가 있는지 확인
+        if (meeting.getSessionId() != null && !meeting.getSessionId().isEmpty()) {
+            return new ResponseEntity<>("Session already exists with ID: " + meeting.getSessionId(), HttpStatus.BAD_REQUEST);
+        }
+
+        // 팀장인지 확인
+        if (!meetingService.isUserTeamLeader(meetingId, userId)) {
+            return new ResponseEntity<>("Only the team leader can create a session", HttpStatus.FORBIDDEN);
+        }
+
+        // 세션 생성
         SessionProperties properties = SessionProperties.fromJson(params).build();
         Session session = openvidu.createSession(properties);
-        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+        String sessionId = session.getSessionId();
+
+        // meeting의 session_id 업데이트
+        meetingService.updateMeetingSessionId(meetingId, sessionId);
+
+        return new ResponseEntity<>(sessionId, HttpStatus.OK);
     }
 
     /**

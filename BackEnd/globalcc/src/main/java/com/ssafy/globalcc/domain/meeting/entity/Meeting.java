@@ -40,7 +40,7 @@ public class Meeting {
 
     @ManyToOne
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
-    private Team teamId;
+    private Team team;
 
     @PreUpdate
     protected void onUpdate() {
