@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
       const meetingStore = useMeetingStore();
       // 주석 처리된 axios 호출
       // try {
-      //   const response = await axios.get(`http://localhost:8000/api/users/${userId}`);
+      //   const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
       //   const userData = response.data.data;
       //   this.userInfo = userData;
 
@@ -98,5 +98,32 @@ export const useUserStore = defineStore('user', {
       //   console.error('Failed to fetch users:', error);
       // }
     }
+    async signup({ id, idCheck, name, email, password, language }) {
+      try {
+        // 아이디 중복 체크
+        const duplicationResponse = await axios.get(`http://localhost:5000/api/users/duplication/${id}`);
+        if (duplicationResponse.data.result.isAvailable) {
+          // 회원가입 요청
+          const signupResponse = await axios.post('http://localhost:5000/api/users', {
+            id,
+            idCheck,
+            name,
+            email,
+            password,
+            language
+          });
+          console.log('Signup successful:', signupResponse.data);
+          return signupResponse.data;
+        } else {
+          console.log('ID is not available');
+          return { isSuccess: false, message: 'ID is not available' };
+        }
+      } catch (error) {
+        console.error('Failed to sign up:', error);
+        return { isSuccess: false, message: error.message };
+      }
+    }
   }
 });
+
+
