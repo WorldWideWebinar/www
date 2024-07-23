@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
@@ -102,5 +103,54 @@ public class SessionController {
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
     }
 
+    /**
+     * 세션의 모든 연결 강제 종료 /api/sessions/{meetingId}
+     *
+     * @return The Meeting ID
+     */
+    @DeleteMapping("/{meetingId}")
+    public ResponseEntity<ApiResponse<Integer>> deleteSession(@PathVariable("meetingId") Integer meetingId)
+            throws OpenViduJavaClientException, OpenViduHttpException {
+
+        // 서버 상태 업데이트
+        openvidu.fetch();
+
+        Meeting meeting = meetingService.findMeetingById(meetingId);
+        if (meeting == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.fail(null, "미팅 정보 찾기 실패"));
+        }
+
+        // 활성화된 해당 세션 검색
+        String sessionId = meeting.getSessionId();
+        Session session = openvidu.getActiveSession(sessionId);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.fail(null, "세션 찾기 실패"));
+        }
+
+        // 모든 활성화된 연결 정보를 가져옴
+        List<Connection> connections = session.getActiveConnections();
+
+        boolean allDisconnected = true;
+        for (Connection connection : connections) {
+            try {
+                // 사용자 연결 끊기
+                session.forceDisconnect(connection);
+            } catch (Exception e) {
+                allDisconnected = false; // 연결 삭제 비정상
+            }
+        }
+
+        if (!allDisconnected) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.fail(null, "커넥션 끊기 실패"));
+        }
+
+        // 모든 연결을 삭제했다면 meeting에서 sessionId 값 제거
+        meetingService.updateMeetingSessionId(meetingId, null);
+
+        return ResponseEntity.ok(ApiResponse.success(meetingId, "커넥션 끊기 성공"));
+    }
 }
 
