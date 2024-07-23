@@ -9,6 +9,8 @@ import com.ssafy.globalcc.domain.user.service.UserService;
 import com.ssafy.globalcc.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,6 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto){
         if(!userDto.isIdCheck()) return ResponseEntity.status(400).body("ID 중복 체크를 해주세요.");
-        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User user = userService.addUser(userDto);
         ApiResponse<UserIdResult> response = ApiResponse.success(new UserIdResult(user.getUserId()),"회원가입 성공");
         return ResponseEntity.ok(response);
@@ -41,30 +42,62 @@ public class UserController {
      * @param id : user ID
      * @return ApiResponse : 중복 여부 (DB에 있을 경우 false, 없을 경우 true)
      */
-    @PostMapping("duplication/{id}")
+    @GetMapping("duplication/{id}")
     public ResponseEntity<?> duplication(@PathVariable("id") String id){
-        if(userService.checkDuplicateUserById(id)){
+        log.debug("check for id : {}",id);
 
-            return ResponseEntity.status(400).body(
-                    ApiResponse.fail(new DuplicateCheckResult(false),"아이디 중복체크 실패"));
+        if(!userService.checkDuplicateUserById(id)){
+            return  new ResponseEntity<>(
+                    ApiResponse.fail(new DuplicateCheckResult(false),"아이디 중복체크 실패")
+                    , HttpStatus.BAD_REQUEST);
         }
-        return  ResponseEntity.ok(
-                ApiResponse.success(new DuplicateCheckResult(true),"아이디 중복체크 성공"));
+        return new ResponseEntity<>(
+                ApiResponse.success(new DuplicateCheckResult(true),"아이디 중복체크 성공")
+                , HttpStatus.OK
+        );
     }
+
+    /**
+     * log in user with id and password. check password from DB.
+     * if matches, return token.
+     * if refresh-token already exists in Redis, new log in will overwrite the existing token.
+     * @param userDto : User Dto which has id, plain password.
+     * @return : accessToken and refreshToken when success.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginUserDto userDto){
-        if(!userService.loginUser(userDto.getId(),userDto.getPassword())){
-            User user = userService.getUserById(userDto.getId());
-            String accessToken = jwtUtil.createAccessToken(user);
-            String refreshToken = jwtUtil.createRefreshToken(user);
-            JwtResult jwtResult = new JwtResult(accessToken,refreshToken,jwtUtil.getRefreshTokenExpTime());
-            LoginResult result = new LoginResult(user.getUserId(),jwtResult);
-            // TODO : set Redis to save refresh token
-
-            return ResponseEntity.ok(ApiResponse.success(result,"로그인 성공"));
+        LoginResult result = userService.loginUser(userDto.getId(),userDto.getPassword());
+        if(result == null){
+            return new ResponseEntity<>(ApiResponse.fail(result,"로그인 실패"),HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.status(400).body(ApiResponse.fail("","로그인 실패"));
+        return new ResponseEntity<>(ApiResponse.success(result,"로그인 성공"),HttpStatus.OK);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody UserIdResult userIdResult ){
+        if( userService.logoutUser((int) userIdResult.getUserId())){
+            return new ResponseEntity<>(ApiResponse.success(userIdResult,"로그아웃 성공"),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ApiResponse.fail(userIdResult,"로그아웃 실패"),HttpStatus.BAD_REQUEST);
+    }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserById(@PathVariable("userId") long userId){
+        UserDetailResult result = userService.getUserDetails(userId);
+        return new ResponseEntity<>(ApiResponse.success(result,"유저정보 조회 성공"),HttpStatus.OK);
+    }
+
+    @GetMapping("/refresh")
+    public ResponseEntity<?> refresh(@Param("id") int id, @RequestHeader("X-ACCESS-TOKEN") String token){
+        String accessToken = userService.getNewAccessTokenWithRefreshToken(id, token);
+
+        if(accessToken == null){
+            return new ResponseEntity<>(ApiResponse.fail(null,"리프레시 실패"),HttpStatus.BAD_REQUEST);
+        }
+        JwtResult result = new JwtResult();
+        result.setAccessToken(accessToken);
+        result.setRefreshToken(token);
+        result.setRefreshTokenExpirationTime(jwtUtil.getTokenExpTime(token));
+        return new ResponseEntity<>(ApiResponse.success(result,"리프레시 성공"),HttpStatus.OK);
+    }
 }

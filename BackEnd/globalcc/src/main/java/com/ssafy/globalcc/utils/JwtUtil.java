@@ -39,6 +39,9 @@ public class JwtUtil {
         return createToken(user, accessTokenExpTime);
     }
 
+    public String createAccessToken(int userId) {
+        return createToken(userId, accessTokenExpTime);
+    }
     /**
      * Refresh Token 생성
      * @param user
@@ -66,6 +69,17 @@ public class JwtUtil {
                 .withExpiresAt(tokenValidity.toInstant())
                 .sign(algorithm);
     }
+    private String createToken(int id, long accessTokenExpTime) {
+        ZonedDateTime nowDateTime = ZonedDateTime.now();
+        ZonedDateTime tokenValidity = nowDateTime.plusSeconds(accessTokenExpTime);
+        Algorithm algorithm = Algorithm.HMAC256(key);
+        return JWT.create()
+                .withIssuer("multiConference")
+                .withClaim("userId", id)
+                .withIssuedAt(nowDateTime.toInstant())
+                .withExpiresAt(tokenValidity.toInstant())
+                .sign(algorithm);
+    }
 
     public DecodedJWT validateToken(String token) {
 
@@ -85,5 +99,10 @@ public class JwtUtil {
             log.info("JWT claims string is empty", e);
         }
         return decodedJWT;
+    }
+
+    public long getTokenExpTime(String token) {
+        DecodedJWT decodedJWT = validateToken(token);
+        return decodedJWT.getExpiresAt().toInstant().getEpochSecond();
     }
 }
