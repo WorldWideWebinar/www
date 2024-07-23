@@ -1,21 +1,42 @@
 <template>
+  <div class="landing-page-container">
+
+  </div>
   <div class="upper">
-    <div class="spacer"></div>
-    <div class="Main-title"> Project Title</div>
-    <div class="Main-Explanation">Explanation</div>
-    <div class="main-btn">
+    <!-- <div class="spacer"></div> -->
+    <!-- <div class="main-title"> Project Title</div>
+    <div class="main-explanation">Explanation</div> -->
+    <!-- <div class="main-btn">
       <div v-if="!session">
-        <button @click="router.push({name:'SignView'})">login</button> <!-- name을 수정-->
+        <button @click="router.push({name:'SignView'})">login</button>
       </div>
       <div v-else>
-        <button @click="router.push({name:'ProfileView'})">mypage</button>  <!-- name을 수정-->
+        <button @click="router.push({name:'ProfileView'})">mypage</button>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer"></div> -->
   </div>
   <div class="lower" >
     <div class="sub-discription carousel my-meeting" v-if="!session">
-      <div class="discription">
+      <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
+        <SignUp />
+        <SignIn />
+        <div class="overlay-container">
+          <div class="overlay">
+            <div class="overlay-panel overlay-left">
+              <h1>Welcome Back!</h1>
+              <p>To keep connected with us please login with your personal info</p>
+              <button class="ghost" @click="activateSignIn">Sign In</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+              <h1>Hello, Friend!</h1>
+              <p>Enter your personal details and start journey with us</p>
+              <button class="ghost" @click="activateSignUp">Sign Up</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="discription">
         <p> 1번 설명</p>
         <br>
         <p>
@@ -35,7 +56,7 @@
         <p>
           {{ discriptionContent[2] }}
         </p>
-      </div>
+      </div> -->
     </div>
     <div class="my-meeting" v-if="session">
       <h2>My Meeting</h2>
@@ -71,8 +92,8 @@
         </Carousel>
       </div>
     </div>
-    <div style="text-align: center;">
-      주저리 주저리
+    <div class="footer">
+      Footer
     </div>
   </div>
 </template>
@@ -80,8 +101,21 @@
 <script setup>
 import router from '@/router';
 import { onMounted, ref, watch } from 'vue';
-import 'vue3-carousel/dist/carousel.css'
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
+import 'vue3-carousel/dist/carousel.css';
+import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+import SignUp from '@/components/SignUp.vue';
+import SignIn from '@/components/SignIn.vue';
+
+const isRightPanelActive = ref(false);
+
+const activateSignUp = () => {
+  isRightPanelActive.value = true;
+};
+
+const activateSignIn = () => {
+  isRightPanelActive.value = false;
+};
+
 
 let session = ref(!(sessionStorage.getItem('logInInfo') == null));
 
@@ -100,11 +134,11 @@ watch(session, () => {
   
 });
 
-const discriptionContent = ref([
-  '첫 번째 설명 내용입니다. 이 설명은 예시를 위한 것이며, 다양한 정보를 포함할 수 있습니다. 예를 들어, 이 내용에는 사용 방법이나 주요 특징 등이 포함될 수 있습니다. 이를 통해 사용자는 해당 항목에 대해 보다 자세히 이해할 수 있습니다.',
-  '두 번째 설명 내용입니다. 이 설명은 사용자에게 유용한 정보를 제공하는 데 목적이 있습니다. 예를 들어, 이 설명에는 제품의 장점이나 혜택, 사용 시 주의사항 등이 포함될 수 있습니다. 이를 통해 사용자는 제품이나 서비스를 더욱 효과적으로 활용할 수 있습니다.',
-  '세 번째 설명 내용입니다. 이 설명은 다른 내용과의 조화를 이루며 전체적인 이해를 돕습니다. 예를 들어, 이 설명에는 관련된 추가 정보나 참고 자료, FAQ 등이 포함될 수 있습니다. 이를 통해 사용자는 보다 포괄적인 정보를 얻고 궁금증을 해결할 수 있습니다.'
-]);
+// const discriptionContent = ref([
+//   '첫 번째 설명 내용입니다. 이 설명은 예시를 위한 것이며, 다양한 정보를 포함할 수 있습니다. 예를 들어, 이 내용에는 사용 방법이나 주요 특징 등이 포함될 수 있습니다. 이를 통해 사용자는 해당 항목에 대해 보다 자세히 이해할 수 있습니다.',
+//   '두 번째 설명 내용입니다. 이 설명은 사용자에게 유용한 정보를 제공하는 데 목적이 있습니다. 예를 들어, 이 설명에는 제품의 장점이나 혜택, 사용 시 주의사항 등이 포함될 수 있습니다. 이를 통해 사용자는 제품이나 서비스를 더욱 효과적으로 활용할 수 있습니다.',
+//   '세 번째 설명 내용입니다. 이 설명은 다른 내용과의 조화를 이루며 전체적인 이해를 돕습니다. 예를 들어, 이 설명에는 관련된 추가 정보나 참고 자료, FAQ 등이 포함될 수 있습니다. 이를 통해 사용자는 보다 포괄적인 정보를 얻고 궁금증을 해결할 수 있습니다.'
+// ]);
 
 const carouselContent = ref([
   {
@@ -151,10 +185,9 @@ const carouselContent = ref([
   flex-grow: 1;
 }
 .upper {
-  /* background-color: #FEF7FF;
-   */
-   background-image: url(../assets/img/bonobono.jpg);
-  height: 500px;
+  background-color: #FEF7FF;
+  /* background-image: url(../assets/img/bonobono.jpg); */
+  height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start; /* 세로 중앙보다 약간 위에 정렬 */
@@ -167,12 +200,12 @@ const carouselContent = ref([
   align-items: center; /* 가로 중앙 정렬 */
 }
 
-.Main-title {
+.main-title {
   font-size: 2rem; /* Title에 맞는 글씨 크기 변경 */
   margin-bottom: 20px; /* Title과 Explanation 사이 여백 추가 */
 }
 
-.Main-Explanation {
+.main-explanation {
   font-size: 1.2rem; /* Explanation에 맞는 글씨 크기 변경 */
 }
 
@@ -281,5 +314,234 @@ button:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+
+/* 회원가입&로그인 */
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background: #f6f5f7;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	font-family: 'Montserrat', sans-serif;
+	height: 100vh;
+	margin: -20px 0 50px;
+}
+
+h1 {
+	font-weight: bold;
+	margin: 0;
+}
+
+h2 {
+	text-align: center;
+}
+
+p {
+	font-size: 14px;
+	font-weight: 100;
+	line-height: 20px;
+	letter-spacing: 0.5px;
+	margin: 20px 0 30px;
+}
+
+span {
+	font-size: 12px;
+}
+
+a {
+	color: #333;
+	font-size: 14px;
+	text-decoration: none;
+	margin: 15px 0;
+}
+
+button {
+  border-radius: 20px;
+  border: 1px solid #6a1b9a;
+  background-color: #6a1b9a;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 45px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+}
+
+button:active {
+	transform: scale(0.95);
+}
+
+button:focus {
+	outline: none;
+}
+
+button.ghost {
+	background-color: transparent;
+	border-color: #FFFFFF;
+}
+
+form {
+	background-color: #FFFFFF;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 50px;
+	height: 100%;
+	text-align: center;
+}
+
+input {
+	background-color: #eee;
+	border: none;
+	padding: 12px 15px;
+	margin: 8px 0;
+	width: 100%;
+}
+
+.container {
+	background-color: #fff;
+	border-radius: 10px;
+  	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
+			0 10px 10px rgba(0,0,0,0.22);
+	position: relative;
+	overflow: hidden;
+	width: 768px;
+	max-width: 100%;
+	min-height: 480px;
+}
+
+.form-container {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	transition: all 0.6s ease-in-out;
+}
+
+.sign-in-container {
+	left: 0;
+	width: 50%;
+	z-index: 2;
+}
+
+.container.right-panel-active .sign-in-container {
+	transform: translateX(100%);
+}
+
+.sign-up-container {
+	left: 0;
+	width: 50%;
+	opacity: 0;
+	z-index: 1;
+}
+
+.container.right-panel-active .sign-up-container {
+	transform: translateX(100%);
+	opacity: 1;
+	z-index: 5;
+	animation: show 0.6s;
+}
+
+@keyframes show {
+	0%, 49.99% {
+		opacity: 0;
+		z-index: 1;
+	}
+	
+	50%, 100% {
+		opacity: 1;
+		z-index: 5;
+	}
+}
+
+.overlay-container {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 50%;
+	height: 100%;
+	overflow: hidden;
+	transition: transform 0.6s ease-in-out;
+	z-index: 100;
+}
+
+.container.right-panel-active .overlay-container{
+	transform: translateX(-100%);
+}
+
+.overlay {
+  background: #f8bbd0;
+  background: -webkit-linear-gradient(to right, #f8bbd0, #fcdde4 );
+  background: linear-gradient(to right, #f8bbd0, #fcdde4 );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 0 0;
+  color: #FFFFFF;
+  position: relative;
+  opacity: 0.8;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: transform 0.6s ease-in-out;
+}
+
+.container.right-panel-active .overlay {
+  	transform: translateX(50%);
+}
+
+.overlay-panel {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 40px;
+	text-align: center;
+	top: 0;
+	height: 100%;
+	width: 50%;
+	transform: translateX(0);
+	transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+	transform: translateX(-20%);
+}
+
+.container.right-panel-active .overlay-left {
+	transform: translateX(0);
+}
+
+.overlay-right {
+	right: 0;
+	transform: translateX(0);
+}
+
+.container.right-panel-active .overlay-right {
+	transform: translateX(20%);
+}
+
+.social-container {
+	margin: 20px 0;
+}
+
+.social-container a {
+	border: 1px solid #DDDDDD;
+	border-radius: 50%;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0 5px;
+	height: 40px;
+	width: 40px;
 }
 </style>

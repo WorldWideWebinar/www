@@ -82,8 +82,8 @@ a {
 
 button {
   border-radius: 20px;
-  border: 1px solid #6a1b9a;
-  background-color: #6a1b9a;
+  border: 1px solid rgb(166, 125, 247);
+  background-color: rgb(166, 125, 247);
   color: #FFFFFF;
   font-size: 12px;
   font-weight: bold;
