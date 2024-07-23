@@ -1,5 +1,6 @@
 package com.ssafy.globalcc.domain.session.controller;
 
+import com.ssafy.globalcc.aop.ApiResponse;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,20 +55,20 @@ public class SessionController {
      * @return The Session ID
      */
     @PostMapping("/{meetingId}/{userId}")
-    public ResponseEntity<String> initializeSession(@PathVariable("meetingId") Integer meetingId,
-                                                    @PathVariable("userId") Integer userId,
-                                                    @RequestBody(required = false) Map<String, Object> params)
+    public ResponseEntity<?> initializeSession(@PathVariable("meetingId") Integer meetingId,
+                                               @PathVariable("userId") Integer userId,
+                                               @RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
         Meeting meeting = meetingService.findMeetingById(meetingId);
 
         // 이미 sessionId가 있는지 확인
         if (meeting.getSessionId() != null && !meeting.getSessionId().isEmpty()) {
-            return new ResponseEntity<>("Session already exists with ID: " + meeting.getSessionId(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("", "세션이 이미 있습니다"));
         }
 
         // 팀장인지 확인
         if (!meetingService.isUserTeamLeader(meetingId, userId)) {
-            return new ResponseEntity<>("Only the team leader can create a session", HttpStatus.FORBIDDEN);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("", "팀장만 세션을 만들 수 있습니다"));
         }
 
         // 세션 생성
@@ -78,7 +79,7 @@ public class SessionController {
         // meeting의 session_id 업데이트
         meetingService.updateMeetingSessionId(meetingId, sessionId);
 
-        return new ResponseEntity<>(sessionId, HttpStatus.OK);
+        return ResponseEntity.ok(ApiResponse.success(sessionId, "세션 만들기 성공"));
     }
 
     /**
