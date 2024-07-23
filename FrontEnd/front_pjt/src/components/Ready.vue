@@ -23,7 +23,8 @@
                   </ul>
                 </div>
                 <div class="notice-right">
-                  <button @click="joinConference" class="join-button">
+                  <button v-if="isOwner" @click="startConference" class="join-button">Start</button>
+                  <button v-else @click="joinConference" class="join-button">
                     <img class="play-button" src="../assets/img/playbutton.png" alt="play">
                   </button>
                 </div>
@@ -52,7 +53,7 @@
         <section class="meeting-list-section">
           <div class="meeting-header">
             <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
-            <button class="add-meeting-btn">+</button>
+            <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
@@ -176,19 +177,24 @@
 
 
 <script>
+import { useTeamStore } from '@/stores/teamStore';
+import { useUserStore } from '@/stores/userStore';
+import axios from 'axios';
+
 export default {
   name: 'ReadyPage',
   data() {
     return {
       inConference: false,
+      sessionId: null, // OpenVidu 세션 ID
       selectedMeeting: null,
       detailType: '',
-      showMembersList: false, // 멤버 목록 표시 여부
-      showTodayMembersList: false, // 오늘 미팅 멤버 목록 표시 여부
-      showFilesList: false, // 파일 목록 표시 여부
-      todayMeetingMembers: [], // 오늘 미팅 멤버 목록
+      showMembersList: false,
+      showTodayMembersList: false,
+      showFilesList: false,
+      todayMeetingMembers: [],
       selectedMeetingMembers: [],
-      activeTab: 'TODAY', // 초기 활성화 탭 설정
+      activeTab: 'TODAY',
       members: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
         { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
@@ -238,7 +244,7 @@ export default {
           files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }]
         },
         {
-          date: '2024-06-22',
+          date: '2024-07-23',
           agenda: 'AI 요약',
           status: 'OUT',
           description: 'Detailed description of AI 요약',
@@ -269,48 +275,73 @@ export default {
           text: '공유 감사합니다!',
           avatar: 'https://via.placeholder.com/32'
         }
-      ]
+      ],
+      isOwner: false // 소유자 여부를 저장할 변수
     }
   },
   computed: {
     todayMeeting() {
-      const today = new Date().toISOString().split('T')[0]
-      return this.meetings.find((meeting) => meeting.date === today)
+      const today = new Date().toISOString().split('T')[0];
+      return this.meetings.find((meeting) => meeting.date === today);
     },
     departmentName() {
-      return this.$route.params.name
+      const teamStore = useTeamStore();
+      const teamId = parseInt(this.$route.params.id, 10); // 문자열을 숫자로 변환
+      const teamData = teamStore.teams.find(team => team.id === teamId);
+      return teamData ? teamData.teamName : ''; // teamName이 존재하면 반환
     },
     groupedMeetings() {
       const groups = {
         PREV: [],
         TODAY: [],
         NEXT: []
-      }
-      const today = new Date().toISOString().split('T')[0]
-      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date))
+      };
+      const today = new Date().toISOString().split('T')[0];
+      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date));
       sortedMeetings.forEach((meeting) => {
         if (meeting.date === today) {
-          groups.TODAY.push(meeting)
+          groups.TODAY.push(meeting);
         } else if (meeting.date > today) {
-          groups.NEXT.push(meeting)
+          groups.NEXT.push(meeting);
         } else {
-          groups.PREV.push(meeting)
+          groups.PREV.push(meeting);
         }
-      })
-      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV }
+      });
+      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
     },
   },
   methods: {
     joinConference() {
-      this.inConference = true;
-      this.$router.push({ name: 'ConferenceView' });
+      this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
+        this.inConference = true;
+      }).catch(err => {
+        console.error('Error navigating to ConferenceView:', err);
+      });
+    },
+    async startConference() {
+      try {
+        // 커스텀 세션 ID 설정
+        const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
+        const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
+
+        this.sessionId = response.data.id;
+        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
+
+        this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
+          this.inConference = true;
+        }).catch(err => {
+          console.error('Error navigating to ConferenceView:', err);
+        });
+      } catch (error) {
+        console.error('Failed to create OpenVidu session:', error);
+      }
     },
     selectMeeting(meeting) {
       this.selectedMeeting = meeting;
       this.detailType = this.computeDetailType(meeting.date);
       this.selectedMeetingMembers = this.members.slice(0, meeting.members);
-      this.showMembersList = false; // 초기에는 멤버 목록을 숨김
-      this.showFilesList = false; // 초기에는 파일 목록을 숨김
+      this.showMembersList = false;
+      this.showFilesList = false;
     },
     closeMeetingDetails() {
       this.selectedMeeting = null;
@@ -363,12 +394,32 @@ export default {
     }
   },
   mounted() {
-    this.selectLatestTodayMeeting(); // 페이지 로드 시 최신 today 회의 선택
+    const teamStore = useTeamStore();
+    const userStore = useUserStore();
+    const userId = userStore.userId;
+    const teamId = parseInt(this.$route.params.id, 10);
+
+    // 팀 데이터를 불러와 소유자 여부를 확인
+    const team = teamStore.teams.find(team => team.id === teamId);
+    if (team) {
+      if (team.ownerId === userId) {
+        this.isOwner = true;
+      }
+    } else {
+      console.error(`Team ${teamId} not found in store`);
+    }
+
+    this.selectLatestTodayMeeting();
   },
   watch: {
     $route(to, from) {
       if (to.name === 'rnd' && from.name === 'ConferenceView') {
-        this.inConference = false
+        this.inConference = false;
+      }
+    },
+    activeTab(newTab) {
+      if (newTab === 'TODAY') {
+        this.selectLatestTodayMeeting();
       }
     },
     activeTab(newTab) {
@@ -377,11 +428,8 @@ export default {
       }
     }
   }
-}
+};
 </script>
-
-
-
 
 <style scoped>
 .ready-page-container {

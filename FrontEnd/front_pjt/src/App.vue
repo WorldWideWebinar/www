@@ -21,11 +21,11 @@
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ReadyView', params: { name: team.name } }" 
+            :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
           >
             <span class="icon">{{ team.icon }}</span>
-            <span class="link-text">{{ team.displayName }}</span>
+            <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
       </ul>
@@ -66,6 +66,7 @@ const goingHome = () => {
 onMounted(async () => {
   await userStore.fetchUserTeamsAndMeetings(userStore.userId);
   console.log('Teams:', userStore.teams); // 디버깅용
+  await userStore.fetchAllUsers() 
 });
 
 const teams = computed(() => userStore.teams);
@@ -150,7 +151,6 @@ const teams = computed(() => userStore.teams);
   display: flex;
   align-items: center;
   justify-content: center;
-  
 }
 
 main {

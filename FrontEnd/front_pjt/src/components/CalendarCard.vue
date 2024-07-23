@@ -2,10 +2,9 @@
   <div class="card">
     <h3 class="datetime">{{ formatDate(selectedDate) }}</h3>
     <ul>
-      <li v-for="meeting in meetings" :key="meeting.id">
-        <h2 class="title">{{ meeting.title }}</h2>
+      <li v-for="meeting in meetings" :key="meeting.meeting_id">
+        <h2 class="title">{{ meeting.name }}</h2>
         <p class="host">Host: {{ meeting.host }}</p>
-        <p class="participants">Participants: {{ meeting.participants.length }}</p>
       </li>
     </ul>
   </div>
@@ -27,7 +26,7 @@ export default {
 
     watch(() => props.meetings, (newMeetings) => {
       if (newMeetings.length > 0) {
-        selectedDate.value = newMeetings[0].date;
+        selectedDate.value = newMeetings[0].start_at;
       }
     }, { immediate: true });
 
