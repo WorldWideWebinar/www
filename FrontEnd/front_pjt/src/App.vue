@@ -21,7 +21,7 @@
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ReadyView', params: { name: team.teamName } }" 
+            :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
           >
             <span class="icon">{{ team.icon }}</span>
@@ -153,7 +153,6 @@ const teams = computed(() => userStore.teams);
   display: flex;
   align-items: center;
   justify-content: center;
-  
 }
 
 main {

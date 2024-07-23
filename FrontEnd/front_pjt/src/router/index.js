@@ -25,20 +25,21 @@ const router = createRouter({
       path: '/accounts',
       name: 'AccountView',
       children: [
-      {
-        path: 'sign',
-        name: 'SignView',
-        component: SignView
-      },
-      {
-        path: 'profile',
-        name: 'ProfileView',
-        component: ProfileView,
-        props: true
-      },
-    ]
+        {
+          path: 'sign',
+          name: 'SignView',
+          component: SignView
+        },
+        {
+          path: 'profile',
+          name: 'ProfileView',
+          component: ProfileView,
+          props: true
+        },
+      ]
     },
-    { path: '/team',
+    { 
+      path: '/team',
       name: 'Team',
       children: [
         {
@@ -52,25 +53,18 @@ const router = createRouter({
           component: TeamCreateView,
         },
         {
-          path: ':name',
+          path: ':id',
           name: 'ReadyView',
           component: ReadyPage,
-          children: [
-            {
-              path: 'conference',
-              name: 'ConferenceView',
-              component: ConferenceView
-            },
-          ]
         },
       ]
     },
-
-    // {
-    //   path: "/login",
-    //   name:"login",
-    //   component:
-    // }
+    {
+      path: '/conference/:sessionId',
+      name: 'ConferenceView',
+      component: ConferenceView,
+      props: true
+    }
   ]
 })
 

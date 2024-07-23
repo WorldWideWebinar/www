@@ -103,10 +103,12 @@
 
 <script>
 import { OpenVidu } from 'openvidu-browser';
+import { useSessionStore } from '@/stores/sessionStore';
 import axios from 'axios';
 
 export default {
-  name: 'SessionView',
+  name: 'ConferenceView',
+  props: ['sessionId'],
   data() {
     return {
       participants: [
@@ -129,21 +131,22 @@ export default {
   },
   methods: {
     async joinSession() {
+      const sessionStore = useSessionStore();
       const OV = new OpenVidu();
-      this.session = OV.initSession();
+      const session = OV.initSession();
+      sessionStore.setSession(session);
 
-      this.session.on('streamCreated', (event) => {
-        const subscriber = this.session.subscribe(event.stream, 'video-container');
+      session.on('streamCreated', (event) => {
+        const subscriber = session.subscribe(event.stream, 'video-container');
+        sessionStore.addStream(subscriber.stream);
       });
 
       try {
-        const sessionResponse = await axios.post('http://localhost:5000/api/sessions', { customSessionId: "TestSession" });
-        const sessionId = sessionResponse.data.id;
-
-        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${sessionId}/connection`);
+        // 백엔드 서버로 요청을 보내어 OpenVidu 세션에 연결하기 위한 토큰 생성
+        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${this.sessionId}/connection`);
         const token = tokenResponse.data.token;
 
-        await this.session.connect(token, { clientData: 'Participant' });
+        await session.connect(token, { clientData: 'Participant' });
 
         const publisher = OV.initPublisher('video-container', {
           videoSource: undefined,
@@ -154,7 +157,7 @@ export default {
           frameRate: 30,
           insertMode: 'APPEND'
         });
-        this.session.publish(publisher);
+        session.publish(publisher);
 
         this.startCapturing();
       } catch (error) {

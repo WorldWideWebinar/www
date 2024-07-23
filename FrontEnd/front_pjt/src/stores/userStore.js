@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { useTeamStore } from './teamStore';
+import { useMeetingStore } from './meetingStore';
 // import axios from 'axios';
 
 export const useUserStore = defineStore('user', {
@@ -15,7 +16,7 @@ export const useUserStore = defineStore('user', {
       this.userId = userId;
 
       const teamStore = useTeamStore();
-
+      const meetingStore = useMeetingStore();
       // 주석 처리된 axios 호출
       // try {
       //   const response = await axios.get(`http://localhost:8000/api/users/${userId}`);
@@ -50,14 +51,23 @@ export const useUserStore = defineStore('user', {
       };
       this.userInfo = userData;
 
+      const meetingIds = [];
       // teamList를 teamStore로 전달하여 개별 팀 정보 조회
       for (const teamId of userData.teamList) {
-        await teamStore.fetchTeamById(teamId);
+        const team = await teamStore.fetchTeamById(teamId);
+        if (team) {
+          meetingIds.push(...team.meetingList);
+        }
       }
 
-      // userStore의 teams를 teamStore의 userTeams로 설정
-      this.teams = teamStore.userTeams;
+      // teamStore의 teams를 userStore의 teams로 설정
+      this.teams = teamStore.teams;
       console.log('Teams:', this.teams);
+
+      // meetingStore에서 meetings를 조회하여 userStore의 meetings로 설정
+      await meetingStore.fetchMeetingsByIds(meetingIds);
+      this.meetings = meetingStore.meetings;
+      console.log('Meetings:', this.meetings);
     },
     
     async fetchAllUsers() {
