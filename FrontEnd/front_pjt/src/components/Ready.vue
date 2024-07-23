@@ -385,7 +385,7 @@ export default {
           avatar: 'https://via.placeholder.com/32'
         }
       ],
-      isOwner: false // 소유자 여부를 저장할 변수
+      isOwner: false, // 소유자 여부를 저장할 변수
       previewUrl: null // 추후에 넣기
     }
   },
