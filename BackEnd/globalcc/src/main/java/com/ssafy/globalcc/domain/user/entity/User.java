@@ -1,12 +1,10 @@
 package com.ssafy.globalcc.domain.user.entity;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -36,6 +34,7 @@ public class User{
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Builder.Default
     @Column(name = "language", nullable = false)
     private String language = "eng";
 
@@ -48,9 +47,11 @@ public class User{
     @Column(name = "last_meeting_id")
     private Integer lastMeetingId;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
