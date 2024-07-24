@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -40,12 +38,6 @@ public class User{
 
     @Column(name = "profile_image", length = 2048)
     private String profileImage;
-
-    @Column(name = "last_team_id")
-    private Integer lastTeamId;
-
-    @Column(name = "last_meeting_id")
-    private Integer lastMeetingId;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)

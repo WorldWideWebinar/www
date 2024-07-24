@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequestMapping("api/users")
@@ -82,9 +84,30 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable("userId") long userId){
+    public ResponseEntity<?> getUserById(@PathVariable("userId") int userId){
         UserDetailResult result = userService.getUserDetails(userId);
         return new ResponseEntity<>(ApiResponse.success(result,"유저정보 조회 성공"),HttpStatus.OK);
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable("userId") int userId, @RequestBody UserDto userDto){
+        userService.updateUser(userDto,userId);
+        return new ResponseEntity<>(ApiResponse.success(new UserIdResult(userId),"유저 수정 성공"),HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllUser(){
+        List<UserListResult> result = userService.getUsers();
+        return new ResponseEntity<>(ApiResponse.success(result,"전제 유저 조회 성공"),HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable("userId") int userId){
+        userService.deleteUser(userId);
+
+        return new ResponseEntity<>(ApiResponse.success(
+                new UserIdResult(userId),"유저 삭제 성공"
+        ), HttpStatus.OK);
     }
 
     @GetMapping("/refresh")
