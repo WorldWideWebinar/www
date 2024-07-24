@@ -94,7 +94,6 @@ export const useMeetingStore = defineStore('meeting', {
       ];
 
       this.meetings = allMeetings.filter(meeting => meetingIds.includes(meeting.meeting_id));
-      console.log('Meetings fetched (static data):', this.meetings);
     },
 
     addMeeting(meeting) {

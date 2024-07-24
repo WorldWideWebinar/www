@@ -84,19 +84,6 @@ export const useUserStore = defineStore('user', {
         { id: 10, username: 'judy', email: 'judy@google.com' }
       ];
       console.log('AllUsers', this.userList);
-
-      // 실제 API 호출 예제
-      // try {
-      //   const response = await axios.get(`http://localhost:8000/api/users`);
-      //   this.userList = response.data.map(user => ({
-      //     id: user.id,
-      //     username: user.username,
-      //     email: user.email
-      //   }));
-      //   console.log('AllUsers', this.userList);
-      // } catch (error) {
-      //   console.error('Failed to fetch users:', error);
-      // }
     },
     async signup({ id, idCheck, name, email, password, language }) {
       try {
@@ -112,7 +99,6 @@ export const useUserStore = defineStore('user', {
             password,
             language
           });
-          console.log('Signup successful:', signupResponse.data);
           return signupResponse.data;
         } else {
           console.log('ID is not available');
