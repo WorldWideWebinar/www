@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <HomeSeeing/>
+    <div class="landing-page-container">
+      <HomeSeeing/>
     </div>
 </template>
 
@@ -18,5 +18,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-
+.landing-page-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem 0;
+  box-sizing: border-box;
+  background-color: #fcf9fc;
+}
 </style>

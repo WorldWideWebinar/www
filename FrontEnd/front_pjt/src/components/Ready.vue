@@ -1,7 +1,9 @@
 <template>
   <div v-if="!inConference" class="ready-page-container">
     <header class="header">
-      <span>Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</span>
+      <span
+        >Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</span
+      >
     </header>
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
@@ -18,15 +20,19 @@
                 </div>
                 <div class="notice-middle">
                   <p>{{ todayMeeting.time }}</p>
-                  <p class="before-dropdown" @click="toggleTodayMembersList">{{ todayMeeting.members }} members will join!</p>
+                  <p class="before-dropdown" @click="toggleTodayMembersList">
+                    {{ todayMeeting.members }} members will join!
+                  </p>
                   <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member">
+                      <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                    </li>
                   </ul>
                 </div>
                 <div class="notice-right">
                   <button v-if="isOwner" @click="startConference" class="join-button">Start</button>
                   <button v-else @click="joinConference" class="join-button">
-                    <img class="play-button" src="../assets/img/playbutton.png" alt="play">
+                    <img class="play-button" src="../assets/img/playbutton.png" alt="play" />
                   </button>
                 </div>
               </div>
@@ -85,7 +91,9 @@
                         <button class="add-member-btn">+</button>
                       </div>
                       <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
-                        <li v-for="member in members" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                        <li v-for="member in members" :key="member.name" class="member">
+                          <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                        </li>
                       </ul>
                     </td>
                   </tr>
@@ -107,13 +115,28 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
-              <a :class="{'nav-link': true, active: activeTab === 'PREV'}" aria-current="page" href="#">PREV</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'PREV' }"
+                aria-current="page"
+                href="#"
+                >PREV</a
+              >
             </li>
             <li class="nav-item" @click="activeTab = 'TODAY'">
-              <a :class="{'nav-link': true, active: activeTab === 'TODAY'}" aria-current="page" href="#">TODAY</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'TODAY' }"
+                aria-current="page"
+                href="#"
+                >TODAY</a
+              >
             </li>
             <li class="nav-item" @click="activeTab = 'NEXT'">
-              <a :class="{'nav-link': true, active: activeTab === 'NEXT'}" aria-current="page" href="#">NEXT</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'NEXT' }"
+                aria-current="page"
+                href="#"
+                >NEXT</a
+              >
             </li>
           </ul>
 
@@ -131,9 +154,25 @@
                 <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('PREV', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('PREV', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('PREV', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -141,9 +180,25 @@
                 <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('TODAY', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('TODAY', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('TODAY', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -151,9 +206,25 @@
                 <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('NEXT', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('NEXT', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('NEXT', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -161,7 +232,9 @@
           </table>
         </section>
 
-        <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
+        <section
+          :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }"
+        >
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
               <p>&nbsp;{{ selectedMeeting?.agenda }}&nbsp;</p>
@@ -180,7 +253,10 @@
                 <tr>
                   <td><strong>Status</strong></td>
                   <td>
-                    <button :class="buttonClass(detailType, selectedMeeting?.status)" @click="toggleDetailStatus(selectedMeeting)">
+                    <button
+                      :class="buttonClass(detailType, selectedMeeting?.status)"
+                      @click="toggleDetailStatus(selectedMeeting)"
+                    >
                       {{ buttonText(detailType, selectedMeeting?.status) }}
                     </button>
                   </td>
@@ -190,7 +266,13 @@
                   <td class="show-member before-dropdown" @click="toggleMembersList">
                     {{ selectedMeeting?.members }} members joined!
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                      <li v-for="member in selectedMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                      <li
+                        v-for="member in selectedMeetingMembers"
+                        :key="member.name"
+                        class="member"
+                      >
+                        <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                      </li>
                     </ul>
                   </td>
                 </tr>
@@ -200,7 +282,8 @@
                     {{ selectedMeeting?.files.length }} files uploaded
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
-                        <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded by {{ file.uploader }}
+                        <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
+                        by {{ file.uploader }}
                       </li>
                     </ul>
                   </td>
@@ -211,8 +294,26 @@
                 <table class="files-table">
                   <thead>
                     <tr>
-                      <td><a href="#" @click.prevent="previewFile({name: 'summary.pdf', link: selectedMeeting.summary})" class="file-link">📂summary</a></td>
-                      <td><a href="#" @click.prevent="previewFile({name: 'record.pdf', link: selectedMeeting.record})" class="file-link">📁record</a></td>
+                      <td>
+                        <a
+                          href="#"
+                          @click.prevent="
+                            previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
+                          "
+                          class="file-link"
+                          >📂summary</a
+                        >
+                      </td>
+                      <td>
+                        <a
+                          href="#"
+                          @click.prevent="
+                            previewFile({ name: 'record.pdf', link: selectedMeeting.record })
+                          "
+                          class="file-link"
+                          >📁record</a
+                        >
+                      </td>
                     </tr>
                   </thead>
                 </table>
@@ -230,12 +331,10 @@
   <router-view v-else></router-view>
 </template>
 
-
-
 <script>
-import { useTeamStore } from '@/stores/teamStore';
-import { useUserStore } from '@/stores/userStore';
-import axios from 'axios';
+import { useTeamStore } from '@/stores/teamStore'
+import { useUserStore } from '@/stores/userStore'
+import axios from 'axios'
 
 export default {
   name: 'ReadyPage',
@@ -263,7 +362,7 @@ export default {
         { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
       ],
       meetings: [
-        { 
+        {
           date: '2024-11-15',
           agenda: '현대자동차',
           status: 'IN',
@@ -275,7 +374,7 @@ export default {
             { name: 'services.png', link: '#', uploader: 'Robert' }
           ]
         },
-        { 
+        {
           date: '2024-10-29',
           agenda: '현대오토에버',
           status: 'IN',
@@ -318,7 +417,7 @@ export default {
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-23',
+          date: '2024-07-24',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
@@ -369,7 +468,7 @@ export default {
           files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
           summary: '/path/to/다국어 화상회의_summary.pdf',
           record: '/path/to/다국어 화상회의_record.pdf'
-        },
+        }
       ],
       messages: [
         {
@@ -391,211 +490,218 @@ export default {
   },
   computed: {
     todayMeeting() {
-      const today = new Date().toISOString().split('T')[0];
-      return this.meetings.find((meeting) => meeting.date === today);
+      const today = new Date().toISOString().split('T')[0]
+      return this.meetings.find((meeting) => meeting.date === today)
     },
     departmentName() {
-      const teamStore = useTeamStore();
-      const teamId = parseInt(this.$route.params.id, 10); // 문자열을 숫자로 변환
-      const teamData = teamStore.teams.find(team => team.id === teamId);
-      return teamData ? teamData.teamName : ''; // teamName이 존재하면 반환
+      const teamStore = useTeamStore()
+      const teamId = parseInt(this.$route.params.id, 10) // 문자열을 숫자로 변환
+      const teamData = teamStore.teams.find((team) => team.id === teamId)
+      return teamData ? teamData.teamName : '' // teamName이 존재하면 반환
     },
     groupedMeetings() {
       const groups = {
         PREV: [],
         TODAY: [],
         NEXT: []
-      };
-      const today = new Date().toISOString().split('T')[0];
-      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
+      const today = new Date().toISOString().split('T')[0]
+      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date))
       sortedMeetings.forEach((meeting) => {
         if (meeting.date === today) {
-          groups.TODAY.push(meeting);
+          groups.TODAY.push(meeting)
         } else if (meeting.date > today) {
-          groups.NEXT.push(meeting);
+          groups.NEXT.push(meeting)
         } else {
-          groups.PREV.push(meeting);
+          groups.PREV.push(meeting)
         }
-      });
-      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
+      })
+      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV }
     },
     totalMeetingHours() {
       return this.meetings.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     prevMeetingHours() {
       return this.groupedMeetings.PREV.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     todayMeetingHours() {
       return this.groupedMeetings.TODAY.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     nextMeetingHours() {
       return this.groupedMeetings.NEXT.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     prevMeetingHoursPercentage() {
-      return (this.prevMeetingHours / this.totalMeetingHours) * 100;
+      return (this.prevMeetingHours / this.totalMeetingHours) * 100
     },
     todayMeetingHoursPercentage() {
-      return (this.todayMeetingHours / this.totalMeetingHours) * 100;
+      return (this.todayMeetingHours / this.totalMeetingHours) * 100
     },
     nextMeetingHoursPercentage() {
-      return (this.nextMeetingHours / this.totalMeetingHours) * 100;
+      return (this.nextMeetingHours / this.totalMeetingHours) * 100
     }
   },
   methods: {
     joinConference() {
-      this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
-        this.inConference = true;
-      }).catch(err => {
-        console.error('Error navigating to ConferenceView:', err);
-      });
+      this.$router
+        .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
+        .then(() => {
+          this.inConference = true
+        })
+        .catch((err) => {
+          console.error('Error navigating to ConferenceView:', err)
+        })
     },
     async startConference() {
       try {
         // 커스텀 세션 ID 설정
-        const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
-        const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
+        const customSessionId = 'TestSession' // 원하는 세션 ID로 변경 가능
+        const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId })
 
-        this.sessionId = response.data.id;
-        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
+        this.sessionId = response.data.id
+        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId)
 
-        this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
-          this.inConference = true;
-        }).catch(err => {
-          console.error('Error navigating to ConferenceView:', err);
-        });
+        this.$router
+          .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
+          .then(() => {
+            this.inConference = true
+          })
+          .catch((err) => {
+            console.error('Error navigating to ConferenceView:', err)
+          })
       } catch (error) {
-        console.error('Failed to create OpenVidu session:', error);
+        console.error('Failed to create OpenVidu session:', error)
       }
     },
     selectMeeting(meeting) {
-      this.selectedMeeting = meeting;
-      this.detailType = this.computeDetailType(meeting.date);
-      this.selectedMeetingMembers = this.members.slice(0, meeting.members);
-      this.showMembersList = false; // 초기에는 멤버 목록을 숨김
-      this.showFilesList = false; // 초기에는 파일 목록을 숨김
-      this.previewUrl = null; // 초기에는 파일 미리보기 URL 숨김
-      this.showOverlay = true; // 오버레이 표시
+      this.selectedMeeting = meeting
+      this.detailType = this.computeDetailType(meeting.date)
+      this.selectedMeetingMembers = this.members.slice(0, meeting.members)
+      this.showMembersList = false // 초기에는 멤버 목록을 숨김
+      this.showFilesList = false // 초기에는 파일 목록을 숨김
+      this.previewUrl = null // 초기에는 파일 미리보기 URL 숨김
+      this.showOverlay = true // 오버레이 표시
     },
     closeMeetingDetails() {
-      this.selectedMeeting = null;
-      this.selectedMeetingMembers = [];
-      this.showMembersList = false;
-      this.showFilesList = false;
-      this.previewUrl = null; // 파일 미리보기 URL 초기화
-      this.showOverlay = false; // 오버레이 숨김
+      this.selectedMeeting = null
+      this.selectedMeetingMembers = []
+      this.showMembersList = false
+      this.showFilesList = false
+      this.previewUrl = null // 파일 미리보기 URL 초기화
+      this.showOverlay = false // 오버레이 숨김
     },
     toggleStatus(meeting) {
-      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
+      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN'
     },
     toggleDetailStatus(meeting) {
-      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
+      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN'
     },
     buttonClass(type, status) {
       if (type === 'NEXT') {
-        return status === 'IN' ? 'btn-green' : 'btn-red';
+        return status === 'IN' ? 'btn-green' : 'btn-red'
       } else if (type === 'PREV') {
-        return 'btn-gray';
+        return 'btn-gray'
       } else if (type === 'TODAY') {
-        return status === 'IN' ? 'btn-green' : 'btn-red';
+        return status === 'IN' ? 'btn-green' : 'btn-red'
       }
-      return '';
+      return ''
     },
     buttonText(type, status) {
-      return status;
+      return status
     },
     computeDetailType(date) {
-      const today = new Date().toISOString().split('T')[0];
-      if (date === today) return 'TODAY';
-      else if (date > today) return 'NEXT';
-      else return 'PREV';
+      const today = new Date().toISOString().split('T')[0]
+      if (date === today) return 'TODAY'
+      else if (date > today) return 'NEXT'
+      else return 'PREV'
     },
     toggleMemberListDropdown() {
-      this.showMemberListDropdown = !this.showMemberListDropdown;
-      this.showOverlay = this.showMemberListDropdown; // 오버레이 표시
+      this.showMemberListDropdown = !this.showMemberListDropdown
+      this.showOverlay = this.showMemberListDropdown // 오버레이 표시
     },
     toggleTodayMembersList() {
-      this.showTodayMembersList = !this.showTodayMembersList;
+      this.showTodayMembersList = !this.showTodayMembersList
       if (this.todayMeeting) {
-        this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members);
+        this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members)
       }
-      this.showOverlay = this.showTodayMembersList; // 오버레이 표시
+      this.showOverlay = this.showTodayMembersList // 오버레이 표시
     },
     selectLatestTodayMeeting() {
-      const todayMeetings = this.groupedMeetings.TODAY;
+      const todayMeetings = this.groupedMeetings.TODAY
       if (todayMeetings.length > 0) {
-        this.selectMeeting(todayMeetings[0]);
+        this.selectMeeting(todayMeetings[0])
       }
     },
     toggleFilesList() {
-      this.showFilesList = !this.showFilesList;
-      this.showOverlay = this.showFilesList;
+      this.showFilesList = !this.showFilesList
+      this.showOverlay = this.showFilesList
     },
     toggleMembersList() {
-      this.showMembersList = !this.showMembersList;
-      this.showOverlay = this.showMembersList;
+      this.showMembersList = !this.showMembersList
+      this.showOverlay = this.showMembersList
     },
     previewFile(file) {
-      this.previewUrl = file.link;
+      this.previewUrl = file.link
     },
     closeDropdowns() {
-      this.showMemberListDropdown = false;
-      this.showTodayMembersList = false;
-      this.showFilesList = false;
-      this.showMembersList = false;
-      this.showOverlay = false; // 오버레이 숨김
+      this.showMemberListDropdown = false
+      this.showTodayMembersList = false
+      this.showFilesList = false
+      this.showMembersList = false
+      this.showOverlay = false // 오버레이 숨김
     }
   },
   mounted() {
-    const teamStore = useTeamStore();
-    const userStore = useUserStore();
-    const userId = userStore.userId;
-    const teamId = parseInt(this.$route.params.id, 10);
+    const teamStore = useTeamStore()
+    const userStore = useUserStore()
+    const userId = userStore.userId
+    const teamId = parseInt(this.$route.params.id, 10)
 
     // 팀 데이터를 불러와 소유자 여부를 확인
-    const team = teamStore.teams.find(team => team.id === teamId);
+    const team = teamStore.teams.find((team) => team.id === teamId)
     if (team) {
       if (team.ownerId === userId) {
-        this.isOwner = true;
+        this.isOwner = true
       }
     } else {
-      console.error(`Team ${teamId} not found in store`);
+      console.error(`Team ${teamId} not found in store`)
     }
 
-    this.selectLatestTodayMeeting();
+    this.selectLatestTodayMeeting()
   },
   watch: {
     $route(to, from) {
       if (to.name === 'rnd' && from.name === 'ConferenceView') {
-        this.inConference = false;
+        this.inConference = false
       }
     },
     activeTab(newTab) {
       if (newTab === 'TODAY') {
-        this.selectLatestTodayMeeting();
-      }
-    },
-    activeTab(newTab) {
-      if (newTab === 'TODAY') {
-        this.selectLatestTodayMeeting();
+        this.selectLatestTodayMeeting()
       }
     }
   }
-};
+}
 </script>
-
-
 
 <style scoped>
 .ready-page-container {
@@ -620,7 +726,7 @@ export default {
 
 .sub-container {
   width: 82%;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 
 .top-section {
@@ -839,7 +945,6 @@ export default {
   font-weight: bpld;
 }
 
-
 /* member */
 .members {
   max-height: 100px;
@@ -991,7 +1096,7 @@ ul.nav li {
 .meeting-list td:nth-child(3):hover *,
 .meeting-list td.agenda:hover {
   cursor: pointer;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 3px;
@@ -1061,7 +1166,6 @@ button {
   table-layout: fixed;
 }
 
-
 /* detail */
 .meeting-detail-header {
   display: flex;
@@ -1075,7 +1179,7 @@ button {
   margin: 1rem auto;
   font-size: larger;
   font-weight: bolder;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 5px;

@@ -1,6 +1,6 @@
 <template>
   <div class="chat-button" @click="$emit('toggleChat')">
-    💬
+    <img src="../../src/assets/img/logo.png" alt="logo">
   </div>
 </template>
 
@@ -9,7 +9,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: #6200ea;
+  background-color: rgba(98, 0, 234, 0.5);
   color: white;
   border: none;
   border-radius: 50%;
@@ -21,5 +21,9 @@
   font-size: 24px;
   cursor: pointer;
   z-index: 1000;
+}
+
+.chat-button img {
+  width: 40px;
 }
 </style>
