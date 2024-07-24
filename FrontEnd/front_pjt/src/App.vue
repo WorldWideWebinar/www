@@ -3,7 +3,7 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
-          <img src="../src/assets/img/logo.png" alt="logo">
+          <img src="../src/assets/img/chat.png" alt="logo">
         </button>
       </div>
       <div class="seperator"></div>
