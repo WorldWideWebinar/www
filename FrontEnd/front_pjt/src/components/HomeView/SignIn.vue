@@ -1,11 +1,11 @@
 <template>
   <div class="form-container sign-in-container">
     <form action="#">
-      <h1>Sign in</h1>
+      <h1 class="form-title">Sign in</h1>
       <input type="email" placeholder="Email" required />
       <input type="password" placeholder="Password" required />
       <a href="#">Forgot your password?</a>
-      <button>Sign In</button>
+      <button class="submit-btn">Sign In</button>
     </form>
   </div>
 </template>
@@ -66,13 +66,16 @@ button:focus {
 form {
   background-color: #FFFFFF;
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-direction: column;
-  padding: 0 50px;
+  padding: 20px;
   height: 100%;
   width: 100%;
   text-align: center;
+  justify-content: space-between;
+}
+
+.form-title {
+  margin-top: 10%;
 }
 
 input {
@@ -102,10 +105,17 @@ input {
   height: 100%;
   width: 50%; /* Ensures equal width for both containers */
   transition: all 0.6s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .sign-in-container {
   left: 0;
   z-index: 2;
+}
+
+.submit-btn {
+  margin-top: 5%;
 }
 </style>
