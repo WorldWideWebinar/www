@@ -117,4 +117,4 @@ CREATE TABLE IF NOT EXISTS user_detail (
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
-
+--
