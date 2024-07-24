@@ -1,19 +1,19 @@
 package com.ssafy.globalcc.domain.user.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ssafy.globalcc.domain.user.dto.UserDto;
 import com.ssafy.globalcc.domain.user.entity.User;
+import com.ssafy.globalcc.domain.user.entity.UserDetail;
+import com.ssafy.globalcc.domain.user.repository.UserDetailRepository;
 import com.ssafy.globalcc.domain.user.repository.UserRepository;
-import com.ssafy.globalcc.domain.user.result.JwtResult;
-import com.ssafy.globalcc.domain.user.result.LoginResult;
-import com.ssafy.globalcc.domain.user.result.UserDetailResult;
+import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
+import com.ssafy.globalcc.domain.user.result.*;
 import com.ssafy.globalcc.utils.JwtUtil;
 import io.netty.util.internal.StringUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserDetailRepository userDetailRepository;
+    private final UserTeamRepository userTeamRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RedisOperations<String, String> redisOperations;
@@ -39,13 +41,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResult loginUser(String id, String password) {
-        User dbUser = userRepository.findUserById(id);
+
+        User dbUser = userRepository.findUserById(id).orElseThrow(() -> new UsernameNotFoundException("로그인 실패"));
         log.debug("dbUser : {}",dbUser);
         log.debug("password : {}",password);
-        // id가 없거나, 패스워드를 틀렸으면 null
-        if(dbUser == null || !passwordEncoder.matches(password, dbUser.getPassword())) {
+        if(!passwordEncoder.matches(password, dbUser.getPassword())) {
             return null;
         }
+        // id가 없거나, 패스워드를 틀렸으면 null
         // password correct
         // issue JWT
         String accessToken = jwtUtil.createAccessToken(dbUser);
@@ -67,14 +70,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetailResult getUserDetails(long userId) {
-        return null;
+    public UserDetailResult getUserDetails(int userId) {
+        UserDetail ud = userDetailRepository.findUserDetailByUserUserId(userId).orElseThrow();
+        User user = ud.getUser();
+        List<Integer> userTeamList = userTeamRepository.findUserTeamIdsByUserUserId(userId);
+
+        return UserDetailResult.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .profileImageUrl(user.getProfileImage())
+                .email(user.getEmail())
+                .totalMeetingTime(ud.getTotalMeetingTime())
+                .teamList(userTeamList)
+                .build();
     }
 
 
     @Override
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public List<UserListResult> getUsers() {
+         return userRepository.findAll().stream().map((user)->
+             new UserListResult(user.getUserId(),user.getId())
+         ).toList();
     }
 
     @Override
@@ -94,14 +110,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean updateUser(User user) {
-        userRepository.save(user);
-        return false;
+    public void updateUser(UserDto user, int userId) {
+        User dbUser = userRepository.findById(userId).orElseThrow();
+        // TODO : 비밀번호 변경 로직을 분리
+        String encoded = passwordEncoder.encode(user.getPassword());
+        dbUser.setPassword(encoded);
+        dbUser.setLanguage(user.getLanguage());
+        dbUser.setEmail(user.getEmail());
+        // 프로필 사진의 경우 다른 곳에서 수정함.
+
+        userRepository.save(dbUser);
     }
 
     @Override
-    public boolean deleteUser(int userId) {
-        return false;
+    public void deleteUser(int userId) {
+         // TODO: 정책을 참고해서 유저 삭제 진행
+        userRepository.deleteById(userId);
     }
 
     @Override

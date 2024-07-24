@@ -15,10 +15,7 @@ public class SecurityUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
-        User dbUser = userRepository.findUserById(id);
-        if (dbUser == null) {
-            throw new UsernameNotFoundException(id);
-        }
+        User dbUser = userRepository.findUserById(id).orElseThrow(() -> new UsernameNotFoundException(id));
         return new SecurityUser(dbUser);
     }
 }
