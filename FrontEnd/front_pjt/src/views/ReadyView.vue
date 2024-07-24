@@ -1,7 +1,9 @@
 <template>
   <div v-if="!inConference" class="ready-page-container">
     <header class="header">
-      <span>Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</span>
+      <span
+        >Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page</span
+      >
     </header>
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
@@ -18,9 +20,13 @@
                 </div>
                 <div class="notice-middle">
                   <p>{{ todayMeeting.time }}</p>
-                  <p class="before-dropdown" @click="toggleTodayMembersList">{{ todayMeeting.members }} members will join!</p>
+                  <p class="before-dropdown" @click="toggleTodayMembersList">
+                    {{ todayMeeting.members }} members will join!
+                  </p>
                   <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member">
+                      <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                    </li>
                   </ul>
                 </div>
                 <div class="notice-right">
@@ -85,7 +91,9 @@
                         <button class="add-member-btn">+</button>
                       </div>
                       <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
-                        <li v-for="member in members" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                        <li v-for="member in members" :key="member.name" class="member">
+                          <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                        </li>
                       </ul>
                     </td>
                   </tr>
@@ -107,13 +115,28 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
-              <a :class="{'nav-link': true, active: activeTab === 'PREV'}" aria-current="page" href="#">PREV</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'PREV' }"
+                aria-current="page"
+                href="#"
+                >PREV</a
+              >
             </li>
             <li class="nav-item" @click="activeTab = 'TODAY'">
-              <a :class="{'nav-link': true, active: activeTab === 'TODAY'}" aria-current="page" href="#">TODAY</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'TODAY' }"
+                aria-current="page"
+                href="#"
+                >TODAY</a
+              >
             </li>
             <li class="nav-item" @click="activeTab = 'NEXT'">
-              <a :class="{'nav-link': true, active: activeTab === 'NEXT'}" aria-current="page" href="#">NEXT</a>
+              <a
+                :class="{ 'nav-link': true, active: activeTab === 'NEXT' }"
+                aria-current="page"
+                href="#"
+                >NEXT</a
+              >
             </li>
           </ul>
 
@@ -131,9 +154,25 @@
                 <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('PREV', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('PREV', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('PREV', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -141,9 +180,25 @@
                 <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('TODAY', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('TODAY', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('TODAY', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -151,9 +206,25 @@
                 <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td :class="{'agenda': true, 'bold-agenda': selectedMeeting && selectedMeeting.date === meeting.date && selectedMeeting.agenda === meeting.agenda}" @click="selectMeeting(meeting)">{{ meeting.agenda }}</td>
+                  <td
+                    :class="{
+                      agenda: true,
+                      'bold-agenda':
+                        selectedMeeting &&
+                        selectedMeeting.date === meeting.date &&
+                        selectedMeeting.agenda === meeting.agenda
+                    }"
+                    @click="selectMeeting(meeting)"
+                  >
+                    {{ meeting.agenda }}
+                  </td>
                   <td>
-                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">{{ buttonText('NEXT', meeting.status) }}</button>
+                    <button
+                      :class="buttonClass('NEXT', meeting.status)"
+                      @click="toggleStatus(meeting)"
+                    >
+                      {{ buttonText('NEXT', meeting.status) }}
+                    </button>
                   </td>
                 </tr>
               </template>
@@ -161,7 +232,9 @@
           </table>
         </section>
 
-        <section :class="{'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting}">
+        <section
+          :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }"
+        >
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
               <p>&nbsp;{{ selectedMeeting?.agenda }}&nbsp;</p>
@@ -180,7 +253,10 @@
                 <tr>
                   <td><strong>Status</strong></td>
                   <td>
-                    <button :class="buttonClass(detailType, selectedMeeting?.status)" @click="toggleDetailStatus(selectedMeeting)">
+                    <button
+                      :class="buttonClass(detailType, selectedMeeting?.status)"
+                      @click="toggleDetailStatus(selectedMeeting)"
+                    >
                       {{ buttonText(detailType, selectedMeeting?.status) }}
                     </button>
                   </td>
@@ -190,7 +266,13 @@
                   <td class="show-member before-dropdown" @click="toggleMembersList">
                     {{ selectedMeeting?.members }} members joined!
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                      <li v-for="member in selectedMeetingMembers" :key="member.name" class="member"><img :src="member.avatar" :alt="member.name" />{{ member.name }}</li>
+                      <li
+                        v-for="member in selectedMeetingMembers"
+                        :key="member.name"
+                        class="member"
+                      >
+                        <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                      </li>
                     </ul>
                   </td>
                 </tr>
@@ -200,7 +282,8 @@
                     {{ selectedMeeting?.files.length }} files uploaded
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
-                        <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded by {{ file.uploader }}
+                        <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
+                        by {{ file.uploader }}
                       </li>
                     </ul>
                   </td>
@@ -211,8 +294,26 @@
                 <table class="files-table">
                   <thead>
                     <tr>
-                      <td><a href="#" @click.prevent="previewFile({name: 'summary.pdf', link: selectedMeeting.summary})" class="file-link">📂summary</a></td>
-                      <td><a href="#" @click.prevent="previewFile({name: 'record.pdf', link: selectedMeeting.record})" class="file-link">📁record</a></td>
+                      <td>
+                        <a
+                          href="#"
+                          @click.prevent="
+                            previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
+                          "
+                          class="file-link"
+                          >📂summary</a
+                        >
+                      </td>
+                      <td>
+                        <a
+                          href="#"
+                          @click.prevent="
+                            previewFile({ name: 'record.pdf', link: selectedMeeting.record })
+                          "
+                          class="file-link"
+                          >📁record</a
+                        >
+                      </td>
                     </tr>
                   </thead>
                 </table>
@@ -230,12 +331,10 @@
   <router-view v-else></router-view>
 </template>
 
-
-
 <script>
-import { useTeamStore } from '@/stores/teamStore';
-import { useUserStore } from '@/stores/userStore';
-import axios from 'axios';
+import { useTeamStore } from '@/stores/teamStore'
+import { useUserStore } from '@/stores/userStore'
+import axios from 'axios'
 
 export default {
   name: 'ReadyPage',
@@ -263,7 +362,7 @@ export default {
         { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
       ],
       meetings: [
-        { 
+        {
           date: '2024-11-15',
           agenda: '현대자동차',
           status: 'IN',
@@ -275,7 +374,7 @@ export default {
             { name: 'services.png', link: '#', uploader: 'Robert' }
           ]
         },
-        { 
+        {
           date: '2024-10-29',
           agenda: '현대오토에버',
           status: 'IN',
@@ -318,7 +417,7 @@ export default {
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-23',
+          date: '2024-07-24',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
@@ -369,7 +468,7 @@ export default {
           files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
           summary: '/path/to/다국어 화상회의_summary.pdf',
           record: '/path/to/다국어 화상회의_record.pdf'
-        },
+        }
       ],
       messages: [
         {
@@ -391,75 +490,86 @@ export default {
   },
   computed: {
     todayMeeting() {
-      const today = new Date().toISOString().split('T')[0];
-      return this.meetings.find((meeting) => meeting.date === today);
+      const today = new Date().toISOString().split('T')[0]
+      return this.meetings.find((meeting) => meeting.date === today)
     },
     departmentName() {
-      const teamStore = useTeamStore();
-      const teamId = parseInt(this.$route.params.id, 10); // 문자열을 숫자로 변환
-      const teamData = teamStore.teams.find(team => team.id === teamId);
-      return teamData ? teamData.teamName : ''; // teamName이 존재하면 반환
+      const teamStore = useTeamStore()
+      const teamId = parseInt(this.$route.params.id, 10) // 문자열을 숫자로 변환
+      const teamData = teamStore.teams.find((team) => team.id === teamId)
+      return teamData ? teamData.teamName : '' // teamName이 존재하면 반환
     },
     groupedMeetings() {
       const groups = {
         PREV: [],
         TODAY: [],
         NEXT: []
-      };
-      const today = new Date().toISOString().split('T')[0];
-      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
+      const today = new Date().toISOString().split('T')[0]
+      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date))
       sortedMeetings.forEach((meeting) => {
         if (meeting.date === today) {
-          groups.TODAY.push(meeting);
+          groups.TODAY.push(meeting)
         } else if (meeting.date > today) {
-          groups.NEXT.push(meeting);
+          groups.NEXT.push(meeting)
         } else {
-          groups.PREV.push(meeting);
+          groups.PREV.push(meeting)
         }
-      });
-      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
+      })
+      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV }
     },
     totalMeetingHours() {
       return this.meetings.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     prevMeetingHours() {
       return this.groupedMeetings.PREV.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     todayMeetingHours() {
       return this.groupedMeetings.TODAY.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     nextMeetingHours() {
       return this.groupedMeetings.NEXT.reduce((total, meeting) => {
-        const [start, end] = meeting.time.split('-').map(time => parseInt(time.replace(/AM|PM/, '')));
-        return total + (end - start);
-      }, 0);
+        const [start, end] = meeting.time
+          .split('-')
+          .map((time) => parseInt(time.replace(/AM|PM/, '')))
+        return total + (end - start)
+      }, 0)
     },
     prevMeetingHoursPercentage() {
-      return (this.prevMeetingHours / this.totalMeetingHours) * 100;
+      return (this.prevMeetingHours / this.totalMeetingHours) * 100
     },
     todayMeetingHoursPercentage() {
-      return (this.todayMeetingHours / this.totalMeetingHours) * 100;
+      return (this.todayMeetingHours / this.totalMeetingHours) * 100
     },
     nextMeetingHoursPercentage() {
-      return (this.nextMeetingHours / this.totalMeetingHours) * 100;
+      return (this.nextMeetingHours / this.totalMeetingHours) * 100
     }
   },
   methods: {
     joinConference() {
-      this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
-        this.inConference = true;
-      }).catch(err => {
-        console.error('Error navigating to ConferenceView:', err);
-      });
+      this.$router
+        .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
+        .then(() => {
+          this.inConference = true
+        })
+        .catch((err) => {
+          console.error('Error navigating to ConferenceView:', err)
+        })
     },
     async startConference() {
       try {
@@ -467,14 +577,17 @@ export default {
         const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
         const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
 
-        this.sessionId = response.data.id;
-        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
+        this.sessionId = response.data.id
+        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId)
 
-        this.$router.push({ name: 'ConferenceView', params: { sessionId: this.sessionId } }).then(() => {
-          this.inConference = true;
-        }).catch(err => {
-          console.error('Error navigating to ConferenceView:', err);
-        });
+        this.$router
+          .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
+          .then(() => {
+            this.inConference = true
+          })
+          .catch((err) => {
+            console.error('Error navigating to ConferenceView:', err)
+          })
       } catch (error) {
         console.error('Failed to create OpenVidu session:', error);
       }
