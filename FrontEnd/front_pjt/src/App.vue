@@ -62,8 +62,8 @@ import { onMounted, computed, ref } from 'vue';
 import { useUserStore } from './stores/userStore';
 import { useTeamStore } from './stores/teamStore';
 import router from './router';
-import ChatButton from './views/ChatButton.vue';
-import ChatBox from './views/ChatBox.vue';
+import ChatButton from '@/components/ChatButton.vue';
+import ChatBox from '@/components/ChatBox.vue';
 
 const userStore = useUserStore();
 // const teamStore = useTeamStore();

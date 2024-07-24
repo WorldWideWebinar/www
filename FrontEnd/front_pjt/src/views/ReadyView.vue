@@ -586,11 +586,6 @@ export default {
         this.selectLatestTodayMeeting();
       }
     },
-    activeTab(newTab) {
-      if (newTab === 'TODAY') {
-        this.selectLatestTodayMeeting();
-      }
-    }
   }
 };
 </script>

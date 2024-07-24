@@ -15,7 +15,7 @@
     </div>
     <ul v-if="showTeams && filteredTeams.length" class="results">
       <li v-for="team in filteredTeams" :key="team.id" @click="searchTeam(team)">
-        {{ team.name }}
+        {{ team.teamName }}
       </li>
     </ul>
   </div>
@@ -38,7 +38,7 @@ const selectedTeam = ref(null);
 const router = useRouter();
 
 const filteredTeams = computed(() =>
-  teamStore.teams.filter(team => team.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  teamStore.teams.filter(team => team.teamName.toLowerCase().includes(searchQuery.value.toLowerCase()))
 );
 
 const displayedTeams = computed(() => {
