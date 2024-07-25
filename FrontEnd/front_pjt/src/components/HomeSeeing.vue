@@ -34,7 +34,7 @@
               <td>中國語</td>
             </tr>
             <tr>
-              <td>Deutsche</td>
+              <td>Español</td>
               <td>日本語</td>
             </tr>
           </table>
@@ -217,6 +217,10 @@ const carouselContent = ref([
   animation: slideInFromLeft 1s forwards;
   animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
   margin-right: 100px; /* 간격 조정 */
+  /* background-image: url('../assets/img/computer.png'); 
+  background-size: 90%;
+  background-repeat: no-repeat;
+  background-position: center;  */
 }
 
 .main-image {
@@ -287,8 +291,26 @@ const carouselContent = ref([
 .language {
   margin: 10px auto;
   width: 400px;
+}
+
+.language-table {
+  margin: 10px auto;
   border: 2px dashed lightgray;
 }
+
+.language-table td {
+  border: 2px dashed lightgray;
+  width: 150px;
+  padding: 10px;
+}
+
+.language-table td:hover {
+  background-color: #faebf0;
+  cursor: pointer;
+}
+
+
+
 
 .main-btn {
   display: flex;
