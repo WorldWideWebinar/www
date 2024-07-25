@@ -1,3 +1,4 @@
+
 <template>
   <div class="home-container">
     <div class="upper">
@@ -12,7 +13,8 @@
 
       <div class="main-btn">
         <div v-if="!session">
-          <button @click="router.push({name:'SignView'})">login</button>
+          <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
+          <button @click="router.push({name:'SignView'})">Sign up</button>
         </div>
         <div v-else>
           <button @click="router.push({name:'ProfileView'})">mypage</button>
@@ -34,7 +36,7 @@
               <td>中國語</td>
             </tr>
             <tr>
-              <td>Deutsche</td>
+              <td>Español</td>
               <td>日本語</td>
             </tr>
           </table>
@@ -43,7 +45,25 @@
     </div>
 
     <div class="lower" >
-      <div class="sub-discription carousel my-meeting" v-if="!session">
+      <!-- <div class="sub-discription carousel my-meeting" v-if="!session">
+        <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
+          <SignUp />
+          <SignIn />
+          <div class="overlay-container">
+            <div class="overlay">
+              <div class="overlay-panel overlay-left">
+                <h1>Welcome Back!</h1>
+                <p>To keep connected with us please login with your personal info</p>
+                <button class="ghost" @click="activateSignIn">Sign In</button>
+              </div>
+              <div class="overlay-panel overlay-right">
+                <h1>Hello, Friend!</h1>
+                <p>Enter your personal details and start journey with us</p>
+                <button class="ghost" @click="activateSignUp">Sign Up</button>
+              </div>
+            </div>
+          </div>
+        </div> -->
         <!-- <div class="discription">
           <p> 1번 설명</p>
           <br>
@@ -65,7 +85,7 @@
             {{ discriptionContent[2] }}
           </p>
         </div> -->
-      </div>
+      <!-- </div> -->
       <div class="my-meeting" v-if="session">
         <h2>My Meeting</h2>
         <div class="carousel">
@@ -112,6 +132,8 @@ import router from '@/router';
 import { onMounted, ref, watch } from 'vue';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+// import SignUp from '@/components/SignUp.vue';
+// import SignIn from '@/components/SignIn.vue';
 
 const isRightPanelActive = ref(false);
 
@@ -197,6 +219,10 @@ const carouselContent = ref([
   animation: slideInFromLeft 1s forwards;
   animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
   margin-right: 100px; /* 간격 조정 */
+  /* background-image: url('../assets/img/computer.png'); 
+  background-size: 90%;
+  background-repeat: no-repeat;
+  background-position: center;  */
 }
 
 .main-image {
@@ -267,8 +293,26 @@ const carouselContent = ref([
 .language {
   margin: 10px auto;
   width: 400px;
+}
+
+.language-table {
+  margin: 10px auto;
   border: 2px dashed lightgray;
 }
+
+.language-table td {
+  border: 2px dashed lightgray;
+  width: 150px;
+  padding: 10px;
+}
+
+.language-table td:hover {
+  background-color: #faebf0;
+  cursor: pointer;
+}
+
+
+
 
 .main-btn {
   display: flex;
@@ -619,4 +663,3 @@ input {
   width: 40px;
 }
 </style>
-
