@@ -1,6 +1,7 @@
 package com.ssafy.globalcc.domain.team.entity;
 
 import com.ssafy.globalcc.domain.user.entity.User;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
@@ -28,6 +29,9 @@ public class Team {
     @ManyToOne
     @JoinColumn(name = "owner_id", referencedColumnName = "user_id")
     private User owner;
+
+    @Column(name = "emoji")
+    private String emoji;
 
     @PreUpdate
     protected void onUpdate() {

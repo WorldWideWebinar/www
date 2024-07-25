@@ -2,9 +2,9 @@ package com.ssafy.globalcc.domain.user.entity;
 
 import com.ssafy.globalcc.domain.team.entity.Team;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
 
 import java.time.Instant;
 
@@ -12,6 +12,9 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "user_team")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserTeam {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +33,8 @@ public class UserTeam {
     @Column(name = "last_time")
     private Instant lastTime;
 
-    @ColumnDefault("0")
+    @ColumnDefault("1")
+    @Generated
     @Column(name = "admission")
     private Boolean admission;
 

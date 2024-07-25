@@ -1,5 +1,6 @@
 package com.ssafy.globalcc.domain.user.repository;
 
+import com.ssafy.globalcc.domain.team.entity.Team;
 import com.ssafy.globalcc.domain.user.entity.UserTeam;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,5 +13,5 @@ import java.util.List;
 public interface UserTeamRepository extends JpaRepository<UserTeam, Integer> {
     @Query("SELECT ut.team.teamId FROM UserTeam ut WHERE ut.user.userId = :userId")
     List<Integer> findUserTeamIdsByUserUserId(@Param("userId") Integer userId);
-
+    List<Integer> findUserIdByTeam(Team team);
 }
