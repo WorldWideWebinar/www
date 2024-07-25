@@ -4,7 +4,7 @@
     <ul>
       <li v-for="meeting in meetings" :key="meeting.meeting_id">
         <h2 class="title">{{ meeting.name }}</h2>
-        <p class="host">Host: {{ meeting.host }}</p>
+        <!-- <p class="host">Host: {{ meeting.host }}</p> -->
       </li>
     </ul>
   </div>
