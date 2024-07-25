@@ -64,7 +64,7 @@ public class JwtUtil {
         Algorithm algorithm = Algorithm.HMAC256(key);
         return JWT.create()
                 .withIssuer("multiConference")
-                .withClaim("userId", user.getId())
+                .withClaim("userId", user.getUid())
                 .withIssuedAt(nowDateTime.toInstant())
                 .withExpiresAt(tokenValidity.toInstant())
                 .sign(algorithm);

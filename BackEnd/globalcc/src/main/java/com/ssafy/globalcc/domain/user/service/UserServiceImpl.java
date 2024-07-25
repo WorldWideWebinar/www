@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
         List<Integer> userTeamList = userTeamRepository.findUserTeamIdsByUserUserId(userId);
 
         return UserDetailResult.builder()
-                .id(user.getId())
+                .id(user.getUid())
                 .name(user.getName())
                 .profileImageUrl(user.getProfileImage())
                 .email(user.getEmail())
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserListResult> getUsers() {
          return userRepository.findAll().stream().map((user)->
-             new UserListResult(user.getUserId(),user.getId())
+             new UserListResult(user.getUserId(),user.getUid())
          ).toList();
     }
 
@@ -101,6 +101,7 @@ public class UserServiceImpl implements UserService {
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .profileImage(user.getProfileImageUrl())
                 .password(password)
                 .language(user.getLanguage())
                 .build();
