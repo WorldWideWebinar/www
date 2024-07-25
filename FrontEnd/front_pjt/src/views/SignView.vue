@@ -21,8 +21,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import SignUp from '@/components/HomeView/SignUp.vue';
-import SignIn from '@/components/HomeView/SignIn.vue';
+import SignUp from '@/components/SignView/SignUp.vue';
+import SignIn from '@/components/SignView/SignIn.vue';
 
 const isRightPanelActive = ref(false);
 
