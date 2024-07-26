@@ -36,14 +36,16 @@ public class TeamServiceImpl implements TeamService{
     @Transactional
     public int addTeam(TeamDto dto) {
 //        User owner = userRepository.findById(dto.getOwnerId()).orElseThrow();
+        log.debug("creating new Team with : {}",dto);
         User owner = User.builder().userId(dto.getOwnerId()).build();
         // uid를 기준으로 유저 목록을 불러옴.
 
-        List<User> userList = userRepository.findUsersByUidIn(dto.getTeamMembers());
+        List<User> userList = userRepository.findUsersByUidIn(dto.getUserList());
         Team team = new Team();
-        team.setName(dto.getName());
+        team.setName(dto.getTeamName());
         team.setOwner(owner);
         team = teamRepository.save(team);
+        log.debug("saved team: {}", team);
         Team finalTeam = team;
         List<UserTeam> userTeams = new ArrayList<>(userList.stream().map((user) ->
                 UserTeam.builder()
