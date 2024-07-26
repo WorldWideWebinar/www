@@ -1,9 +1,13 @@
 <template>
   <div class="form-container sign-up-container">
     <form @submit.prevent="handleSignUp">
-      <h1>Create Account</h1>
+      <h1 class="form-title">Sign Up</h1>
       <input v-model="name" type="text" placeholder="Name" required />
-      <input v-model="id" type="text" placeholder="ID" required />
+      <div class="id-check-container">
+        <input v-model="id" type="text" placeholder="ID" required />
+        <button type="button" @click="checkId" class="small-button">Check</button>
+      </div>
+      <p v-if="idCheckMessage" class="id-check-message">{{ idCheckMessage }}</p>
       <input v-model="email" type="email" placeholder="Email" required />
       <input v-model="password" type="password" placeholder="Password" required />
       <input v-model="passwordConfirmation" type="password" placeholder="Password Confirmation" required />
@@ -15,7 +19,7 @@
         <option value="zh">🇨🇳 中国语</option>
         <option value="es">🇪🇸 Español</option>
       </select>
-      <button type="submit">Sign Up</button>
+      <button class="submit-btn" type="submit">Sign Up</button>
     </form>
   </div>
 </template>
@@ -33,6 +37,8 @@ const password = ref('');
 const passwordConfirmation = ref('');
 const selectedLanguage = ref('en');
 const errorMessage = ref('');
+const idCheckMessage = ref('');
+const idCheck = ref(false);
 
 function changeLanguage(event) {
   selectedLanguage.value = event.target.value;
@@ -48,7 +54,23 @@ watch(passwordConfirmation, (newVal) => {
   }
 });
 
+async function checkId() {
+  try {
+    const isAvailable = await userStore.checkIdDuplication(id.value);
+    idCheckMessage.value = isAvailable ? 'ID is available' : 'ID is not available';
+    idCheck.value = isAvailable;
+  } catch (error) {
+    idCheckMessage.value = `Error: ${error.message}`;
+    idCheck.value = false;
+  }
+}
+
 async function handleSignUp() {
+  if (!idCheck.value) {
+    errorMessage.value = 'Please check the ID for duplication before signing up.';
+    return;
+  }
+  
   if (password.value !== passwordConfirmation.value) {
     errorMessage.value = 'Passwords do not match';
     return;
@@ -57,7 +79,7 @@ async function handleSignUp() {
   const signUpData = {
     name: name.value,
     id: id.value,
-    idCheck: true,
+    idCheck: idCheck.value,
     email: email.value,
     password: password.value,
     language: selectedLanguage.value
@@ -124,13 +146,33 @@ button:focus {
 form {
   background-color: #FFFFFF;
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-direction: column;
-  padding: 0 50px;
+  padding: 20px;
   height: 100%;
   width: 100%;
   text-align: center;
+  justify-content: space-between;
+}
+
+.form-title {
+  margin-top: 10%;
+}
+
+.id-check-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.id-check-container input {
+  flex-grow: 1;
+  margin-right: 8px;
+}
+
+.small-button {
+  padding: 8px 4px;
+  font-size: 10px;
+  border-radius: 5px;
 }
 
 input, select {
@@ -168,6 +210,9 @@ select {
   height: 100%;
   width: 50%; /* Ensures equal width for both containers */
   transition: all 0.6s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .sign-up-container {
@@ -179,5 +224,15 @@ select {
   color: red;
   margin: 10px 0;
   font-size: 12px;
+}
+
+.id-check-message {
+  color: green;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.submit-btn {
+  margin-top: 5%;
 }
 </style>

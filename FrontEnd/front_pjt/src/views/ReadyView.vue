@@ -415,7 +415,7 @@ const meetings = ref([
           files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
         },
         {
-          date: '2024-07-25',
+          date: '2024-07-26',
           agenda: '웹 RTC',
           status: 'IN',
           description: 'Detailed description of 웹 RTC',
@@ -1099,9 +1099,15 @@ export default {
     },
     activeTab(newTab) {
       if (newTab === 'TODAY') {
+<<<<<<< HEAD
+        this.selectLatestTodayMeeting()
+      }
+    }
+=======
         this.selectLatestTodayMeeting();
       }
     },
+>>>>>>> develop_front
   }
 };
 </script>
