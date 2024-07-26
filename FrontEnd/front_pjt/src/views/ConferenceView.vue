@@ -22,7 +22,8 @@
           <div class="right-side">
             <div class="participant">
               <div class="participant-video">
-                <img src="https://via.placeholder.com/150x110" alt="Your avatar" />
+                <!-- <img src="https://via.placeholder.com/150x110" alt="Your avatar" /> -->
+                <div id="video-container"></div>
               </div>
               <div class="participant-info">
                 <span>나</span>
@@ -92,41 +93,99 @@
       </div>
     </main>
     <div class="bottom-toolbar">
-      <button class="btn-icon">🎤</button>
-      <button class="btn-icon">🎥</button>
-      <button class="btn-icon">🔇</button>
-      <button class="btn-icon">🔄</button>
+      <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
+      <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
+      <button class="btn-icon" @click="leaveSession">🔄</button>
     </div>
   </div>
 </template>
-
 <script>
+import { OpenVidu } from 'openvidu-browser';
+import { useSessionStore } from '@/stores/sessionStore';
+import axios from 'axios';
+
 export default {
   name: 'ConferenceView',
-  beforeRouteLeave(to, from, next) {
-    if (to.name === 'rnd') {
-      next(vm => {
-        vm.$parent.inConference = false
-      })
-    } else {
-      next()
-    }
-  },
+  props: ['sessionId'],
   data() {
     return {
       participants: [
         { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
         { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
         { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
-      ]
-    }
+      ],
+      session: null,
+      publisher: null,
+      isAudioEnabled: true,
+      isVideoEnabled: true,
+      userId: 'user_' + Math.floor(Math.random() * 10000)
+    };
   },
   computed: {
     departmentName() {
       return this.$route.params.name;
     }
+  },
+  methods: {
+    async joinSession() {
+      const sessionStore = useSessionStore();
+      const OV = new OpenVidu();
+      const session = OV.initSession();
+      sessionStore.setSession(session);
+
+      session.on('streamCreated', (event) => {
+        const subscriber = session.subscribe(event.stream, 'video-container');
+        sessionStore.addStream(subscriber.stream);
+      });
+
+      try {
+        // 백엔드 서버로 요청을 보내어 OpenVidu 세션에 연결하기 위한 토큰 생성
+        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${this.sessionId}/connection`);
+        const token = tokenResponse.data.token;
+
+        await session.connect(token, { clientData: 'Participant' });
+
+        this.publisher = OV.initPublisher('video-container', {
+          videoSource: undefined,
+          audioSource: undefined,
+          publishVideo: true,
+          publishAudio: true,
+          resolution: '240x135',
+          frameRate: 30,
+          insertMode: 'APPEND'
+        });
+        session.publish(this.publisher);
+      } catch (error) {
+        console.error('Error connecting to session:', error);
+      }
+    },
+    leaveSession() {
+      if (this.session) {
+        this.session.disconnect();
+        this.session = null;
+      }
+    },
+    toggleAudio() {
+      if (this.publisher) {
+        this.isAudioEnabled = !this.isAudioEnabled;
+        this.publisher.publishAudio(this.isAudioEnabled);
+      }
+    },
+    toggleVideo() {
+      if (this.publisher) {
+        this.isVideoEnabled = !this.isVideoEnabled;
+        this.publisher.publishVideo(this.isVideoEnabled);
+      }
+    }
+  },
+  mounted() {
+    this.joinSession();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.leaveSession();
+    next();
   }
-}
+};
 </script>
 
 <style scoped>
@@ -315,5 +374,13 @@ export default {
 
 .bottom-toolbar .btn-icon {
   margin: 0 0.5rem;
+}
+
+/* 화상 영역 */
+
+.video-container {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 </style>

@@ -1,44 +1,48 @@
 <template>
   <div id="app" class="d-flex">
     <aside class="sidebar d-flex flex-column">
-      <button class="btn btn-add" @click="goingHome">
-        <span>🏠</span>
-      </button>
-      <!-- 위에 있는 버튼은 임시로 만들고 수정-->
-      <button class="btn btn-add">
-        <RouterLink
-          class="no-decoration"
-          :to="{ name: 'TeamSearchView'}"
-        >
-          <span>+</span>
-        </RouterLink>
-      </button>
+      <div class="home">
+        <button class="btn btn-home" @click="goingHome">
+          <img src="../src/assets/img/chat.png" alt="logo">
+        </button>
+      </div>
+      <div class="seperator"></div>
       <ul class="nav flex-column">
         <li 
-          class="nav-item" 
-          v-for="team in teams" 
-          :key="team.id"
+        class="nav-item" 
+        v-for="team in teams" 
+        :key="team.id"
         >
           <RouterLink 
             class="nav-link" 
-            :to="{ name: 'ReadyView', params: { name: team.name } }" 
+            :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
-          >
+            >
             <span class="icon">{{ team.icon }}</span>
-            <span class="link-text">{{ team.displayName }}</span>
+            <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
       </ul>
+      <div class="add-team">
+        <button class="btn btn-add">
+          <RouterLink
+            class="no-decoration"
+            :to="{ name: 'TeamSearchView'}"
+          >
+            <span>+</span>
+          </RouterLink>
+        </button>
+      </div>
       <div class="spacer"></div>
       <ul class="nav flex-column">
         <li class="nav-item">
           <button class="btn btn-icon">
-            <span class="icon">📢</span>
+            <!-- <span class="icon">📢</span> -->
           </button>
         </li>
         <li class="nav-item">
           <button class="btn btn-icon">
-            <span class="icon">❔</span>
+            <!-- <span class="icon">❔</span> -->
           </button>
         </li>
       </ul>
@@ -46,15 +50,20 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
+    <ChatButton @toggleChat="toggleChat" />
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+
   </div>
 </template>
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useUserStore } from './stores/userStore';
 import { useTeamStore } from './stores/teamStore';
 import router from './router';
+import ChatButton from '@/components/ChatButton.vue';
+import ChatBox from '@/components/ChatBox.vue';
 
 const userStore = useUserStore();
 // const teamStore = useTeamStore();
@@ -63,12 +72,20 @@ const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
-
+onMounted(async () => {
+  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
+  console.log('Teams:', userStore.teams); // 디버깅용
+  await userStore.fetchAllUsers() 
+});
 
 const teams = computed(() => userStore.teams);
+
+// 챗봇
+const isChatOpen = ref(false);
+const toggleChat = () => {
+  isChatOpen.value = !isChatOpen.value;
+};
 </script>
-
-
 
 <style scoped>
 #app {
@@ -86,7 +103,7 @@ const teams = computed(() => userStore.teams);
   width: 70px;
   height: 100vh;
   background-color: #f3e5f5;
-  padding: 1rem 0 0.5rem 0;
+  padding: 0;
   position: fixed;
   top: 0;
   left: 0;
@@ -95,6 +112,7 @@ const teams = computed(() => userStore.teams);
   justify-content: space-between;
 }
 
+.sidebar .btn-home,
 .sidebar .btn-toggle,
 .sidebar .btn-add,
 .sidebar .btn-icon {
@@ -106,13 +124,31 @@ const teams = computed(() => userStore.teams);
   border: none;
 }
 
-.sidebar .btn-add {
-  background-color: #f8bbd0;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 1rem auto;
-  font-size: 1.5rem;
+.sidebar .home {
+  width: 70px;
+  margin: 0 auto;
+}
+
+.sidebar .btn-home {
+  margin: 0 auto;
+  padding: 0px 5px; /* 간격 조정 */
+}
+
+.sidebar .btn-home img {
+  width: 60px; /* 크기 조정 */
+  margin: 10px auto;
+}
+
+/* 구분선 */
+.sidebar .seperator {
+  padding: 0px;
+  margin: 0 10px;
+  border-bottom: 3px dashed #000000;
+}
+
+/* 팀 목록 */
+ul.nav {
+  margin-top: 10px;
 }
 
 .sidebar .nav-link {
@@ -141,24 +177,34 @@ const teams = computed(() => userStore.teams);
   font-size: 0.75rem;
 }
 
-.spacer {
-  flex-grow: 1;
-}
-
 .btn-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  
+}
+
+/* 팀 추가 */
+.sidebar .btn-add {
+  background-color: #f8bbd0;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 1rem auto;
+  font-size: 1.5rem;
+}
+
+.add-team {
+  margin-top: 20px;
+}
+
+/* 하단 부분과의 구분 */
+.spacer {
+  flex-grow: 1;
 }
 
 main {
   flex-grow: 1;
   background-color: #fff;
-  margin-left: 60px;
-}
-
-body {
-  font-family: 'Nanum Gothic', sans-serif;
+  margin-left: 70px;
 }
 </style>
