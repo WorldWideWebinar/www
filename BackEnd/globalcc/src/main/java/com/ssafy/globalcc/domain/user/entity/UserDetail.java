@@ -16,8 +16,6 @@ public class UserDetail {
     @Column(name = "user_detail_id")
     private long id;
 
-    // TODO: user Details 테이블 설정 및 user_team 테이블 entity 만들기
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
