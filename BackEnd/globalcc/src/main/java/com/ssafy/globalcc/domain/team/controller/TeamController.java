@@ -8,10 +8,13 @@ import com.ssafy.globalcc.domain.team.exception.NoSuchTeamException;
 import com.ssafy.globalcc.domain.team.exception.TeamCreationFailException;
 import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.team.service.TeamService;
+import com.ssafy.globalcc.domain.user.dto.SecurityUser;
+import com.ssafy.globalcc.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,6 +44,12 @@ public class TeamController {
         return new ResponseEntity<>(ApiResponse.success(dto,"유저 퇴장 성공"),HttpStatus.OK);
     }
 
+
+    @DeleteMapping("{teamId}")
+    public ResponseEntity<?> deleteTeam(@PathVariable int teamId, @AuthenticationPrincipal SecurityUser user) {
+        teamService.deleteTeam(teamId, user.getUsername());
+        return new ResponseEntity<>(ApiResponse.success(teamId,"팀 삭제 성공"),HttpStatus.OK);
+    }
 
     @ExceptionHandler(TeamCreationFailException.class)
     public ResponseEntity<?> handleTeamCreationFail(TeamCreationFailException e) {

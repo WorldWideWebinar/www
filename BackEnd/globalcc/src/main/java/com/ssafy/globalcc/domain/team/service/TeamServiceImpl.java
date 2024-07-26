@@ -7,6 +7,7 @@ import com.ssafy.globalcc.domain.team.dto.TeamOutDto;
 import com.ssafy.globalcc.domain.team.entity.Team;
 import com.ssafy.globalcc.domain.team.exception.MemberNotFoundException;
 import com.ssafy.globalcc.domain.team.exception.NoSuchTeamException;
+import com.ssafy.globalcc.domain.team.exception.NotTeamOwnerException;
 import com.ssafy.globalcc.domain.team.repository.TeamRepository;
 import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.user.entity.User;
@@ -104,6 +105,13 @@ public class TeamServiceImpl implements TeamService{
         }
         int row = userTeamRepository.deleteByUserUserId(dto.getUserId(), dto.getTeamId());
         if(row == 0) throw new MemberNotFoundException();
+    }
+
+    @Override
+    @Transactional
+    public void deleteTeam(int teamId, String userUid) {
+        int row = teamRepository.deleteTeamByTeamIdAndOwnerUid(teamId,userUid);
+        if(row == 0) throw new NotTeamOwnerException();
     }
 
 }
