@@ -14,20 +14,31 @@
       </button>
     </div>
     <ul v-if="showUsers && filteredUsers.length" class="results">
-      <li v-for="user in filteredUsers" :key="user.id" @click="selectUser(user)">
-        {{ user.username }} ({{ user.email }})
+      <li v-for="user in filteredUsers" :key="user.id" class="showingResult" @click="selectUser(user)">
+        <div class="user-info" >
+            {{ user.username }} ({{ user.email }})
+        </div>
+        <button @click="selectUser(user)" style="float: right;" class="btn btn-primary">select</button>
       </li>
     </ul>
   </div>
   <div class="results-wrap" v-if="showResults">
-    <UserSearchResult v-for="user in displayedUsers" :key="user.id" :user="user" />
+    <!-- <UserSearchResult v-for="user in displayedUsers" :key="user.id" :user="user" /> -->
+     <div v-for="user in displayedUsers" :key="user.id" class="user-card">
+      <h2 class="title">{{ user.username }}</h2>
+    <p>{{ user.email }}</p>
+    <button class="btn btn-primary" @click="showProfileModal = true">프로필 보기</button>
+    <button class="btn btn-primary" style="float: right;">Add</button>
+     </div>
   </div>
+  <!-- <ProfileModal/> -->
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-import UserSearchResult from '@/components/UserSearchResult.vue';
+// import UserSearchResult from '@/components/UserSearchResult.vue';
+import ProfileModal from '@/components/ProfileModal.vue';
 
 const userStore = useUserStore();
 const searchQuery = ref('');
@@ -73,6 +84,16 @@ const selectUser = (user) => {
 </script>
 
 <style scoped>
+
+.user-card {
+  border: 1px solid #e1bee7;
+  border-radius: 5px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
 body {
   background: #f2f2f2;
   font-family: 'Open Sans', sans-serif;
@@ -81,7 +102,7 @@ body {
 .search-wrap {
   width: 50%;
   position: absolute;
-  top: 30%;
+  top: 20%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -158,5 +179,17 @@ body {
   left: 50%;
   transform: translate(-50%, 0);
   padding-top: 20px;
+}
+
+.showingResult{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
 }
 </style>
