@@ -21,7 +21,7 @@ public class MeetingSTTStompController {
 
     @MessageMapping(value = "/stt/message")
     public void message(MeetingSTTRequest request) {
-        Meeting meeting = meetingRepository.findById(request.getMeetingId())
+        Meeting meeting = meetingRepository.findById(Integer.valueOf(request.getMeetingId()))
                 .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
         MeetingSTT meetingSTT = new MeetingSTT();
         meetingSTT.setMeeting(meeting);
