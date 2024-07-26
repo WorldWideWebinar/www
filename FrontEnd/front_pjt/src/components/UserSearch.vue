@@ -4,69 +4,70 @@
       <input
         type="text"
         class="searchTerm"
-        placeholder="Which team are you looking for?"
+        placeholder="Which user are you looking for?"
         v-model="searchQuery"
         @input="handleInput"
-        @keyup.enter="searchTeams"
+        @keyup.enter="searchUsers"
       />
-      <button type="submit" class="searchButton" @click="searchTeams">
+      <button type="submit" class="searchButton" @click="searchUsers">
         <font-awesome-icon icon="search" />
       </button>
     </div>
-    <ul v-if="showTeams && filteredTeams.length" class="results">
-      <li v-for="team in filteredTeams" :key="team.id" @click="searchTeam(team)">
-        {{ team.teamName }}
+    <ul v-if="showUsers && filteredUsers.length" class="results">
+      <li v-for="user in filteredUsers" :key="user.id" @click="selectUser(user)">
+        {{ user.username }} ({{ user.email }})
       </li>
     </ul>
   </div>
   <div class="results-wrap" v-if="showResults">
-    <TeamSearchResult v-for="team in displayedTeams" :key="team.id" :team="team" />
+    <UserSearchResult v-for="user in displayedUsers" :key="user.id" :user="user" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useTeamStore } from '@/stores/teamStore';
-import TeamSearchResult from '@/components/TeamSearchResult.vue';
+import { useUserStore } from '@/stores/userStore';
+import UserSearchResult from '@/components/UserSearchResult.vue';
 
-const teamStore = useTeamStore();
+const userStore = useUserStore();
 const searchQuery = ref('');
-const showTeams = ref(false);
+const showUsers = ref(false);
 const showResults = ref(false);
-const selectedTeam = ref(null);
-const router = useRouter();
+const selectedUser = ref(null);
 
-const filteredTeams = computed(() =>
-  teamStore.teams.filter(team => team.teamName.toLowerCase().includes(searchQuery.value.toLowerCase()))
+const filteredUsers = computed(() =>
+  userStore.userList.filter(user => 
+    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
 );
 
-const displayedTeams = computed(() => {
-  if (selectedTeam.value) {
-    return [selectedTeam.value];
+const displayedUsers = computed(() => {
+  if (selectedUser.value) {
+    return [selectedUser.value];
   } else {
-    return filteredTeams.value;
+    return filteredUsers.value;
   }
 });
 
 const handleInput = () => {
-  showTeams.value = searchQuery.value.length > 0;
+  showUsers.value = searchQuery.value.length > 0;
 };
 
-const searchTeams = () => {
-  if (filteredTeams.value.length) {
-    selectedTeam.value = null;
+const searchUsers = () => {
+  if (filteredUsers.value.length) {
+    selectedUser.value = null;
     showResults.value = true;
-    showTeams.value = false
+    showUsers.value = false;
   } else {
     showResults.value = false;
   }
 };
 
-const searchTeam = (team) => {
-  selectedTeam.value = team;
-  searchQuery.value = team.name
-  showTeams.value = false;
+const selectUser = (user) => {
+  selectedUser.value = user;
+  searchQuery.value = user.username;
+  showUsers.value = false;
   showResults.value = true;
 };
 </script>
@@ -96,27 +97,27 @@ body {
   border: 3px solid #e1bee7;
   border-right: none;
   padding: 5px;
-  height: 36px; /* 높이를 버튼과 맞춤 */
+  height: 36px;
   border-radius: 5px 0 0 5px;
   outline: none;
   color: #9dbfaf;
-  transition: all 0.3s ease; /* 부드러운 전환 효과 */
+  transition: all 0.3s ease;
 }
 
 .searchTerm:focus {
   color: #e1bee7;
-  width: 200%; /* 입력창 확장 */
+  width: 200%;
 }
 
 .searchButton {
   width: 40px;
-  height: 36px; /* input 창과 동일한 높이로 설정 */
-  border: 3px solid #e1bee7; /* 동일한 border width 적용 */
-  border-left: none; /* input 창과 매끄럽게 연결 */
+  height: 36px;
+  border: 3px solid #e1bee7;
+  border-left: none;
   background: #f8bbd0;
   text-align: center;
   color: #fff;
-  border-radius: 0 5px 5px 0; /* input 창과 맞춤 */
+  border-radius: 0 5px 5px 0;
   cursor: pointer;
   font-size: 20px;
 }
@@ -147,7 +148,7 @@ body {
 }
 
 .results li:hover {
-  background: #e1bee7;
+  background: #e1bee7;  
 }
 
 .results-wrap {
