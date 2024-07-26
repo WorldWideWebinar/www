@@ -118,3 +118,14 @@ CREATE TABLE IF NOT EXISTS user_detail (
 );
 
 ALTER TABLE user CHANGE id uid VARCHAR(255) NOT NULL;
+
+-- 팀 삭제시 user_team 정보도 함께 삭제되도록 키 설정 변경
+
+-- 기존 외래 키 제약 조건 삭제
+ALTER TABLE user_team DROP FOREIGN KEY user_team_ibfk_2;
+
+-- 외래 키 제약 조건에 `ON DELETE CASCADE` 추가
+ALTER TABLE user_team
+    ADD CONSTRAINT user_team_ibfk_2
+        FOREIGN KEY (team_id) REFERENCES team (team_id)
+            ON DELETE CASCADE;

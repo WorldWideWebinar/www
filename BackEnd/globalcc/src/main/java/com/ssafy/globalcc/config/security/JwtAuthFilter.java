@@ -1,4 +1,4 @@
-package com.ssafy.globalcc.domain.user.security;
+package com.ssafy.globalcc.config.security;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ssafy.globalcc.domain.user.service.SecurityUserDetailsService;

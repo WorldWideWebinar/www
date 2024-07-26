@@ -35,14 +35,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean checkDuplicateUserById(String id) {
-        log.debug("return value of existsById : {}",userRepository.existsById(id));
-        return userRepository.existsById(id);
+        return userRepository.existsByUid(id);
     }
 
     @Override
     public LoginResult loginUser(String id, String password) {
 
-        User dbUser = userRepository.findUserById(id).orElseThrow(() -> new UsernameNotFoundException("로그인 실패"));
+        User dbUser = userRepository.findUserByUid(id).orElseThrow(() -> new UsernameNotFoundException("로그인 실패"));
         log.debug("dbUser : {}",dbUser);
         log.debug("password : {}",password);
         if(!passwordEncoder.matches(password, dbUser.getPassword())) {
@@ -76,7 +75,7 @@ public class UserServiceImpl implements UserService {
         List<Integer> userTeamList = userTeamRepository.findUserTeamIdsByUserUserId(userId);
 
         return UserDetailResult.builder()
-                .id(user.getId())
+                .id(user.getUid())
                 .name(user.getName())
                 .profileImageUrl(user.getProfileImage())
                 .email(user.getEmail())
@@ -89,7 +88,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserListResult> getUsers() {
          return userRepository.findAll().stream().map((user)->
-             new UserListResult(user.getUserId(),user.getId())
+             new UserListResult(user.getUserId(),user.getUid())
          ).toList();
     }
 
@@ -98,14 +97,21 @@ public class UserServiceImpl implements UserService {
         String password = user.getPassword();
         password = passwordEncoder.encode(password);
         User dbUser = User.builder()
-                .id(user.getId())
+                .uid(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .profileImage(user.getProfileImageUrl())
                 .password(password)
                 .language(user.getLanguage())
                 .build();
         log.debug("saving User : {}",dbUser);
-        return userRepository.save(dbUser);
+        dbUser = userRepository.save(dbUser);
+        // User Details도 같이 생성.
+        userDetailRepository.save(UserDetail.builder()
+                .user(dbUser)
+                .build()
+        );
+        return dbUser;
     }
 
     @Override

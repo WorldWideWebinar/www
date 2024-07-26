@@ -48,7 +48,7 @@ public class UserController {
     public ResponseEntity<?> duplication(@PathVariable("id") String id){
         log.debug("check for id : {}",id);
 
-        if(!userService.checkDuplicateUserById(id)){
+        if(userService.checkDuplicateUserById(id)){
             return  new ResponseEntity<>(
                     ApiResponse.fail(new DuplicateCheckResult(false),"아이디 중복체크 실패")
                     , HttpStatus.BAD_REQUEST);

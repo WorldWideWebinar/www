@@ -20,8 +20,8 @@ public class User{
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "id", nullable = false)
-    private String id;
+    @Column(name = "uid", nullable = false)
+    private String uid;
 
     @Column(name = "name", nullable = false)
     private String name;
