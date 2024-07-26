@@ -1,11 +1,14 @@
 package com.ssafy.globalcc.domain.team.entity;
 
+import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.user.entity.User;
+import com.ssafy.globalcc.domain.user.entity.UserTeam;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "team")
@@ -32,6 +35,12 @@ public class Team {
 
     @Column(name = "emoji")
     private String emoji;
+
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+    private List<UserTeam> userTeam;
+
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+    private List<Meeting> meeting;
 
     @PreUpdate
     protected void onUpdate() {

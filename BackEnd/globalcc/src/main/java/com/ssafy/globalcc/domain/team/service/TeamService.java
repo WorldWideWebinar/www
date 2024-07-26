@@ -1,11 +1,13 @@
 package com.ssafy.globalcc.domain.team.service;
 
 import com.ssafy.globalcc.domain.team.dto.TeamDto;
-import com.ssafy.globalcc.domain.team.entity.Team;
-import com.ssafy.globalcc.domain.team.result.TeamDetailResult;
+import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
+import com.ssafy.globalcc.domain.team.dto.TeamOutDto;
 
 public interface TeamService {
     int addTeam(TeamDto dto);
 
-    TeamDetailResult getTeamDetails(int teamId);
+    TeamDetailDto getTeamDetails(int teamId);
+
+    void userOutTeam(TeamOutDto dto);
 }

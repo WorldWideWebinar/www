@@ -1,4 +1,4 @@
-package com.ssafy.globalcc.domain.team.result;
+package com.ssafy.globalcc.domain.team.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class TeamDetailResult {
+public class TeamDetailDto {
     private int ownerId;
     private String teamName;
     private List<Integer> userList;
