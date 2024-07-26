@@ -91,3 +91,41 @@ CREATE TABLE IF NOT EXISTS chat (
     FOREIGN KEY (sender_id) REFERENCES user(user_id),
     FOREIGN KEY (team_id) REFERENCES team(team_id)
 );
+
+-- 테이블 수정
+
+-- 팀 별로 이미지 정보 저장
+ALTER TABLE team ADD COLUMN emoji TEXT;
+ALTER TABLE team MODIFY COLUMN emoji TEXT NOT NULL;
+-- 암호화 위해 사이즈 변경
+ALTER TABLE user MODIFY COLUMN password VARCHAR(512) NOT NULL;
+-- meeting 테이블에 session_id 추가
+ALTER TABLE meeting ADD COLUMN session_id VARCHAR(255);
+
+
+-- user 테이블
+ALTER TABLE user 
+DROP COLUMN last_team_id,
+DROP COLUMN last_meeting_id;
+
+CREATE TABLE IF NOT EXISTS user_detail (
+    user_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    last_team_id INT,
+    last_meeting_id INT,
+    total_meeting_time INT,
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);
+
+ALTER TABLE user CHANGE id uid VARCHAR(255) NOT NULL;
+
+-- 팀 삭제시 user_team 정보도 함께 삭제되도록 키 설정 변경
+
+-- 기존 외래 키 제약 조건 삭제
+ALTER TABLE user_team DROP FOREIGN KEY user_team_ibfk_2;
+
+-- 외래 키 제약 조건에 `ON DELETE CASCADE` 추가
+ALTER TABLE user_team
+    ADD CONSTRAINT user_team_ibfk_2
+        FOREIGN KEY (team_id) REFERENCES team (team_id)
+            ON DELETE CASCADE;
