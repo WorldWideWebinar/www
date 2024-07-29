@@ -114,4 +114,11 @@ public class TeamServiceImpl implements TeamService{
         if(row == 0) throw new NotTeamOwnerException();
     }
 
+    @Override
+    public Team getTeamByIdAndOwnerUid(int teamId, String username) {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoSuchTeamException::new);
+        if(!username.equals(team.getOwner().getUid())) throw new NotTeamOwnerException();
+        return team;
+    }
+
 }
