@@ -57,23 +57,17 @@ export const useUserStore = defineStore('user', {
       }
     },
     
-    async signUp({ id, idCheck, name, email, password, language }) {
+    async signUp({ id, name, email, password, language }) {
       try {
-        const duplicationResponse = await axiosInstance.get(`api/users/duplication/${id}`);
-        if (duplicationResponse.data.result.isAvailable) {
-          const signupResponse = await axiosInstance.post(`api/users`, {
-            id,
-            idCheck,
-            name,
-            email,
-            password,
-            language
-          });
-          return signupResponse.data;
-        } else {
-          console.log('ID is not available');
-          return { isSuccess: false, message: 'ID is not available' };
-        }
+        const signupResponse = await axiosInstance.post(`api/users`, {
+          id,
+          name,
+          idCheck:true,
+          email,
+          password,
+          language
+        });
+        return signupResponse.data.result;
       } catch (error) {
         console.error('Failed to sign up:', error);
         return { isSuccess: false, message: error.message };
@@ -82,14 +76,17 @@ export const useUserStore = defineStore('user', {
 
     async signIn({ id, password }) {
       try {
-        const response = await axiosInstance.post(`api/users/login`, { id, password });
-        if (response.data.success) {
-          this.userInfo = response.data.userInfo;
-          this.accessToken = response.data.accessToken;
-          this.refreshToken = response.data.refreshToken;
+        const response = await axiosInstance.post('api/users/login', { id, password });
+        if (response.data.result.userId) {
+          this.userId = response.data.result.userId;
+          this.accessToken = response.data.result.jwt.accessToken;
+          this.refreshToken = response.data.result.jwt.refreshToken;
+          this.userInfo = { userId: response.data.result.userId };
+          console.log(response.data)
           console.log('User signed in:', this.userInfo);
-          return { isSuccess: true, data: response.data.userInfo };
+          return { isSuccess: true, data: this.userInfo };
         } else {
+          console.log(response.data)
           console.log('Login failed:', response.data.message);
           return { isSuccess: false, message: response.data.message };
         }
@@ -99,14 +96,37 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async signOut() {
+      try {
+        const response = await axiosInstance.post(`api/users/logout`, { id: this.userId });
+        console.log(response.data)
+        if (response.data.isSuccess) {
+          // 사용자 정보를 초기화
+          this.userId = 0;
+          this.userInfo = {};
+          this.accessToken = null;
+          this.refreshToken = null;
+          console.log('User signed out successfully');
+          return { isSuccess: true, message: response.data.message };
+        } else {
+          console.log('Logout failed:', response.data.message);
+          return { isSuccess: false, message: response.data.message };
+        }
+      } catch (error) {
+        console.error('Failed to sign out:', error);
+        return { isSuccess: false, message: error.message };
+      }
+    },
+
     async checkIdDuplication(id) {
       try {
         const response = await axiosInstance.get(`api/users/duplication/${id}`);
-        return response.data.result.isAvailable;
+        return response.data.result.available;
       } catch (error) {
         console.error('Failed to check ID duplication:', error);
         throw new Error('Failed to check ID duplication');
       }
-    }
+    },
   }
 });
+

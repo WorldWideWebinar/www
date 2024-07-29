@@ -1,4 +1,3 @@
-
 <template>
   <div class="home-container">
     <div class="upper">
@@ -12,12 +11,13 @@
       </div>
 
       <div class="main-btn">
-        <div v-if="!session">
+        <div v-if="!isLogin">
           <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
           <button @click="router.push({name:'SignView'})">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({name:'ProfileView'})">mypage</button>
+          <button @click="router.push({name:'ProfileView'})" style="margin-left: 50px;">My Page</button>
+          <button @click="handleSignOut" >Logout</button>
         </div>
       </div>
     </div>
@@ -44,49 +44,8 @@
       </div>
     </div>
 
-    <div class="lower" >
-      <!-- <div class="sub-discription carousel my-meeting" v-if="!session">
-        <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
-          <SignUp />
-          <SignIn />
-          <div class="overlay-container">
-            <div class="overlay">
-              <div class="overlay-panel overlay-left">
-                <h1>Welcome Back!</h1>
-                <p>To keep connected with us please login with your personal info</p>
-                <button class="ghost" @click="activateSignIn">Sign In</button>
-              </div>
-              <div class="overlay-panel overlay-right">
-                <h1>Hello, Friend!</h1>
-                <p>Enter your personal details and start journey with us</p>
-                <button class="ghost" @click="activateSignUp">Sign Up</button>
-              </div>
-            </div>
-          </div>
-        </div> -->
-        <!-- <div class="discription">
-          <p> 1번 설명</p>
-          <br>
-          <p>
-            {{ discriptionContent[0] }}
-          </p>
-        </div>
-        <div class="discription">
-          <p> 2번 설명</p>
-          <br>
-          <p>
-            {{ discriptionContent[1] }}
-          </p>
-        </div>
-        <div class="discription">
-          <p> 3번 설명</p>
-          <br>
-          <p>
-            {{ discriptionContent[2] }}
-          </p>
-        </div> -->
-      <!-- </div> -->
-      <div class="my-meeting" v-if="session">
+    <div class="lower">
+      <div class="my-meeting" v-if="isLogin">
         <h2>My Meeting</h2>
         <div class="carousel">
           <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
@@ -98,7 +57,7 @@
                     <p class="meeting-name">{{ meeting.name }}</p>
                     <button>IN</button>
                   </div>
-                  <div class="meeting-detail-right" v-if="item.category!=='TODAY'">
+                  <div class="meeting-detail-right" v-if="item.category !== 'TODAY'">
                     <p class="meeting-date">{{ meeting.date }}</p>
                     <p class="meeting-time">{{ meeting.time }}</p>
                   </div>
@@ -106,7 +65,7 @@
                     <p class="meeting-date">▶️</p>
                     <p class="meeting-time"> 들어가기</p>
                   </div>
-                  <div v-if="item.category==='NEXT'" class="meeting-detail-right">
+                  <div v-if="item.category === 'NEXT'" class="meeting-detail-right">
                     <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
                   </div>
                   <div v-else class="spacer"></div>
@@ -128,46 +87,31 @@
 </template>
 
 <script setup>
-import router from '@/router';
-import { onMounted, ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
-// import SignUp from '@/components/SignUp.vue';
-// import SignIn from '@/components/SignIn.vue';
 
-const isRightPanelActive = ref(false);
+const router = useRouter();
+const userStore = useUserStore();
 
-const activateSignUp = () => {
-  isRightPanelActive.value = true;
-};
+const isLogin = computed(() => userStore.isLogin);
 
-const activateSignIn = () => {
-  isRightPanelActive.value = false;
-};
-
-
-let session = ref(!(sessionStorage.getItem('logInInfo') == null));
-
-
-const handleSessionChange = () => {
-  if (sessionStorage.getItem('loginInfo') == null) {
-    session.value = false;
+const handleSignOut = async () => {
+  const result = await userStore.signOut();
+  if (result.isSuccess) {
+    alert('Successfully logged out');
+    router.push({ name: 'HomeView' });
   } else {
-    session.value = true;
+    alert(`Logout failed: ${result.message}`);
   }
 };
-onMounted(() => {
-  handleSessionChange();
-});
-watch(session, () => {
-  
-});
 
-// const discriptionContent = ref([
-//   '첫 번째 설명 내용입니다. 이 설명은 예시를 위한 것이며, 다양한 정보를 포함할 수 있습니다. 예를 들어, 이 내용에는 사용 방법이나 주요 특징 등이 포함될 수 있습니다. 이를 통해 사용자는 해당 항목에 대해 보다 자세히 이해할 수 있습니다.',
-//   '두 번째 설명 내용입니다. 이 설명은 사용자에게 유용한 정보를 제공하는 데 목적이 있습니다. 예를 들어, 이 설명에는 제품의 장점이나 혜택, 사용 시 주의사항 등이 포함될 수 있습니다. 이를 통해 사용자는 제품이나 서비스를 더욱 효과적으로 활용할 수 있습니다.',
-//   '세 번째 설명 내용입니다. 이 설명은 다른 내용과의 조화를 이루며 전체적인 이해를 돕습니다. 예를 들어, 이 설명에는 관련된 추가 정보나 참고 자료, FAQ 등이 포함될 수 있습니다. 이를 통해 사용자는 보다 포괄적인 정보를 얻고 궁금증을 해결할 수 있습니다.'
-// ]);
+// `isLogin` 상태를 확인하기 위해 `watch` 추가
+watch(isLogin, (newValue) => {
+  console.log('isLogin changed:', newValue);
+});
 
 const carouselContent = ref([
   {

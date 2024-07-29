@@ -59,6 +59,26 @@ export const useTeamStore = defineStore('team', {
       }
     },
 
+    async leaveTeam(teamId) {
+      try {
+        const userStore = useUserStore();
+        const userId = userStore.userId;
+
+        const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
+        if (response.data.isSuccess) {
+          const team = this.teams.find(team => team.id === teamId);
+          if (team) {
+            team.userList = team.userList.filter(user => user !== userId);
+          }
+        } else {
+          console.error('Failed to remove user from team:', response.data.message);
+        }
+        return response.data;
+      } catch (error) {
+        console.error(`Failed to remove user ${userId} from team ${teamId}:`, error);
+        return { isSuccess: false, message: error.message };
+      }
+    },
   },
   getters: {
     getTeamById: (state) => (id) => {

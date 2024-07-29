@@ -13,8 +13,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useUserStore } from '@/stores/userStore'; // Adjust the path to your store
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
+const router = useRouter();
 const userId = ref('');
 const password = ref('');
 const errorMessage = ref('');
@@ -26,7 +28,10 @@ const handleSubmit = async () => {
   const { isSuccess, message } = await userStore.signIn({ id: userId.value, password: password.value });
   if (!isSuccess) {
     errorMessage.value = 'ID or password is incorrect';
+  } else {
+    router.push({ name: 'HomeView' });
   }
+
 };
 </script>
 

@@ -50,7 +50,7 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
-    <ChatButton @toggleChat="toggleChat" />
+    <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
     <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
   </div>
 </template>
@@ -65,7 +65,7 @@ import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 
 const userStore = useUserStore();
-
+const isLogin = userStore.isLogin
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
