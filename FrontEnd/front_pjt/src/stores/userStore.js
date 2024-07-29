@@ -1,17 +1,21 @@
 import { defineStore } from 'pinia';
 import { useTeamStore } from './teamStore';
 import { useMeetingStore } from './meetingStore';
-import axios from 'axios';
+import axiosInstance from '@/axios';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 1,
+    userId: 0,
     teams: [],
     meetings: [],
     userList: [],
     userInfo: {},
-    BACKEND_URL: 'http://localhost:5000/',
+    accessToken: null,
+    refreshToken: null,
   }),
+  getters: {
+    isLogin: (state) => !!state.accessToken,
+  },
   actions: {
     async fetchUserTeamsAndMeetings(userId = 1) {
       this.userId = userId;
@@ -20,12 +24,11 @@ export const useUserStore = defineStore('user', {
       const meetingStore = useMeetingStore();
       
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users/${userId}`);
+        const response = await axiosInstance.get(`api/users/${userId}`);
         const userData = response.data.data;
         this.userInfo = userData;
 
         const meetingIds = [];
-        // teamList를 teamStore로 전달하여 개별 팀 정보 조회
         for (const teamId of userData.teamList) {
           const team = await teamStore.fetchTeamById(teamId);
           if (team) {
@@ -33,11 +36,9 @@ export const useUserStore = defineStore('user', {
           }
         }
 
-        // teamStore의 teams를 userStore의 teams로 설정
         this.teams = teamStore.teams;
         console.log('Teams:', this.teams);
 
-        // meetingStore에서 meetings를 조회하여 userStore의 meetings로 설정
         await meetingStore.fetchMeetingsByIds(meetingIds);
         this.meetings = meetingStore.meetings;
         console.log('Meetings:', this.meetings);
@@ -48,7 +49,7 @@ export const useUserStore = defineStore('user', {
     
     async fetchAllUsers() {
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users`);
+        const response = await axiosInstance.get(`api/users`);
         this.userList = response.data;
         console.log('AllUsers', this.userList);
       } catch (error) {
@@ -58,11 +59,9 @@ export const useUserStore = defineStore('user', {
     
     async signUp({ id, idCheck, name, email, password, language }) {
       try {
-        // 아이디 중복 체크
-        const duplicationResponse = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
+        const duplicationResponse = await axiosInstance.get(`api/users/duplication/${id}`);
         if (duplicationResponse.data.result.isAvailable) {
-          // 회원가입 요청
-          const signupResponse = await axios.post(`${this.BACKEND_URL}api/users`, {
+          const signupResponse = await axiosInstance.post(`api/users`, {
             id,
             idCheck,
             name,
@@ -83,9 +82,11 @@ export const useUserStore = defineStore('user', {
 
     async signIn({ id, password }) {
       try {
-        const response = await axios.post(`${this.BACKEND_URL}api/users/login`, { id, password });
+        const response = await axiosInstance.post(`api/users/login`, { id, password });
         if (response.data.success) {
           this.userInfo = response.data.userInfo;
+          this.accessToken = response.data.accessToken;
+          this.refreshToken = response.data.refreshToken;
           console.log('User signed in:', this.userInfo);
           return { isSuccess: true, data: response.data.userInfo };
         } else {
@@ -98,10 +99,9 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // 아이디 중복 체크 메서드 추가
     async checkIdDuplication(id) {
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
+        const response = await axiosInstance.get(`api/users/duplication/${id}`);
         return response.data.result.isAvailable;
       } catch (error) {
         console.error('Failed to check ID duplication:', error);

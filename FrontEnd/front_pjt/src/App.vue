@@ -52,7 +52,6 @@
     </main>
     <ChatButton @toggleChat="toggleChat" />
     <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
-
   </div>
 </template>
 
@@ -66,16 +65,18 @@ import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 
 const userStore = useUserStore();
-// const teamStore = useTeamStore();
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-  console.log('Teams:', userStore.teams); // 디버깅용
-  await userStore.fetchAllUsers() 
+  if (userStore.isLogin) {
+    await userStore.fetchUserTeamsAndMeetings(userStore.userId);
+    console.log('Teams:', userStore.teams); // 디버깅용
+    await userStore.fetchAllUsers();
+  }
+  console.log(userStore.isLogin)
 });
 
 const teams = computed(() => userStore.teams);
