@@ -123,6 +123,8 @@ a {
 }
 
 button {
+  margin: 0 auto;
+  width: 50%;
   border-radius: 20px;
   border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
