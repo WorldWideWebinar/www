@@ -29,6 +29,8 @@ import io.openvidu.java.client.SessionProperties;
 @RequestMapping("/api/sessions")
 public class SessionController {
 
+    // TO-DO: config 설정
+
     @Value("${OPENVIDU_URL}")
     private String OPENVIDU_URL;
 

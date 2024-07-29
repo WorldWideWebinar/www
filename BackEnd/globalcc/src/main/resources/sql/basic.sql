@@ -126,6 +126,10 @@ ALTER TABLE user_team DROP FOREIGN KEY user_team_ibfk_2;
 
 -- 외래 키 제약 조건에 `ON DELETE CASCADE` 추가
 ALTER TABLE user_team
-    ADD CONSTRAINT user_team_ibfk_2
-        FOREIGN KEY (team_id) REFERENCES team (team_id)
-            ON DELETE CASCADE;
+ADD CONSTRAINT user_team_ibfk_2
+FOREIGN KEY (team_id) REFERENCES team (team_id)
+ON DELETE CASCADE;
+
+-- meeting 테이블 변경
+ALTER TABLE meeting
+ADD detail VARCHAR(255);
