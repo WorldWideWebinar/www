@@ -12,4 +12,6 @@ public interface TeamRepository extends JpaRepository<Team, Integer> {
 //            "on m.team = t " +
 //            "where t.teamId = :id")
 //    TeamDetailResult findTeamDetailsByTeamId(Integer id);
+
+    int deleteTeamByTeamIdAndOwnerUid(Integer teamId, String ownerUid);
 }
