@@ -1,7 +1,12 @@
 <template>
-  <!-- 현재 한 것, 사람 검색, 검색 후 프로필 모달, 지우기, 팀 생성, -->
   <div style="text-align: center; margin: auto;">임시</div>
   <div class="team-creation-wrap">
+    <div class="team-info">
+      <input type="text" v-model="teamName" placeholder="Enter team name" class="team-input" />
+      <select v-model="selectedIcon" class="icon-select">
+        <option v-for="icon in icons" :key="icon" :value="icon">{{ icon }}</option>
+      </select>
+    </div>
     <div class="search-wrap">
       <div class="search">
         <input
@@ -25,12 +30,6 @@
         </li>
       </ul>
     </div>
-    <div class="team-info">
-      <input type="text" v-model="teamName" placeholder="Enter team name" class="team-input" />
-      <select v-model="selectedIcon" class="icon-select">
-        <option v-for="icon in icons" :key="icon" :value="icon">{{ icon }}</option>
-      </select>
-    </div>
     <div class="selected-users" v-if="selectedUsers.length">
       <h3>Selected Users:</h3>
       <ul>
@@ -41,7 +40,10 @@
         </li>
       </ul>
     </div>
-    <button @click="createTeam" class="btn btn-success">Create Team</button>
+    <div>
+
+      <button @click="createTeam" class="btn btn-success" style="margin: auto; justify-content: center; display: flex;">Create Team</button>
+    </div>
   </div>
   <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
 </template>
@@ -170,6 +172,8 @@ const showProfile = user => {
 }
 
 .team-info {
+  justify-content: center;
+  display: flex;
   margin-bottom: 20px;
 }
 

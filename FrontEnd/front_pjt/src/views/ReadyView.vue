@@ -45,21 +45,12 @@
             <div class="total-meeting-hours">
               <p>We have meetings for {{ totalMeetingHours }} hours</p>
               <div class="meeting-hours-bar">
-                <div
-                  class="meeting-hours-segment prev-meetings"
-                  :style="{ width: prevMeetingHoursPercentage + '%' }"
-                  v-if="prevMeetingHours > 0"
-                ></div>
-                <div
-                  class="meeting-hours-segment today-meetings"
-                  :style="{ width: todayMeetingHoursPercentage + '%' }"
-                  v-if="todayMeetingHours > 0"
-                ></div>
-                <div
-                  class="meeting-hours-segment next-meetings"
-                  :style="{ width: nextMeetingHoursPercentage + '%' }"
-                  v-if="nextMeetingHours > 0"
-                ></div>
+                <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }"
+                  v-if="prevMeetingHours > 0"></div>
+                <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }"
+                  v-if="todayMeetingHours > 0"></div>
+                <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }"
+                  v-if="nextMeetingHours > 0"></div>
               </div>
               <div class="meeting-hours-legend">
                 <div class="legend-item">
@@ -115,28 +106,13 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'PREV' }"
-                aria-current="page"
-                href="#"
-                >PREV</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
             </li>
             <li class="nav-item" @click="activeTab = 'TODAY'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'TODAY' }"
-                aria-current="page"
-                href="#"
-                >TODAY</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
             </li>
             <li class="nav-item" @click="activeTab = 'NEXT'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'NEXT' }"
-                aria-current="page"
-                href="#"
-                >NEXT</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
 
@@ -154,23 +130,17 @@
                 <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.date === meeting.date &&
+                      selectedMeeting.agenda === meeting.agenda
+                  }" @click="selectMeeting(meeting)">
                     {{ meeting.agenda }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('PREV', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('PREV', meeting.status) }}
                     </button>
                   </td>
@@ -180,23 +150,17 @@
                 <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.date === meeting.date &&
+                      selectedMeeting.agenda === meeting.agenda
+                  }" @click="selectMeeting(meeting)">
                     {{ meeting.agenda }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('TODAY', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('TODAY', meeting.status) }}
                     </button>
                   </td>
@@ -206,23 +170,17 @@
                 <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
                   <td>{{ meeting.date }}</td>
                   <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.date === meeting.date &&
+                      selectedMeeting.agenda === meeting.agenda
+                  }" @click="selectMeeting(meeting)">
                     {{ meeting.agenda }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('NEXT', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('NEXT', meeting.status) }}
                     </button>
                   </td>
@@ -232,9 +190,7 @@
           </table>
         </section>
 
-        <section
-          :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }"
-        >
+        <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
               <p>&nbsp;{{ selectedMeeting?.agenda }}&nbsp;</p>
@@ -253,10 +209,8 @@
                 <tr>
                   <td><strong>Status</strong></td>
                   <td>
-                    <button
-                      :class="buttonClass(detailType, selectedMeeting?.status)"
-                      @click="toggleDetailStatus(selectedMeeting)"
-                    >
+                    <button :class="buttonClass(detailType, selectedMeeting?.status)"
+                      @click="toggleDetailStatus(selectedMeeting)">
                       {{ buttonText(detailType, selectedMeeting?.status) }}
                     </button>
                   </td>
@@ -266,11 +220,7 @@
                   <td class="show-member before-dropdown" @click="toggleMembersList">
                     {{ selectedMeeting?.members }} members joined!
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                      <li
-                        v-for="member in selectedMeetingMembers"
-                        :key="member.name"
-                        class="member"
-                      >
+                      <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
                         <img :src="member.avatar" :alt="member.name" />{{ member.name }}
                       </li>
                     </ul>
@@ -295,24 +245,14 @@
                   <thead>
                     <tr>
                       <td>
-                        <a
-                          href="#"
-                          @click.prevent="
-                            previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          "
-                          class="file-link"
-                          >📂summary</a
-                        >
+                        <a href="#" @click.prevent="
+                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
+                          " class="file-link">📂summary</a>
                       </td>
                       <td>
-                        <a
-                          href="#"
-                          @click.prevent="
-                            previewFile({ name: 'record.pdf', link: selectedMeeting.record })
-                          "
-                          class="file-link"
-                          >📁record</a
-                        >
+                        <a href="#" @click.prevent="
+                          previewFile({ name: 'record.pdf', link: selectedMeeting.record })
+                          " class="file-link">📁record</a>
                       </td>
                     </tr>
                   </thead>
@@ -329,6 +269,7 @@
     </div>
   </div>
   <router-view v-else></router-view>
+  <!-- <MeetingCreate/> -->
 </template>
 
 <script setup>
@@ -337,6 +278,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import axios from 'axios';
+import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 
 const inConference = ref(false);
 const sessionId = ref(null);
@@ -360,113 +302,113 @@ const members = ref([
   { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
 ]);
 const meetings = ref([
-{
-          date: '2024-11-15',
-          agenda: '현대자동차',
-          status: 'IN',
-          description: 'Detailed description of 현대자동차',
-          time: '13PM-16PM',
-          members: 7,
-          files: [
-            { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-29',
-          agenda: '현대오토에버',
-          status: 'IN',
-          description: 'Detailed description of 현대오토에버',
-          time: '8AM-11AM',
-          members: 3,
-          files: [
-            { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-05',
-          agenda: '현대케피코',
-          status: 'IN',
-          description: 'Detailed description of 현대케피코',
-          time: '16PM-18PM',
-          members: 5,
-          files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-09-15',
-          agenda: '뱅킹 서비스',
-          status: 'OUT',
-          description: 'Detailed description of 뱅킹 서비스',
-          time: '8AM-10AM',
-          members: 8,
-          files: [
-            { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-08-26',
-          agenda: '인스타그램',
-          status: 'OUT',
-          description: 'Detailed description of 인스타그램',
-          time: '11AM-13PM',
-          members: 5,
-          files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-07-26',
-          agenda: '웹 RTC',
-          status: 'IN',
-          description: 'Detailed description of 웹 RTC',
-          time: '15PM-17PM',
-          members: 4,
-          files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
-        },
-        {
-          date: '2024-06-28',
-          agenda: 'TTS',
-          status: 'IN',
-          description: 'Detailed description of TTS',
-          time: '14PM-16PM',
-          members: 6,
-          files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
-          summary: '/path/to/tts_summary.pdf',
-          record: '/path/to/tts_record.pdf'
-        },
-        {
-          date: '2024-07-23',
-          agenda: 'AI 요약',
-          status: 'OUT',
-          description: 'Detailed description of AI 요약',
-          time: '17PM-18PM',
-          members: 4,
-          files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
-          summary: '/path/to/ai_summary.pdf',
-          record: '/path/to/ai_record.pdf'
-        },
-        {
-          date: '2024-06-13',
-          agenda: 'STT',
-          status: 'IN',
-          description: 'Detailed description of STT',
-          time: '20PM-22PM',
-          members: 7,
-          files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/stt_summary.pdf',
-          record: '/path/to/stt_record.pdf'
-        },
-        {
-          date: '2024-05-14',
-          agenda: '다국어 화상회의',
-          status: 'IN',
-          description: 'Detailed description of 다국어화상회의',
-          time: '11AM-15PM',
-          members: 4,
-          files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/다국어 화상회의_summary.pdf',
-          record: '/path/to/다국어 화상회의_record.pdf'
-        }
+  {
+    date: '2024-11-15',
+    agenda: '현대자동차',
+    status: 'IN',
+    description: 'Detailed description of 현대자동차',
+    time: '13PM-16PM',
+    members: 7,
+    files: [
+      { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
+      { name: 'services.png', link: '#', uploader: 'Robert' }
+    ]
+  },
+  {
+    date: '2024-10-29',
+    agenda: '현대오토에버',
+    status: 'IN',
+    description: 'Detailed description of 현대오토에버',
+    time: '8AM-11AM',
+    members: 3,
+    files: [
+      { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
+      { name: 'services.png', link: '#', uploader: 'Robert' }
+    ]
+  },
+  {
+    date: '2024-10-05',
+    agenda: '현대케피코',
+    status: 'IN',
+    description: 'Detailed description of 현대케피코',
+    time: '16PM-18PM',
+    members: 5,
+    files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
+  },
+  {
+    date: '2024-09-15',
+    agenda: '뱅킹 서비스',
+    status: 'OUT',
+    description: 'Detailed description of 뱅킹 서비스',
+    time: '8AM-10AM',
+    members: 8,
+    files: [
+      { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
+      { name: 'services.png', link: '#', uploader: 'Robert' }
+    ]
+  },
+  {
+    date: '2024-08-26',
+    agenda: '인스타그램',
+    status: 'OUT',
+    description: 'Detailed description of 인스타그램',
+    time: '11AM-13PM',
+    members: 5,
+    files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
+  },
+  {
+    date: '2024-07-26',
+    agenda: '웹 RTC',
+    status: 'IN',
+    description: 'Detailed description of 웹 RTC',
+    time: '15PM-17PM',
+    members: 4,
+    files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
+  },
+  {
+    date: '2024-06-28',
+    agenda: 'TTS',
+    status: 'IN',
+    description: 'Detailed description of TTS',
+    time: '14PM-16PM',
+    members: 6,
+    files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
+    summary: '/path/to/tts_summary.pdf',
+    record: '/path/to/tts_record.pdf'
+  },
+  {
+    date: '2024-07-23',
+    agenda: 'AI 요약',
+    status: 'OUT',
+    description: 'Detailed description of AI 요약',
+    time: '17PM-18PM',
+    members: 4,
+    files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
+    summary: '/path/to/ai_summary.pdf',
+    record: '/path/to/ai_record.pdf'
+  },
+  {
+    date: '2024-06-13',
+    agenda: 'STT',
+    status: 'IN',
+    description: 'Detailed description of STT',
+    time: '20PM-22PM',
+    members: 7,
+    files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
+    summary: '/path/to/stt_summary.pdf',
+    record: '/path/to/stt_record.pdf'
+  },
+  {
+    date: '2024-05-14',
+    agenda: '다국어 화상회의',
+    status: 'IN',
+    description: 'Detailed description of 다국어화상회의',
+    time: '11AM-15PM',
+    members: 4,
+    files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
+    summary: '/path/to/다국어 화상회의_summary.pdf',
+    record: '/path/to/다국어 화상회의_record.pdf'
+  }
 ]);
 
 const isOwner = ref(false);
@@ -715,6 +657,10 @@ watch(activeTab, (newTab) => {
     selectLatestTodayMeeting();
   }
 });
+
+const CreateMeeting = ()=>{
+
+}
 </script>
 
 <!-- 
@@ -1099,15 +1045,9 @@ export default {
     },
     activeTab(newTab) {
       if (newTab === 'TODAY') {
-<<<<<<< HEAD
         this.selectLatestTodayMeeting()
       }
     }
-=======
-        this.selectLatestTodayMeeting();
-      }
-    },
->>>>>>> develop_front
   }
 };
 </script>
@@ -1137,7 +1077,7 @@ export default {
 
 .sub-container {
   width: 82%;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 
 .top-section {
@@ -1508,7 +1448,7 @@ ul.nav li {
 .meeting-list td:nth-child(3):hover *,
 .meeting-list td.agenda:hover {
   cursor: pointer;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 3px;
@@ -1563,18 +1503,22 @@ button {
 
 .meeting-list tbody {
   display: block;
-  max-height: 140px; /* 원하는 최대 높이 설정 */
+  max-height: 140px;
+  /* 원하는 최대 높이 설정 */
   overflow-y: scroll;
 }
 
 .meeting-list tbody::-webkit-scrollbar {
-  width: 0; /* 스크롤바의 너비를 0으로 설정 */
-  background: transparent; /* 스크롤바 배경을 투명하게 설정 */
+  width: 0;
+  /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent;
+  /* 스크롤바 배경을 투명하게 설정 */
 }
 
 .meeting-list tr {
   display: table;
-  width: calc(100% - 1rem); /* 테이블 너비를 100%에서 약간 줄임 */
+  width: calc(100% - 1rem);
+  /* 테이블 너비를 100%에서 약간 줄임 */
   table-layout: fixed;
 }
 
@@ -1592,7 +1536,7 @@ button {
   margin: 1rem auto;
   font-size: larger;
   font-weight: bolder;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 5px;
@@ -1726,6 +1670,7 @@ button {
 }
 
 @media (max-width: 992px) {
+
   .intro-section,
   .chat-section,
   .meeting-detail-section {
