@@ -31,13 +31,12 @@ public class JwtAuthFilter extends OncePerRequestFilter{
      */
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        // TODO: change header to Authorization for social login
-        String authorizationHeader = request.getHeader("X-ACCESS-TOKEN");
+        String authorizationHeader = request.getHeader("Authorization");
         // JWT 헤더 존재
-        if (authorizationHeader != null) {
-//            String token = authorizationHeader;
-            DecodedJWT decoded = jwtUtil.validateToken(authorizationHeader);
-            log.debug("has jwt{}", decoded.getToken());
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.replace("Bearer ", "");
+            DecodedJWT decoded = jwtUtil.validateToken(token);
+            log.debug("has jwt : {}", decoded.getToken());
             UserDetails userDetails = userDetailsService.loadUserByUsername(decoded.getClaim("userId").asString());
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
