@@ -1,15 +1,14 @@
 package com.ssafy.globalcc.domain.team.controller;
 
 import com.ssafy.globalcc.aop.ApiResponse;
+import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.team.dto.TeamDto;
 import com.ssafy.globalcc.domain.team.dto.TeamOutDto;
 import com.ssafy.globalcc.domain.team.exception.MemberNotFoundException;
 import com.ssafy.globalcc.domain.team.exception.NoSuchTeamException;
 import com.ssafy.globalcc.domain.team.exception.TeamCreationFailException;
-import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.team.service.TeamService;
 import com.ssafy.globalcc.domain.user.dto.SecurityUser;
-import com.ssafy.globalcc.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
