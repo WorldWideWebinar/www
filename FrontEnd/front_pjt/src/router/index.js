@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
-import ReadyPage from '@/components/Ready.vue'
+import ReadyView from '@/views/ReadyView.vue'
 import ConferenceView from '@/views/ConferenceView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SignView from '@/views/SignView.vue'
@@ -55,7 +55,7 @@ const router = createRouter({
         {
           path: ':id',
           name: 'ReadyView',
-          component: ReadyPage,
+          component: ReadyView,
         },
       ]
     },

@@ -1,3 +1,4 @@
+
 <template>
   <div class="home-container">
     <div class="upper">
@@ -7,17 +8,18 @@
         <div class="title"><span class="w">W</span>ebinar</div>
       </div>
       <div class="main-image">
-        <img src="../assets/img/chat.png" alt="logo">
+        <img src="@/assets/img/chat.png" alt="logo">
       </div>
 
-      <!-- <div class="main-btn">
+      <div class="main-btn">
         <div v-if="!session">
-          <button @click="router.push({name:'SignView'})">login</button>
+          <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
+          <button @click="router.push({name:'SignView'})">Sign up</button>
         </div>
         <div v-else>
           <button @click="router.push({name:'ProfileView'})">mypage</button>
         </div>
-      </div> -->
+      </div>
     </div>
 
     <div class="middle">
@@ -43,7 +45,7 @@
     </div>
 
     <div class="lower" >
-      <div class="sub-discription carousel my-meeting" v-if="!session">
+      <!-- <div class="sub-discription carousel my-meeting" v-if="!session">
         <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
           <SignUp />
           <SignIn />
@@ -61,7 +63,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
         <!-- <div class="discription">
           <p> 1번 설명</p>
           <br>
@@ -83,7 +85,7 @@
             {{ discriptionContent[2] }}
           </p>
         </div> -->
-      </div>
+      <!-- </div> -->
       <div class="my-meeting" v-if="session">
         <h2>My Meeting</h2>
         <div class="carousel">
@@ -130,8 +132,8 @@ import router from '@/router';
 import { onMounted, ref, watch } from 'vue';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
-import SignUp from '@/components/SignUp.vue';
-import SignIn from '@/components/SignIn.vue';
+// import SignUp from '@/components/SignUp.vue';
+// import SignIn from '@/components/SignIn.vue';
 
 const isRightPanelActive = ref(false);
 

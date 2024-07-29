@@ -15,7 +15,6 @@ export const useTeamStore = defineStore('team', {
       const teamData = this.teams.find(team => team.id === teamId);
 
       if (teamData) {
-        console.log(`Team ${teamId} fetched (static data):`, teamData);
         return teamData;
       } else {
         console.error(`Team ${teamId} not found in static data`);

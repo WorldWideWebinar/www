@@ -93,14 +93,12 @@
       </div>
     </main>
     <div class="bottom-toolbar">
-      <button class="btn-icon">🎤</button>
-      <button class="btn-icon">🎥</button>
-      <button class="btn-icon">🔇</button>
-      <button class="btn-icon">🔄</button>
+      <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
+      <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
+      <button class="btn-icon" @click="leaveSession">🔄</button>
     </div>
   </div>
 </template>
-
 <script>
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -117,10 +115,9 @@ export default {
         { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
       ],
       session: null,
-      audioContext: null,
-      processor: null,
-      input: null,
-      stream: null,
+      publisher: null,
+      isAudioEnabled: true,
+      isVideoEnabled: true,
       userId: 'user_' + Math.floor(Math.random() * 10000)
     };
   },
@@ -148,7 +145,7 @@ export default {
 
         await session.connect(token, { clientData: 'Participant' });
 
-        const publisher = OV.initPublisher('video-container', {
+        this.publisher = OV.initPublisher('video-container', {
           videoSource: undefined,
           audioSource: undefined,
           publishVideo: true,
@@ -157,9 +154,7 @@ export default {
           frameRate: 30,
           insertMode: 'APPEND'
         });
-        session.publish(publisher);
-
-        this.startCapturing();
+        session.publish(this.publisher);
       } catch (error) {
         console.error('Error connecting to session:', error);
       }
@@ -169,48 +164,18 @@ export default {
         this.session.disconnect();
         this.session = null;
       }
-      this.stopCapturing();
     },
-    async startCapturing() {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.input = this.audioContext.createMediaStreamSource(this.stream);
-      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-
-      this.processor.onaudioprocess = (e) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        const float32Array = new Float32Array(inputData);
-        console.log(`Captured Audio Data from ${this.userId}:`, float32Array);
-        this.sendData(float32Array);
-      };
-
-      this.input.connect(this.processor);
-      this.processor.connect(this.audioContext.destination);
-    },
-    stopCapturing() {
-      if (this.processor) {
-        this.processor.disconnect();
-      }
-      if (this.input) {
-        this.input.disconnect();
-      }
-      if (this.stream) {
-        this.stream.getTracks().forEach(track => track.stop());
-      }
-      if (this.audioContext) {
-        this.audioContext.close();
+    toggleAudio() {
+      if (this.publisher) {
+        this.isAudioEnabled = !this.isAudioEnabled;
+        this.publisher.publishAudio(this.isAudioEnabled);
       }
     },
-    sendData(data) {
-      axios.post('http://localhost:5000/api/audio', { userId: this.userId, audioData: Array.from(data) }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(response => {
-        console.log('Data sent successfully:', response.data);
-      }).catch(error => {
-        console.error('Error sending data:', error);
-      });
+    toggleVideo() {
+      if (this.publisher) {
+        this.isVideoEnabled = !this.isVideoEnabled;
+        this.publisher.publishVideo(this.isVideoEnabled);
+      }
     }
   },
   mounted() {
@@ -222,7 +187,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .conference-container {

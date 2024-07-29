@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { useTeamStore } from './teamStore';
 import { useMeetingStore } from './meetingStore';
-// import axios from 'axios';
+import axios from 'axios';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -10,6 +10,7 @@ export const useUserStore = defineStore('user', {
     meetings: [],
     userList: [],
     userInfo: {},
+    BACKEND_URL: 'http://localhost:5000/',
   }),
   actions: {
     async fetchUserTeamsAndMeetings(userId = 1) {
@@ -17,9 +18,10 @@ export const useUserStore = defineStore('user', {
 
       const teamStore = useTeamStore();
       const meetingStore = useMeetingStore();
+      
       // 주석 처리된 axios 호출
       // try {
-      //   const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+      //   const response = await axios.get(`${this.BACKEND_URL}api/users/${userId}`);
       //   const userData = response.data.data;
       //   this.userInfo = userData;
 
@@ -84,27 +86,15 @@ export const useUserStore = defineStore('user', {
         { id: 10, username: 'judy', email: 'judy@google.com' }
       ];
       console.log('AllUsers', this.userList);
-
-      // 실제 API 호출 예제
-      // try {
-      //   const response = await axios.get(`http://localhost:8000/api/users`);
-      //   this.userList = response.data.map(user => ({
-      //     id: user.id,
-      //     username: user.username,
-      //     email: user.email
-      //   }));
-      //   console.log('AllUsers', this.userList);
-      // } catch (error) {
-      //   console.error('Failed to fetch users:', error);
-      // }
     },
-    async signup({ id, idCheck, name, email, password, language }) {
+    
+    async signUp({ id, idCheck, name, email, password, language }) {
       try {
         // 아이디 중복 체크
-        const duplicationResponse = await axios.get(`http://localhost:5000/api/users/duplication/${id}`);
+        const duplicationResponse = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
         if (duplicationResponse.data.result.isAvailable) {
           // 회원가입 요청
-          const signupResponse = await axios.post('http://localhost:5000/api/users', {
+          const signupResponse = await axios.post(`${this.BACKEND_URL}api/users`, {
             id,
             idCheck,
             name,
@@ -112,7 +102,6 @@ export const useUserStore = defineStore('user', {
             password,
             language
           });
-          console.log('Signup successful:', signupResponse.data);
           return signupResponse.data;
         } else {
           console.log('ID is not available');
@@ -122,8 +111,23 @@ export const useUserStore = defineStore('user', {
         console.error('Failed to sign up:', error);
         return { isSuccess: false, message: error.message };
       }
+    },
+
+    async signIn({ id, password }) {
+      try {
+        const response = await axios.post(`${this.BACKEND_URL}api/users/login`, { id, password });
+        if (response.data.success) {
+          this.userInfo = response.data.userInfo;
+          console.log('User signed in:', this.userInfo);
+          return { isSuccess: true, data: response.data.userInfo };
+        } else {
+          console.log('Login failed:', response.data.message);
+          return { isSuccess: false, message: response.data.message };
+        }
+      } catch (error) {
+        console.error('Failed to sign in:', error);
+        return { isSuccess: false, message: error.message };
+      }
     }
   }
 });
-
-

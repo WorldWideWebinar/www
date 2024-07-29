@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import HomeSeeing from "@/components/HomeSeeing.vue"
+import HomeSeeing from "@/components/HomeView/HomeSeeing.vue"
 import { useUserStore } from "@/stores/userStore";
 import { onMounted } from 'vue'
 

@@ -1,7 +1,7 @@
 <template>
   <div v-if="team" class="team-card">
-    <h2 class="title">{{ team.name }}</h2>
-    <p>{{ team.icon }} 팀장: user {{ team.host }}</p>
+    <h2 class="title">{{ team.teamName }}</h2>
+    <p>{{ team.icon }} 팀장: user {{ team.ownerId }}</p>
     <!-- 필요한 경우 더 많은 필드를 추가 -->
      <button class="btn btn-primary">가입 신청</button>
   </div>
