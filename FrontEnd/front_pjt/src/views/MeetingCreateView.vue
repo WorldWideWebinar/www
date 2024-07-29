@@ -5,9 +5,9 @@
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/userStore'
+// import { useUserStore } from '@/stores/userStore'
 import UserSearch from '@/components/UserSearch.vue';
-const userStore = useUserStore()
+// const userStore = useUserStore()
 </script>
 
 <style scoped>

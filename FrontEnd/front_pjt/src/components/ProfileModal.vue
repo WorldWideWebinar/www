@@ -1,26 +1,40 @@
 <template>
-    <div class="modal-overlay" @click="close">
-      <div class="modal" @click.stop>
-        <button class="close-button" @click="close">&times;</button>
-        <div class="modal-content">
-          <h3>프로필</h3>
-          <p>사용자 이름: {{ user.username }}</p>
-          <p>이메일: {{ user.email }}</p>
-        </div>
+    <div class="modal-overlay" @click.self="close">
+      <div class="modal-content">
+        <h2>{{ user.username }}</h2>
+        <p>{{ user.email }}</p>
+        <p>Other profile information...</p>
+        <button @click="addMember(user)" class="btn btn-primary">추가버튼</button>
+        <button @click="close" class="btn btn-secondary">Close</button>
       </div>
     </div>
   </template>
   
   <script setup>
+  import { defineProps, defineEmits, ref } from 'vue';
+  import { useUserStore } from '@/stores/userStore';
+  import { useTeamStore } from '@/stores/teamStore';
+  
+  const teamStore = useTeamStore();
+
   const props = defineProps({
     user: Object
   });
+
   
   const emits = defineEmits(['close']);
   
   const close = () => {
     emits('close');
   };
+
+  const addMember=(user)=>{
+    const teamId= 1;
+    console.log(user.id)
+    teamStore.addMembertoTeam(user.id,teamId);
+    close();
+  }
+
   </script>
   
   <style scoped>
@@ -34,30 +48,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-  }
-  
-  .modal {
-    background: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: relative;
-    width: 80%;
-    max-width: 500px;
-  }
-  
-  .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
   }
   
   .modal-content {
-    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   }
   </style>
+  

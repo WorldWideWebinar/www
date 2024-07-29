@@ -1,162 +1,211 @@
-<!-- 지금 해야 하는 것들 팀을 생성 하는 것, 팀에 들어가야 할 것, userid, 팀 이름, emoji, 초대 인원-->
 <template>
-  <div class="centered-container">
-    <form @submit.prevent="createTeam">
-      <div>
-        <label for="team-name">팀 이름:</label>
-        <input type="text" id="team-name" v-model="teamName" required />
+  <!-- 현재 한 것, 사람 검색, 검색 후 프로필 모달, 지우기, 팀 생성, -->
+  <div style="text-align: center; margin: auto;">임시</div>
+  <div class="team-creation-wrap">
+    <div class="search-wrap">
+      <div class="search">
+        <input
+          type="text"
+          class="searchTerm"
+          placeholder="Which user are you looking for?"
+          v-model="searchQuery"
+          @input="handleInput"
+          @keyup.enter="searchUsers"
+        />
+        <button type="submit" class="searchButton" @click="searchUsers">
+          <font-awesome-icon icon="search" />
+        </button>
       </div>
-      
-      <div>
-        <label for="emoji-picker">이모지 선택:</label>
-        <div @click="showEmojiPicker = !showEmojiPicker" class="emoji-input">
-          <span v-if="selectedEmoji">{{ selectedEmoji }}</span>
-          <span v-else>이모지를 선택하세요</span>
-        </div>
-        <Picker v-if="showEmojiPicker" @emoji-select="selectEmoji" />
-      </div>
-
-      <div>
-        <label for="user-search">유저 검색:</label>
-        <input type="text" id="user-search" v-model="userSearchQuery" @input="onUserSearch" placeholder="유저를 검색하세요">
-        <ul v-if="filteredUsers.length && userSearchQuery">
-          <li v-for="user in filteredUsers" :key="user.id" @click="inviteUser(user)">
-            {{ user.name }}
-          </li>
-        </ul>
-      </div>
-      
-      <div>
-        <label>초대된 유저들:</label>
-        <ul>
-          <li v-for="(user, index) in invitedUsers" :key="user.id">
-            {{ user.name }} <button @click="removeUser(index)">x</button>
-          </li>
-        </ul>
-      </div>
-      
-      <button type="submit">팀 생성</button>
-    </form>
+      <ul v-if="showUsers && filteredUsers.length" class="results">
+        <li v-for="user in filteredUsers" :key="user.id" class="showingResult" @click="selectUser(user)">
+          <div class="user-info">
+            {{ user.username }} ({{ user.email }})
+          </div>
+          <button @click="selectUser(user)" style="float: right;" class="btn btn-primary">select</button>
+        </li>
+      </ul>
+    </div>
+    <div class="team-info">
+      <input type="text" v-model="teamName" placeholder="Enter team name" class="team-input" />
+      <select v-model="selectedIcon" class="icon-select">
+        <option v-for="icon in icons" :key="icon" :value="icon">{{ icon }}</option>
+      </select>
+    </div>
+    <div class="selected-users" v-if="selectedUsers.length">
+      <h3>Selected Users:</h3>
+      <ul>
+        <li v-for="user in selectedUsers" :key="user.id">
+          {{ user.username }} ({{ user.email }})
+          <button class="btn btn-primary" @click="showProfile(user)">프로필 보기</button>
+          <button @click="removeUser(user.id)" class="btn btn-secondary">Remove</button>
+        </li>
+      </ul>
+    </div>
+    <button @click="createTeam" class="btn btn-success">Create Team</button>
   </div>
+  <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useUserStore } from '@/stores/userStore';
+import { useTeamStore } from '@/stores/teamStore';
+import ProfileModal from '@/components/ProfileModal.vue'
 
-const team = ref([]);
+const userStore = useUserStore();
+const teamStore = useTeamStore();
+const searchQuery = ref('');
+const showUsers = ref(false);
+const showProfileModal = ref(false);
+const selectedUser = ref(null);
+const selectedUsers = ref([]);
 const teamName = ref('');
-const selectedEmoji = ref('');
-const showEmojiPicker = ref(false);
-const userSearchQuery = ref('');
-const invitedUsers = ref([]);
-const allUsers = ref([
-  { id: 1, name: 'user1' },
-  { id: 2, name: 'user2' },
-  { id: 3, name: 'user3' },
-  // 더 많은 유저들...
-]);
+const selectedIcon = ref('🚀');
+const icons = ['🚀', '💻', '💼', '📈', '🆕'];
 
-// 필터링된 유저 리스트를 계산
-const filteredUsers = computed(() => {
-  if (!userSearchQuery.value) {
-    return [];
+const filteredUsers = computed(() =>
+  userStore.userList.filter(user => 
+    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+);
+
+const handleInput = () => {
+  showUsers.value = searchQuery.value.length > 0;
+};
+
+const searchUsers = () => {
+  if (filteredUsers.value.length) {
+    showUsers.value = true;
+  } else {
+    showUsers.value = false;
   }
-  return allUsers.value.filter(user => user.name.includes(userSearchQuery.value));
-});
-
-// 이모지 선택 함수
-const selectEmoji = (emoji) => {
-  selectedEmoji.value = emoji.native;
-  showEmojiPicker.value = false;
 };
 
-// 유저 검색 함수
-const onUserSearch = (event) => {
-  userSearchQuery.value = event.target.value;
-};
-
-// 유저 초대 함수
-const inviteUser = (user) => {
-  if (user && !invitedUsers.value.includes(user)) {
-    invitedUsers.value.push(user);
+const selectUser = (user) => {
+  if (!selectedUsers.value.includes(user)) {
+    selectedUsers.value.push(user);
   }
-  userSearchQuery.value = ''; // 입력 창 초기화
+  searchQuery.value = '';
+  showUsers.value = false;
 };
 
-// 유저 제거 함수
-const removeUser = (index) => {
-  invitedUsers.value.splice(index, 1);
+const removeUser = (userId) => {
+  selectedUsers.value = selectedUsers.value.filter(user => user.id !== userId);
 };
 
-// 팀 생성 함수
-const createTeam = () => {
-  team.value.push({
-    teamName: teamName.value,
-    selectedEmoji: selectedEmoji.value,
-    invitedUsers: invitedUsers.value
-  });
-  
-  console.log('Created team:', team.value);
-
-  // 폼 초기화
-  teamName.value = '';
-  selectedEmoji.value = '';
-  invitedUsers.value = [];
+const createTeam = async () => {
+  if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
+    const userIds = selectedUsers.value.map(user => user.id);
+    // console.log(JSON.stringify(userIds))
+    const ownerId = 1;
+    // const ownerId = userStore.currentUser.id;
+    console.log(ownerId)
+    console.log(teamName.value)
+    // await teamStore.createTeam(teamName.value, ownerId, userIds);
+    // Reset fields
+    teamName.value = '';
+    selectedUsers.value = [];
+    selectedIcon.value = '🚀';
+  } else {
+    alert('Please enter a team name, select users, and choose an icon.');
+  }
+};
+const showProfile = user => {
+  selectedUser.value = user;
+  showProfileModal.value = true;
 };
 </script>
 
 <style scoped>
-.centered-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  flex-direction: column;
+.team-creation-wrap {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin: 10px 0 5px;
-}
-
-input {
-  margin-bottom: 10px;
-  padding: 8px;
-  font-size: 1em;
-}
-
-button {
-  padding: 10px;
-  font-size: 1em;
-  cursor: pointer;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  cursor: pointer;
-  margin: 5px 0;
-}
-
-.emoji-input {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.search-wrap {
   width: 100%;
-  height: 40px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.search {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.searchTerm {
+  width: 70%;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-right: none;
+  border-radius: 5px 0 0 5px;
+}
+
+.searchButton {
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-left: none;
+  background-color: #333;
+  color: #fff;
+  border-radius: 0 5px 5px 0;
   cursor: pointer;
 }
 
-.emoji-input span {
-  font-size: 1.5em;
+.results {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.showingResult {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-info {
+  margin-bottom: 20px;
+}
+
+.team-input {
+  width: 70%;
+  padding: 10px;
+  margin-right: 10px;
+}
+
+.icon-select {
+  padding: 10px;
+}
+
+.selected-users {
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: #fff;
 }
 </style>

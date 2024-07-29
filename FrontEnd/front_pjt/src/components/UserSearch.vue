@@ -24,27 +24,33 @@
   </div>
   <div class="results-wrap" v-if="showResults">
     <!-- <UserSearchResult v-for="user in displayedUsers" :key="user.id" :user="user" /> -->
-     <div v-for="user in displayedUsers" :key="user.id" class="user-card">
+    <div v-for="user in displayedUsers" :key="user.id" class="user-card">
       <h2 class="title">{{ user.username }}</h2>
-    <p>{{ user.email }}</p>
-    <button class="btn btn-primary" @click="showProfileModal = true">프로필 보기</button>
-    <button class="btn btn-primary" style="float: right;">Add</button>
-     </div>
+      <p>{{ user.email }}</p>
+      <button class="btn btn-primary" @click="showProfile(user)">프로필 보기</button>
+      <button class="btn btn-primary" style="float: right;" @click="addMember(user)">Add</button>
+    </div>
   </div>
-  <!-- <ProfileModal/> -->
+  <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import { useTeamStore } from '@/stores/teamStore';
+import { useMeetingStore } from '@/stores/meetingStore';
 // import UserSearchResult from '@/components/UserSearchResult.vue';
-import ProfileModal from '@/components/ProfileModal.vue';
+import ProfileModal from '@/components/ProfileModal.vue'
 
 const userStore = useUserStore();
+const teamStore = useTeamStore();
+const meetingStore = useMeetingStore();
 const searchQuery = ref('');
 const showUsers = ref(false);
 const showResults = ref(false);
 const selectedUser = ref(null);
+const showProfileModal = ref(false);
+
 
 const filteredUsers = computed(() =>
   userStore.userList.filter(user => 
@@ -80,7 +86,19 @@ const selectUser = (user) => {
   searchQuery.value = user.username;
   showUsers.value = false;
   showResults.value = true;
+  console.log(user)
 };
+
+const showProfile = user => {
+  selectedUser.value = user;
+  showProfileModal.value = true;
+};
+
+const addMember=(user)=>{
+    const teamId= 1;
+    console.log(user.id)
+    teamStore.addMembertoTeam(user.id,teamId);
+  }
 </script>
 
 <style scoped>

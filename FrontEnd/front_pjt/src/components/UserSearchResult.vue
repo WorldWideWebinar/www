@@ -5,12 +5,10 @@
     <button class="btn btn-primary" @click="showProfileModal = true">프로필 보기</button>
     <button class="btn btn-primary" style="float: right;">Add</button>
   </div>
-  <!-- <ProfileModal v-if="showProfileModal" :user="user" @close="showProfileModal = false" /> -->
 </template>
 
 <script setup>
 import { ref } from 'vue';
-// import ProfileModal from '@/components/ProfileModal.vue';
 
 const props = defineProps({
   user: Object
