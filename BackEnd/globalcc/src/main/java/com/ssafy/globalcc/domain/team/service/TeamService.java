@@ -10,4 +10,6 @@ public interface TeamService {
     TeamDetailDto getTeamDetails(int teamId);
 
     void userOutTeam(TeamOutDto dto);
+
+    void deleteTeam(int teamId, String username);
 }
