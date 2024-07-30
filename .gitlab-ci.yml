@@ -28,7 +28,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - chmod +x ./gradlew
   script:
     - echo "Compiling the code..."
-    - sudo ./gradlew bootJar
+    - ./gradlew bootJar
     - sudo cp build/libs/globalcc-0.0.1-SNAPSHOT.jar /home/ubuntu/docker/www
     - echo "Compile complete."
 
