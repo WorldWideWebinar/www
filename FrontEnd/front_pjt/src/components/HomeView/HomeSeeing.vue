@@ -22,13 +22,12 @@
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
-
-      <div class="scroll">
-        <div class="txt">Scroll Down</div>
-        <div class="circle"></div>
-      </div>
     </div>
-
+    <div class="scroll">
+      <div class="txt">Scroll Down</div>
+      <div class="circle"></div>
+    </div>
+    
 
     <div class="lower" >
       <!-- 로그인 전 -->
@@ -140,10 +139,11 @@ const handleSignOut = async () => {
   }
 };
 
-// `isLogin` 상태를 확인하기 위해 `watch` 추가
 watch(isLogin, (newValue) => {
   console.log('isLogin changed:', newValue);
 });
+
+const session = ref(false);
 
 const carouselContent = ref([
   {
@@ -175,25 +175,36 @@ const navigateToSignView = (mode) => {
 };
 </script>
 
+
 <style scoped>
 .home-container {
   margin: 0px auto;
   width: 100%;
+  position: relative;
 }
 
 .before-scroll {
-  height: 90vh;
+  height: 88vh;
+  position: relative;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  background: url('@/assets/img/background.webp') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  margin-bottom: 15px;
 }
+
 
 .upper {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   margin: 0px auto;
-  padding-top: 40px;
-  padding-bottom: 70px;
+  margin-top: -20px;
+  padding-bottom: 100px;
   background-color: rgba(211, 211, 211, 0.2);
 }
 
@@ -216,8 +227,8 @@ const navigateToSignView = (mode) => {
 }
 
 .main-image img {
-  width: 300px;
-  margin: 0;
+  width: 250px;
+  margin: 320px 0 0 0px;
   opacity: 0;
   transform: translateX(50px);
   animation: slideInFromRight 1s forwards;
@@ -267,9 +278,9 @@ const navigateToSignView = (mode) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0px auto 40px auto;
-  padding-bottom: 40px;
-  background-color: rgba(211, 211, 211, 0.2);
+  margin: -150px auto 0px auto;
+  padding-top: -50px;
+  background-color: rgba(211, 211, 211, 0);
 }
 
 button {
