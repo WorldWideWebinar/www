@@ -22,7 +22,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 1rem 0;
   box-sizing: border-box;
   background-color: #fcf9fc;
 }
