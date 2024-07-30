@@ -1,0 +1,44 @@
+services:
+  mysql:
+    container_name: mysql-DB
+    image: mysql/mysql-server:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: globalcc
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: ssafy
+      TZ: 'Asia/Seoul'
+    ports:
+      -  "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    networks:
+      - www
+  redis:
+    container_name: redis
+    image: redis
+    networks:
+      - www
+
+  application:
+    container_name: spring-server
+    restart: unless-stopped
+    image:
+      a501/backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - www
+networks:
+  www:
+    name: www
+    driver: bridge
