@@ -2,14 +2,18 @@
   <div v-if="user" class="user-card">
     <h2 class="title">{{ user.username }}</h2>
     <p>{{ user.email }}</p>
-    <button class="btn btn-primary">프로필 보기</button>
+    <button class="btn btn-primary" @click="showProfileModal = true">프로필 보기</button>
+    <button class="btn btn-primary" style="float: right;">Add</button>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
 const props = defineProps({
   user: Object
 });
+const showProfileModal = ref(false);
 </script>
 
 <style scoped>

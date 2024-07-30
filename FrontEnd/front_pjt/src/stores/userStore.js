@@ -1,17 +1,21 @@
 import { defineStore } from 'pinia';
 import { useTeamStore } from './teamStore';
 import { useMeetingStore } from './meetingStore';
-import axios from 'axios';
+import axiosInstance from '@/axios';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 1,
+    userId: 0,
     teams: [],
     meetings: [],
     userList: [],
     userInfo: {},
-    BACKEND_URL: 'http://localhost:5000/',
+    accessToken: null,
+    refreshToken: null,
   }),
+  getters: {
+    isLogin: (state) => !!state.accessToken,
+  },
   actions: {
     async fetchUserTeamsAndMeetings(userId = 1) {
       this.userId = userId;
@@ -19,94 +23,51 @@ export const useUserStore = defineStore('user', {
       const teamStore = useTeamStore();
       const meetingStore = useMeetingStore();
       
-      // 주석 처리된 axios 호출
-      // try {
-      //   const response = await axios.get(`${this.BACKEND_URL}api/users/${userId}`);
-      //   const userData = response.data.data;
-      //   this.userInfo = userData;
+      try {
+        const response = await axiosInstance.get(`api/users/${userId}`);
+        const userData = response.data.data;
+        this.userInfo = userData;
 
-      //   // teamList를 teamStore로 전달하여 개별 팀 정보 조회
-      //   for (const teamId of userData.teamList) {
-      //     await teamStore.fetchTeamById(teamId);
-      //   }
-
-      //   // userStore의 teams를 teamStore의 userTeams로 설정
-      //   this.teams = teamStore.userTeams;
-
-      //   // meetings 정보를 추가적으로 조회하는 API가 있으면 호출
-      //   // await meetingStore.fetchAllMeetingsByUser(userId);
-      //   // this.meetings = meetingStore.userMeetings;
-      // } catch (error) {
-      //   console.error('Failed to fetch user info:', error);
-      // }
-
-      // 임시 데이터 사용
-      const userData = {
-        id: 1,
-        idCheck: true,
-        name: "주연수",
-        email: "jooys130@naver.com",
-        password: "1234",
-        profileImageUrl: "http://asdasdad.com/rads.png",
-        totalMeetingTime: 135,
-        teamList: [1, 2, 3, 4]
-      };
-      this.userInfo = userData;
-
-      const meetingIds = [];
-      // teamList를 teamStore로 전달하여 개별 팀 정보 조회
-      for (const teamId of userData.teamList) {
-        const team = await teamStore.fetchTeamById(teamId);
-        if (team) {
-          meetingIds.push(...team.meetingList);
+        const meetingIds = [];
+        for (const teamId of userData.teamList) {
+          const team = await teamStore.fetchTeamById(teamId);
+          if (team) {
+            meetingIds.push(...team.meetingList);
+          }
         }
+
+        this.teams = teamStore.teams;
+        console.log('Teams:', this.teams);
+
+        await meetingStore.fetchMeetingsByIds(meetingIds);
+        this.meetings = meetingStore.meetings;
+        console.log('Meetings:', this.meetings);
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
       }
-
-      // teamStore의 teams를 userStore의 teams로 설정
-      this.teams = teamStore.teams;
-      console.log('Teams:', this.teams);
-
-      // meetingStore에서 meetings를 조회하여 userStore의 meetings로 설정
-      await meetingStore.fetchMeetingsByIds(meetingIds);
-      this.meetings = meetingStore.meetings;
-      console.log('Meetings:', this.meetings);
     },
     
     async fetchAllUsers() {
-      this.userList = [
-        { id: 1, username: 'alice', email: 'alice@example.com' },
-        { id: 2, username: 'bob', email: 'bob@google.com' },
-        { id: 3, username: 'charlie', email: 'charlie@naver.com' },
-        { id: 4, username: 'david', email: 'david@daum.net' },
-        { id: 5, username: 'eve', email: 'eve@example.com' },
-        { id: 6, username: 'frank', email: 'frank@google.com' },
-        { id: 7, username: 'grace', email: 'grace@naver.com' },
-        { id: 8, username: 'heidi', email: 'heidi@daum.net' },
-        { id: 9, username: 'ivan', email: 'ivan@example.com' },
-        { id: 10, username: 'judy', email: 'judy@google.com' }
-      ];
-      console.log('AllUsers', this.userList);
+      try {
+        const response = await axiosInstance.get(`api/users`);
+        this.userList = response.data;
+        console.log('AllUsers', this.userList);
+      } catch (error) {
+        console.error('Failed to fetch all users:', error);
+      }
     },
     
-    async signUp({ id, idCheck, name, email, password, language }) {
+    async signUp({ id, name, email, password, language }) {
       try {
-        // 아이디 중복 체크
-        const duplicationResponse = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
-        if (duplicationResponse.data.result.isAvailable) {
-          // 회원가입 요청
-          const signupResponse = await axios.post(`${this.BACKEND_URL}api/users`, {
-            id,
-            idCheck,
-            name,
-            email,
-            password,
-            language
-          });
-          return signupResponse.data;
-        } else {
-          console.log('ID is not available');
-          return { isSuccess: false, message: 'ID is not available' };
-        }
+        const signupResponse = await axiosInstance.post(`api/users`, {
+          id,
+          name,
+          idCheck:true,
+          email,
+          password,
+          language
+        });
+        return signupResponse.data.result;
       } catch (error) {
         console.error('Failed to sign up:', error);
         return { isSuccess: false, message: error.message };
@@ -115,12 +76,17 @@ export const useUserStore = defineStore('user', {
 
     async signIn({ id, password }) {
       try {
-        const response = await axios.post(`${this.BACKEND_URL}api/users/login`, { id, password });
-        if (response.data.success) {
-          this.userInfo = response.data.userInfo;
+        const response = await axiosInstance.post('api/users/login', { id, password });
+        if (response.data.result.userId) {
+          this.userId = response.data.result.userId;
+          this.accessToken = response.data.result.jwt.accessToken;
+          this.refreshToken = response.data.result.jwt.refreshToken;
+          this.userInfo = { userId: response.data.result.userId };
+          console.log(response.data)
           console.log('User signed in:', this.userInfo);
-          return { isSuccess: true, data: response.data.userInfo };
+          return { isSuccess: true, data: this.userInfo };
         } else {
+          console.log(response.data)
           console.log('Login failed:', response.data.message);
           return { isSuccess: false, message: response.data.message };
         }
@@ -128,6 +94,39 @@ export const useUserStore = defineStore('user', {
         console.error('Failed to sign in:', error);
         return { isSuccess: false, message: error.message };
       }
-    }
+    },
+
+    async signOut() {
+      try {
+        const response = await axiosInstance.post(`api/users/logout`, { id: this.userId });
+        console.log(response.data)
+        if (response.data.isSuccess) {
+          // 사용자 정보를 초기화
+          this.userId = 0;
+          this.userInfo = {};
+          this.accessToken = null;
+          this.refreshToken = null;
+          console.log('User signed out successfully');
+          return { isSuccess: true, message: response.data.message };
+        } else {
+          console.log('Logout failed:', response.data.message);
+          return { isSuccess: false, message: response.data.message };
+        }
+      } catch (error) {
+        console.error('Failed to sign out:', error);
+        return { isSuccess: false, message: error.message };
+      }
+    },
+
+    async checkIdDuplication(id) {
+      try {
+        const response = await axiosInstance.get(`api/users/duplication/${id}`);
+        return response.data.result.available;
+      } catch (error) {
+        console.error('Failed to check ID duplication:', error);
+        throw new Error('Failed to check ID duplication');
+      }
+    },
   }
 });
+

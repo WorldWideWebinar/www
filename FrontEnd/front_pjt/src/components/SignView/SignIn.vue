@@ -1,20 +1,41 @@
 <template>
   <div class="form-container sign-in-container">
-    <form action="#">
-      <h1>Sign in</h1>
-      <input type="email" placeholder="Email" required />
-      <input type="password" placeholder="Password" required />
+    <form @submit.prevent="handleSubmit">
+      <h1 class="form-title">Sign in</h1>
+      <input v-model="userId" type="ID" placeholder="ID" required />
+      <input v-model="password" type="password" placeholder="Password" required />
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <a href="#">Forgot your password?</a>
-      <button>Sign In</button>
+      <button type="submit" class="submit-btn">Sign In</button>
     </form>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+
+const router = useRouter();
+const userId = ref('');
+const password = ref('');
+const errorMessage = ref('');
+
+const userStore = useUserStore();
+
+const handleSubmit = async () => {
+  errorMessage.value = '';
+  const { isSuccess, message } = await userStore.signIn({ id: userId.value, password: password.value });
+  if (!isSuccess) {
+    errorMessage.value = 'ID or password is incorrect';
+  } else {
+    router.push({ name: 'HomeView' });
+  }
+
+};
 </script>
 
 <style scoped>
-
 * {
   box-sizing: border-box;
 }
@@ -43,6 +64,8 @@ a {
 }
 
 button {
+  margin: 0 auto;
+  width: 50%;
   border-radius: 20px;
   border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
@@ -66,13 +89,16 @@ button:focus {
 form {
   background-color: #FFFFFF;
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-direction: column;
-  padding: 0 50px;
+  padding: 20px;
   height: 100%;
   width: 100%;
   text-align: center;
+  justify-content: space-between;
+}
+
+.form-title {
+  margin-top: 10%;
 }
 
 input {
@@ -102,10 +128,22 @@ input {
   height: 100%;
   width: 50%; /* Ensures equal width for both containers */
   transition: all 0.6s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .sign-in-container {
   left: 0;
   z-index: 2;
+}
+
+.submit-btn {
+  margin-top: 5%;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
 }
 </style>
