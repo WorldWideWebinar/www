@@ -1,4 +1,5 @@
 <template>
+  <Loading v-model="loading" />
   <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
     <SignUp />
     <SignIn />
@@ -19,13 +20,17 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import SignUp from '@/components/SignView/SignUp.vue';
 import SignIn from '@/components/SignView/SignIn.vue';
+import Loading from '@/components/Loading.vue'
 
 const isRightPanelActive = ref(false);
-
+const route = useRoute();
+const loading = ref(true)
 const activateSignUp = () => {
   isRightPanelActive.value = true;
 };
@@ -33,6 +38,17 @@ const activateSignUp = () => {
 const activateSignIn = () => {
   isRightPanelActive.value = false;
 };
+
+// 페이지가 로드될 때 query 파라미터를 확인하여 적절한 overlay를 활성화
+onMounted(() => {
+  const mode = route.query.mode;
+  if (mode === 'signup') {
+    activateSignUp();
+    loading.value = false
+  } else {
+    activateSignIn();
+  }
+});
 </script>
 
 <style scoped>

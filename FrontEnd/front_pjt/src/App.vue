@@ -9,15 +9,15 @@
       <div class="seperator"></div>
       <ul class="nav flex-column">
         <li 
-        class="nav-item" 
-        v-for="team in teams" 
-        :key="team.id"
+          class="nav-item" 
+          v-for="team in teams" 
+          :key="team.id"
         >
           <RouterLink 
             class="nav-link" 
             :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
-            >
+          >
             <span class="icon">{{ team.icon }}</span>
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
@@ -25,10 +25,7 @@
       </ul>
       <div class="add-team">
         <button class="btn btn-add">
-          <RouterLink
-            class="no-decoration"
-            :to="{ name: 'TeamSearchView'}"
-          >
+          <RouterLink class="no-decoration" :to="{ name: 'TeamSearchView'}">
             <span>+</span>
           </RouterLink>
         </button>
@@ -65,21 +62,23 @@ import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 
 const userStore = useUserStore();
-const isLogin = userStore.isLogin
+const teamStore = useTeamStore();
+const isLogin = computed(() => userStore.isLogin);
+
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  if (userStore.isLogin) {
-    await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-    console.log('Teams:', userStore.teams); // 디버깅용
-    await userStore.fetchAllUsers();
+  if (isLogin.value) {
+    await userStore.fetchUserInfo(userStore.userId);
+    await teamStore.fetchUserTeams(userStore.userInfo.teamList);
+    console.log('Teams:', teamStore.teams);
   }
-  console.log(userStore.isLogin)
+  console.log('isLogin:', isLogin.value);
 });
 
-const teams = computed(() => userStore.teams);
+const teams = computed(() => teamStore.teams);
 
 // 챗봇
 const isChatOpen = ref(false);

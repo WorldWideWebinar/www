@@ -14,8 +14,8 @@
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
-          <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
-          <button @click="router.push({name:'SignView'})">Sign up</button>
+          <button @click="navigateToSignView('signin')" style="margin-right: 50px;">Sign in</button>
+          <button @click="navigateToSignView('signup')">Sign up</button>
         </div>
         <div v-else>
           <button @click="router.push({name:'ProfileView'})">My Page</button>
@@ -32,7 +32,7 @@
 
     <div class="lower" >
       <!-- 로그인 전 -->
-      <div class="sub-discription carousel my-meeting" v-if="!session">
+      <div class="sub-discription carousel my-meeting" v-if="!isLogin">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team">
@@ -128,7 +128,6 @@ import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
 
 const router = useRouter();
 const userStore = useUserStore();
-
 const isLogin = computed(() => userStore.isLogin);
 
 const handleSignOut = async () => {
@@ -170,6 +169,10 @@ const carouselContent = ref([
     ]
   }
 ]);
+
+const navigateToSignView = (mode) => {
+  router.push({ name: 'SignView', query: { mode } });
+};
 </script>
 
 <style scoped>
