@@ -3,6 +3,7 @@ package com.ssafy.globalcc.domain.meetingSTT.controller;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.repository.MeetingRepository;
 import com.ssafy.globalcc.domain.meetingSTT.dto.request.MeetingSTTRequest;
+import com.ssafy.globalcc.domain.meetingSTT.dto.response.MeetingSTTResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.repository.MeetingSTTRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,10 @@ public class MeetingSTTStompController {
         meetingSTT.setMeeting(meeting);
         meetingSTT.setContent(request.getContent());
         meetingSTTRepository.save(meetingSTT);
+
+        MeetingSTTResponse response = MeetingSTTResponse.of(meeting.getMeetingId(), request.getContent());
         rabbitTemplate.convertAndSend(
-                EXCHANGE_NAME, ROUTING_KEY + meetingId, request
+                EXCHANGE_NAME, ROUTING_KEY + meetingId, response
         );
     }
 }
