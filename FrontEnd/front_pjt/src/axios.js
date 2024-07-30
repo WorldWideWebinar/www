@@ -22,7 +22,7 @@ axiosInstance.interceptors.response.use(
     const userStore = useUserStore();
     const originalRequest = error.config;
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response.status === 400 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const response = await axios.post(

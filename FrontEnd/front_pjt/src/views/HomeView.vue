@@ -13,13 +13,13 @@ import { onMounted } from 'vue'
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 
-onMounted(async () => {
-  if (userStore.isLogin) {
-    await userStore.fetchUserInfo(userStore.userId);
-    await teamStore.fetchUserTeams(userStore.userInfo.teamList);
-    console.log('Teams:', teamStore.teams); // 디버깅용
-  }
-});
+// onMounted(async () => {
+//   if (userStore.isLogin) {
+//     await userStore.fetchUserInfo(userStore.userId);
+//     await teamStore.fetchUserTeams(userStore.userInfo.teamList);
+//     console.log('Teams:', teamStore.teams); // 디버깅용
+//   }
+// });
 </script>
 
 <style scoped>

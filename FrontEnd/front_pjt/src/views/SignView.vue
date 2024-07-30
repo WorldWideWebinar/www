@@ -47,6 +47,7 @@ onMounted(() => {
     loading.value = false
   } else {
     activateSignIn();
+    loading.value = false
   }
 });
 </script>

@@ -5,10 +5,6 @@ import axiosInstance from '@/axios';
 export const useTeamStore = defineStore('team', {
   state: () => ({
     teams: [
-      { id: 1, teamName: 'R&D', ownerId: 2, icon: '🚀', userList: [1, 3], meetingList: [1, 2] },
-      { id: 2, teamName: 'Dev', ownerId: 1, icon: '💻', userList: [1, 3], meetingList: [4, 5] },
-      { id: 3, teamName: 'Pur', ownerId: 1, icon: '💼', userList: [1, 3], meetingList: [3, 6] },
-      { id: 4, teamName: 'Sales', ownerId: 1, icon: '📈', userList: [1, 3], meetingList: [7, 8] },
     ],
     isOwner: false,
   }),

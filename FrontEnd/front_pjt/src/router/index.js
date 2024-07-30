@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
 import HomeView from '@/views/HomeView.vue'
 import ReadyView from '@/views/ReadyView.vue'
 import ConferenceView from '@/views/ConferenceView.vue'
@@ -69,6 +70,21 @@ const router = createRouter({
 })
 
 export default router
+
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+
+  if (to.name === 'SignView' && userStore.isLogin) {
+    // If trying to access SignView and user is already logged in, redirect to HomeView
+    next({ name: 'HomeView' });
+  } else if (!userStore.isLogin && to.name !== 'HomeView' && to.name !== 'SignView') {
+    // If user is not logged in and trying to access any page except HomeView or SignView, redirect to SignView
+    next({ name: 'SignView' });
+  } else {
+    // Allow navigation to target route
+    next();
+  }
+});
 
 router.beforeEach((to, from, next) => {
   console.log(`Navigating to: ${to.name}`);

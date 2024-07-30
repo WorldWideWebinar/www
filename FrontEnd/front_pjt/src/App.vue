@@ -52,6 +52,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
 import { onMounted, computed, ref } from 'vue';
@@ -61,19 +62,27 @@ import router from './router';
 import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 
+
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 const isLogin = computed(() => userStore.isLogin);
+const hasFetchedUserInfo = ref(false); // 유저 정보가 이미 fetch되었는지 확인
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  if (isLogin.value) {
+  if (isLogin.value && !hasFetchedUserInfo.value) {
     await userStore.fetchUserInfo(userStore.userId);
-    await teamStore.fetchUserTeams(userStore.userInfo.teamList);
-    console.log('Teams:', teamStore.teams);
+    const userInfo = userStore.userInfo;
+    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+      await Promise.all(
+        userInfo.teamList.map(teamId => teamStore.fetchTeamById(teamId))
+      );
+      console.log('Teams:', teamStore.teams);
+    }
+    hasFetchedUserInfo.value = true; // 유저 정보 fetch 완료
   }
   console.log('isLogin:', isLogin.value);
 });

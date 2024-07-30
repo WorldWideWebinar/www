@@ -90,7 +90,7 @@ async function handleSignUp() {
   };
 
   const result = await userStore.signUp(signUpData);
-  if (result.userId) {
+  if (result.success == true) {
     alert('Sign up successful');
     router.push({ name: 'HomeView' });
   } else {

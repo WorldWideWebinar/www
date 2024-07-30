@@ -1,4 +1,3 @@
-
 <template>
   <div class="home-container">
     <div class="before-scroll">
@@ -131,7 +130,7 @@ const isLogin = computed(() => userStore.isLogin);
 
 const handleSignOut = async () => {
   const result = await userStore.signOut();
-  if (result.isSuccess) {
+  if (result.success) {
     alert('Successfully logged out');
     router.push({ name: 'HomeView' });
   } else {
@@ -142,8 +141,6 @@ const handleSignOut = async () => {
 watch(isLogin, (newValue) => {
   console.log('isLogin changed:', newValue);
 });
-
-const session = ref(false);
 
 const carouselContent = ref([
   {
