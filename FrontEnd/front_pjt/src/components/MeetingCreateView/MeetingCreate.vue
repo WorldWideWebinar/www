@@ -80,7 +80,7 @@ const createMeeting = async () => {
 
   console.log(newMeeting)
 
-  meetingStore.addMeeting(newMeeting);
+  // meetingStore.addMeeting(newMeeting);
 
   close();
   // try {

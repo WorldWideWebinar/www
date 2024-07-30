@@ -98,12 +98,14 @@ const removeUser = (userId) => {
 
 const createTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
-    const userIds = selectedUsers.value.map(user => user.id);
-    console.log(JSON.stringify(userIds))
+    // const userIds = selectedUsers.value.map(user => user.id);
+    const userNames = selectedUsers.value.map(user => user.username);
+    // console.log(userIds)
     const ownerId = 1;
     // const ownerId = userStore.currentUser.id;
     console.log(ownerId)
     console.log(teamName.value)
+    console.log(userNames)
     // await teamStore.createTeam(teamName.value, ownerId, userIds);
     // Reset fields
     teamName.value = '';
