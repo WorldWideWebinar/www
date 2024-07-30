@@ -103,6 +103,7 @@
           <div class="meeting-header">
             <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
             <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
+            <!-- 여기가 넣는 곳-->
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
@@ -269,7 +270,7 @@
     </div>
   </div>
   <router-view v-else></router-view>
-  <!-- <MeetingCreate/> -->
+  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" :propedTeamId="propTeamId"/>
 </template>
 
 <script setup>
@@ -293,6 +294,10 @@ const todayMeetingMembers = ref([]);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const departmentCreationDate = ref('2022-01-01');
+const meetingCreateModal = ref(false);
+const propTeamId = ref('');
+
+
 const members = ref([
   { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
   { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
@@ -643,6 +648,7 @@ watch(
   () => route.params.id,
   (newId) => {
     const teamId = parseInt(newId, 10);
+    propTeamId.value = parseInt(route.params.id, 10);
     const team = teamStore.teams.find(team => team.id === teamId);
     if (team) {
       isOwner.value = team.ownerId === userStore.userId;
@@ -659,7 +665,7 @@ watch(activeTab, (newTab) => {
 });
 
 const CreateMeeting = ()=>{
-
+  meetingCreateModal.value=true;
 }
 </script>
 

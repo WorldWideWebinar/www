@@ -1,22 +1,16 @@
 <template>
   <div class="search-wrap">
     <div class="search">
-      <input
-        type="text"
-        class="searchTerm"
-        placeholder="Which user are you looking for?"
-        v-model="searchQuery"
-        @input="handleInput"
-        @keyup.enter="searchUsers"
-      />
+      <input type="text" class="searchTerm" placeholder="Which user are you looking for?" v-model="searchQuery"
+        @input="handleInput" @keyup.enter="searchUsers" />
       <button type="submit" class="searchButton" @click="searchUsers">
         <font-awesome-icon icon="search" />
       </button>
     </div>
     <ul v-if="showUsers && filteredUsers.length" class="results">
       <li v-for="user in filteredUsers" :key="user.id" class="showingResult" @click="selectUser(user)">
-        <div class="user-info" >
-            {{ user.username }} ({{ user.email }})
+        <div class="user-info">
+          {{ user.username }} ({{ user.email }})
         </div>
         <button @click="selectUser(user)" style="float: right;" class="btn btn-primary">select</button>
       </li>
@@ -53,7 +47,7 @@ const showProfileModal = ref(false);
 
 
 const filteredUsers = computed(() =>
-  userStore.userList.filter(user => 
+  userStore.userList.filter(user =>
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
@@ -94,15 +88,14 @@ const showProfile = user => {
   showProfileModal.value = true;
 };
 
-const addMember=(user)=>{
-    const teamId= 1;
-    console.log(user.id)
-    teamStore.addMembertoTeam(user.id,teamId);
-  }
+const addMember = (user) => {
+  const teamId = 1;
+  console.log(user.id)
+  teamStore.addMembertoTeam(user.id, teamId);
+}
 </script>
 
 <style scoped>
-
 .user-card {
   border: 1px solid #e1bee7;
   border-radius: 5px;
@@ -187,7 +180,7 @@ body {
 }
 
 .results li:hover {
-  background: #e1bee7;  
+  background: #e1bee7;
 }
 
 .results-wrap {
@@ -199,7 +192,7 @@ body {
   padding-top: 20px;
 }
 
-.showingResult{
+.showingResult {
   display: flex;
   justify-content: space-between;
   align-items: center;
