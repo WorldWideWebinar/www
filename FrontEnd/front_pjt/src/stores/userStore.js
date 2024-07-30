@@ -82,7 +82,7 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await axiosInstance.post(`api/users/logout`, { id: this.userId });
         console.log(response.data)
-        if (response.data.isSuccess) {
+        if (response.data.code == 200) {
           // 사용자 정보를 초기화
           this.userId = 0;
           this.userInfo = {};
