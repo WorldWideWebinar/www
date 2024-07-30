@@ -18,7 +18,7 @@
           <button @click="router.push({name:'SignView'})">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({name:'ProfileView'})">My Page</button>
+          <button @click="router.push({name:'ProfileView'})" style="margin-right: 50px;">My Page</button>
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
@@ -28,10 +28,8 @@
       </div>
     </div>
     
-
-    <div class="lower" >
-      <!-- 로그인 전 -->
-      <div class="sub-discription carousel my-meeting" v-if="!session">
+    <div class="middle" >
+      <div class="sub-discription carousel my-meeting">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team">
@@ -70,39 +68,42 @@
           </div>
         </div>
       </div>
+
       <!-- 로그인 후 -->
-      <div class="my-meeting" v-if="isLogin">
-        <h2>My Meeting</h2>
-        <div class="carousel">
-          <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-            <Slide v-for="(item, index) in carouselContent" :key="index">
-              <div class="carousel-section">
-                <h3>{{ item.category }}</h3>
-                <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
-                  <div class="meeting-detail-left">
-                    <p class="meeting-name">{{ meeting.name }}</p>
-                    <button>IN</button>
+      <div class="lower" v-if="isLogin">
+        <div class="my-meeting">
+          <h3 style="font-weight: bolder;">My Meeting</h3>
+          <div class="carousel">
+            <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
+              <Slide v-for="(item, index) in carouselContent" :key="index">
+                <div class="carousel-section">
+                  <h3>{{ item.category }}</h3>
+                  <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
+                    <div class="meeting-detail-left">
+                      <p class="meeting-name">{{ meeting.name }}</p>
+                      <button>IN</button>
+                    </div>
+                    <div class="meeting-detail-today" v-if="item.category!=='TODAY'">
+                      <p class="meeting-date">{{ meeting.date }}</p>
+                      <p class="meeting-time">{{ meeting.time }}</p>
+                    </div>
+                    <div class="meeting-detail-right" v-else>
+                      <p class="meeting-date">▶️</p>
+                      <p class="meeting-time"> 들어가기</p>
+                    </div>
+                    <div v-if="item.category==='NEXT'" class="meeting-detail-right">
+                      <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
+                    </div>
+                    <div v-else class="spacer"></div>
                   </div>
-                  <div class="meeting-detail-right" v-if="item.category!=='TODAY'">
-                    <p class="meeting-date">{{ meeting.date }}</p>
-                    <p class="meeting-time">{{ meeting.time }}</p>
-                  </div>
-                  <div class="meeting-detail-right" v-else>
-                    <p class="meeting-date">▶️</p>
-                    <p class="meeting-time"> 들어가기</p>
-                  </div>
-                  <div v-if="item.category==='NEXT'" class="meeting-detail-right">
-                    <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
-                  </div>
-                  <div v-else class="spacer"></div>
                 </div>
-              </div>
-            </Slide>
-            <template #addons>
-              <Navigation />
-              <!-- <Pagination /> -->
-            </template>
-          </Carousel>
+              </Slide>
+              <template #addons>
+                <Navigation />
+                <!-- <Pagination /> -->
+              </template>
+            </Carousel>
+          </div>
         </div>
       </div>
     </div>
@@ -214,7 +215,7 @@ const carouselContent = ref([
 
 .main-image {
   position: absolute;
-  bottom: 0;
+  bottom: 7%;
   right: 0;
   margin: 20px;
 }
@@ -283,7 +284,7 @@ button {
   background-color: #6a1b9a;
   font-size: 12px;
   font-weight: bold;
-  padding: 12px 45px;
+  padding: 12px 40px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
@@ -331,11 +332,11 @@ button:hover {
   }
 }
 
-/* lower */
-.lower {
-  height: 85vh;
-  padding: 0px 30px;
-  margin: 30px auto;
+/* middle */
+.middle {
+  min-height: 85vh;
+  padding: 0px;
+  margin: 0px;
   text-align: center;
 }
 
@@ -343,8 +344,8 @@ button:hover {
 .sub-discription {
   display: flex;
   justify-content: space-around;
-  margin: 0 auto;
-  padding: 100px 0;
+  margin: 0px auto;
+  padding: 100px 30px;
 }
 
 .discription {
@@ -408,13 +409,25 @@ button:hover {
 
 
 /* 로그인 후 */
+.lower {
+  width: 100%;
+  text-align: center;
+  margin: 0px auto;
+  background: url('@/assets/img/background2.webp') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
 .my-meeting {
   width: 100%;
   text-align: center;
+  margin: 0px auto;
+  padding: 100px 50px;
 }
 
+/* carousel */
 .carousel {
-  margin: 20px auto;
+  margin: 50px auto;
 }
 
 .carousel__slide {
@@ -458,9 +471,9 @@ button:hover {
 }
 
 .carousel-section {
-  padding: 10px;
+  padding: 20px;
   background-color: #fce9ff;
-  height: 300px;
+  height: 250px;
   width: 400px;
   border-radius: 30px;
 }
@@ -472,6 +485,7 @@ button:hover {
 }
 
 .meeting-detail-left,
+.meeting-detail-today,
 .meeting-detail-right {
   width: 33%;
 }
@@ -522,6 +536,14 @@ button:hover {
 
   .main-title {
     width: 100%;
+  }
+
+  .plus-detail {
+    display: none;
+  }
+
+  .carousel__slide {
+    display: none;
   }
 }
 </style>

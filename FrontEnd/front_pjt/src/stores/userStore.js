@@ -10,7 +10,7 @@ export const useUserStore = defineStore('user', {
     meetings: [],
     userList: [],
     userInfo: {},
-    accessToken: null,
+    accessToken: 1, /* 로그인 */
     refreshToken: null,
   }),
   getters: {
