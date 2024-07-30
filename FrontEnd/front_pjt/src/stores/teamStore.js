@@ -79,6 +79,21 @@ export const useTeamStore = defineStore('team', {
         return { isSuccess: false, message: error.message };
       }
     },
+    
+    addMembertoTeam(userId, teamId) {
+      const team = this.teams.find(team => team.id === teamId); // teamid 에 맞는 team을 불러오고 있으면 넣고 없으면 안 넣고
+      if (team) {
+        if (!team.userList.includes(userId)) { 
+          team.userList.push(userId);
+          console.log('성공');
+          console.log(`팀 ${teamId}의 userList:`, JSON.stringify(team.userList)); //
+        } else {
+          console.log(`User ${userId} is already a member of team ${teamId}`);
+        }
+      } else {
+        console.error(`Team ${teamId} not found`);
+      }
+    }
   },
   getters: {
     getTeamById: (state) => (id) => {
