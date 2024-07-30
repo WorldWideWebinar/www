@@ -25,6 +25,7 @@ build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - echo "Compiling the code..."
+    - pwd
     - cd backend/globalcc
     - ./gradlew bootJar
     - cp build/libs/globalcc-0.0.1-SNAPSHOT.jar /home/ubuntu/docker/www
