@@ -1,17 +1,21 @@
 import { defineStore } from 'pinia';
 import { useTeamStore } from './teamStore';
 import { useMeetingStore } from './meetingStore';
-import axios from 'axios';
+import axiosInstance from '@/axios';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 1,
+    userId: 0,
     teams: [],
     meetings: [],
     userList: [],
     userInfo: {},
-    BACKEND_URL: 'http://localhost:5000/',
+    accessToken: null,
+    refreshToken: null,
   }),
+  getters: {
+    isLogin: (state) => !!state.accessToken,
+  },
   actions: {
     async fetchUserTeamsAndMeetings(userId = 1) {
       this.userId = userId;
@@ -20,12 +24,11 @@ export const useUserStore = defineStore('user', {
       const meetingStore = useMeetingStore();
       
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users/${userId}`);
+        const response = await axiosInstance.get(`api/users/${userId}`);
         const userData = response.data.data;
         this.userInfo = userData;
 
         const meetingIds = [];
-        // teamList를 teamStore로 전달하여 개별 팀 정보 조회
         for (const teamId of userData.teamList) {
           const team = await teamStore.fetchTeamById(teamId);
           if (team) {
@@ -33,11 +36,9 @@ export const useUserStore = defineStore('user', {
           }
         }
 
-        // teamStore의 teams를 userStore의 teams로 설정
         this.teams = teamStore.teams;
         console.log('Teams:', this.teams);
 
-        // meetingStore에서 meetings를 조회하여 userStore의 meetings로 설정
         await meetingStore.fetchMeetingsByIds(meetingIds);
         this.meetings = meetingStore.meetings;
         console.log('Meetings:', this.meetings);
@@ -48,7 +49,7 @@ export const useUserStore = defineStore('user', {
     
     async fetchAllUsers() {
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users`);
+        const response = await axiosInstance.get(`api/users`);
         this.userList = response.data;
         console.log('AllUsers', this.userList);
       } catch (error) {
@@ -56,25 +57,17 @@ export const useUserStore = defineStore('user', {
       }
     },
     
-    async signUp({ id, idCheck, name, email, password, language }) {
+    async signUp({ id, name, email, password, language }) {
       try {
-        // 아이디 중복 체크
-        const duplicationResponse = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
-        if (duplicationResponse.data.result.isAvailable) {
-          // 회원가입 요청
-          const signupResponse = await axios.post(`${this.BACKEND_URL}api/users`, {
-            id,
-            idCheck,
-            name,
-            email,
-            password,
-            language
-          });
-          return signupResponse.data;
-        } else {
-          console.log('ID is not available');
-          return { isSuccess: false, message: 'ID is not available' };
-        }
+        const signupResponse = await axiosInstance.post(`api/users`, {
+          id,
+          name,
+          idCheck:true,
+          email,
+          password,
+          language
+        });
+        return signupResponse.data.result;
       } catch (error) {
         console.error('Failed to sign up:', error);
         return { isSuccess: false, message: error.message };
@@ -83,12 +76,17 @@ export const useUserStore = defineStore('user', {
 
     async signIn({ id, password }) {
       try {
-        const response = await axios.post(`${this.BACKEND_URL}api/users/login`, { id, password });
-        if (response.data.success) {
-          this.userInfo = response.data.userInfo;
+        const response = await axiosInstance.post('api/users/login', { id, password });
+        if (response.data.result.userId) {
+          this.userId = response.data.result.userId;
+          this.accessToken = response.data.result.jwt.accessToken;
+          this.refreshToken = response.data.result.jwt.refreshToken;
+          this.userInfo = { userId: response.data.result.userId };
+          console.log(response.data)
           console.log('User signed in:', this.userInfo);
-          return { isSuccess: true, data: response.data.userInfo };
+          return { isSuccess: true, data: this.userInfo };
         } else {
+          console.log(response.data)
           console.log('Login failed:', response.data.message);
           return { isSuccess: false, message: response.data.message };
         }
@@ -98,15 +96,37 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // 아이디 중복 체크 메서드 추가
+    async signOut() {
+      try {
+        const response = await axiosInstance.post(`api/users/logout`, { id: this.userId });
+        console.log(response.data)
+        if (response.data.isSuccess) {
+          // 사용자 정보를 초기화
+          this.userId = 0;
+          this.userInfo = {};
+          this.accessToken = null;
+          this.refreshToken = null;
+          console.log('User signed out successfully');
+          return { isSuccess: true, message: response.data.message };
+        } else {
+          console.log('Logout failed:', response.data.message);
+          return { isSuccess: false, message: response.data.message };
+        }
+      } catch (error) {
+        console.error('Failed to sign out:', error);
+        return { isSuccess: false, message: error.message };
+      }
+    },
+
     async checkIdDuplication(id) {
       try {
-        const response = await axios.get(`${this.BACKEND_URL}api/users/duplication/${id}`);
-        return response.data.result.isAvailable;
+        const response = await axiosInstance.get(`api/users/duplication/${id}`);
+        return response.data.result.available;
       } catch (error) {
         console.error('Failed to check ID duplication:', error);
         throw new Error('Failed to check ID duplication');
       }
-    }
+    },
   }
 });
+

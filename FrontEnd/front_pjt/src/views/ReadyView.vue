@@ -1099,15 +1099,9 @@ export default {
     },
     activeTab(newTab) {
       if (newTab === 'TODAY') {
-<<<<<<< HEAD
-        this.selectLatestTodayMeeting()
-      }
-    }
-=======
         this.selectLatestTodayMeeting();
       }
     },
->>>>>>> develop_front
   }
 };
 </script>

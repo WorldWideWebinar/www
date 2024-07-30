@@ -2,7 +2,7 @@
   <div class="form-container sign-in-container">
     <form @submit.prevent="handleSubmit">
       <h1 class="form-title">Sign in</h1>
-      <input v-model="email" type="email" placeholder="Email" required />
+      <input v-model="userId" type="ID" placeholder="ID" required />
       <input v-model="password" type="password" placeholder="Password" required />
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <a href="#">Forgot your password?</a>
@@ -13,9 +13,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useUserStore } from '@/stores/userStore'; // Adjust the path to your store
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
-const email = ref('');
+const router = useRouter();
+const userId = ref('');
 const password = ref('');
 const errorMessage = ref('');
 
@@ -23,10 +25,13 @@ const userStore = useUserStore();
 
 const handleSubmit = async () => {
   errorMessage.value = '';
-  const { isSuccess, message } = await userStore.signIn({ id: email.value, password: password.value });
+  const { isSuccess, message } = await userStore.signIn({ id: userId.value, password: password.value });
   if (!isSuccess) {
-    errorMessage.value = 'Email or password is incorrect';
+    errorMessage.value = 'ID or password is incorrect';
+  } else {
+    router.push({ name: 'HomeView' });
   }
+
 };
 </script>
 
