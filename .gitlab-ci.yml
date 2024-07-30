@@ -25,8 +25,7 @@ build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - echo "Compiling the code..."
-    - git clone https://lab.ssafy.com/s11-webmobile1-sub2/S11P12A501.git
-    - cd S11P12A501/backend/globalcc
+    - cd backend/globalcc
     - ./gradlew bootJar
     - cp build/libs/globalcc-0.0.1-SNAPSHOT.jar /home/ubuntu/docker/www
     - echo "Compile complete."
