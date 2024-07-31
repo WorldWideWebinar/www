@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 
 RUN chmod +x ./gradlew
-RUN ./gradlew bootJar --no-daemon
+RUN ./gradlew bootJar
 
 # Step 2: Create the final image with JRE and the built application
 FROM eclipse-temurin:17.0.12_7-jdk-ubi9-minimal
