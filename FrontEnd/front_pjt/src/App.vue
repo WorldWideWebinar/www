@@ -3,21 +3,21 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
-          <img src="../src/assets/img/chat.png" alt="logo">
+          <img src="../src/assets/img/nav_logo.png" alt="logo">
         </button>
       </div>
       <div class="seperator"></div>
       <ul class="nav flex-column">
         <li 
-        class="nav-item" 
-        v-for="team in teams" 
-        :key="team.id"
+          class="nav-item" 
+          v-for="team in teams" 
+          :key="team.id"
         >
           <RouterLink 
             class="nav-link" 
             :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
-            >
+          >
             <span class="icon">{{ team.icon }}</span>
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
@@ -25,10 +25,7 @@
       </ul>
       <div class="add-team">
         <button class="btn btn-add">
-          <RouterLink
-            class="no-decoration"
-            :to="{ name: 'TeamSearchView'}"
-          >
+          <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView'}">
             <span>+</span>
           </RouterLink>
         </button>
@@ -50,11 +47,11 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
-    <ChatButton @toggleChat="toggleChat" />
+    <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
     <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
-
   </div>
 </template>
+
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
@@ -65,20 +62,32 @@ import router from './router';
 import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 
+
 const userStore = useUserStore();
-// const teamStore = useTeamStore();
+const teamStore = useTeamStore();
+const isLogin = computed(() => userStore.isLogin);
+const hasFetchedUserInfo = ref(false); // 유저 정보가 이미 fetch되었는지 확인
 
 const goingHome = () => {
   router.push({ name: 'HomeView' });
 };
 
 onMounted(async () => {
-  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-  console.log('Teams:', userStore.teams); // 디버깅용
-  await userStore.fetchAllUsers() 
+  if (isLogin.value && !hasFetchedUserInfo.value) {
+    await userStore.fetchUserInfo(userStore.userId);
+    const userInfo = userStore.userInfo;
+    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+      await Promise.all(
+        userInfo.teamList.map(teamId => teamStore.fetchTeamById(teamId))
+      );
+      console.log('Teams:', teamStore.teams);
+    }
+    hasFetchedUserInfo.value = true; // 유저 정보 fetch 완료
+  }
+  console.log('isLogin:', isLogin.value);
 });
 
-const teams = computed(() => userStore.teams);
+const teams = computed(() => teamStore.teams);
 
 // 챗봇
 const isChatOpen = ref(false);

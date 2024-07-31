@@ -1,20 +1,41 @@
 <template>
   <div class="form-container sign-in-container">
-    <form action="#">
+    <form @submit.prevent="handleSubmit">
       <h1 class="form-title">Sign in</h1>
-      <input type="email" placeholder="Email" required />
-      <input type="password" placeholder="Password" required />
+      <input v-model="userId" type="ID" placeholder="ID" required />
+      <input v-model="password" type="password" placeholder="Password" required />
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <a href="#">Forgot your password?</a>
-      <button class="submit-btn">Sign In</button>
+      <button type="submit" class="submit-btn">Sign In</button>
     </form>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+
+const router = useRouter();
+const userId = ref('');
+const password = ref('');
+const errorMessage = ref('');
+
+const userStore = useUserStore();
+
+const handleSubmit = async () => {
+  errorMessage.value = '';
+  const { success, message } = await userStore.signIn({ id: userId.value, password: password.value });
+  if (!success) {
+    errorMessage.value = message;
+  } else {
+    router.push({ name: 'HomeView' });
+  }
+
+};
 </script>
 
 <style scoped>
-
 * {
   box-sizing: border-box;
 }
@@ -43,6 +64,8 @@ a {
 }
 
 button {
+  margin: 0 auto;
+  width: 50%;
   border-radius: 20px;
   border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
@@ -117,5 +140,10 @@ input {
 
 .submit-btn {
   margin-top: 5%;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
 }
 </style>

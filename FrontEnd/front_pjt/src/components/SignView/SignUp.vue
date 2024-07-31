@@ -26,8 +26,10 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 
+const router = useRouter();
 const userStore = useUserStore();
 
 const name = ref('');
@@ -56,12 +58,15 @@ watch(passwordConfirmation, (newVal) => {
 
 async function checkId() {
   try {
+    console.log(`Checking ID: ${id.value}`);
     const isAvailable = await userStore.checkIdDuplication(id.value);
     idCheckMessage.value = isAvailable ? 'ID is available' : 'ID is not available';
     idCheck.value = isAvailable;
+    console.log(`ID Check Result: ${idCheckMessage.value}`);
   } catch (error) {
     idCheckMessage.value = `Error: ${error.message}`;
     idCheck.value = false;
+    console.error(`ID Check Error: ${error.message}`);
   }
 }
 
@@ -79,20 +84,21 @@ async function handleSignUp() {
   const signUpData = {
     name: name.value,
     id: id.value,
-    idCheck: idCheck.value,
     email: email.value,
     password: password.value,
     language: selectedLanguage.value
   };
 
   const result = await userStore.signUp(signUpData);
-  if (result.isSuccess) {
+  if (result.success == true) {
     alert('Sign up successful');
+    router.push({ name: 'HomeView' });
   } else {
     errorMessage.value = `Sign up failed: ${result.message}`;
   }
 }
 </script>
+
 
 <style scoped>
 * {
@@ -123,6 +129,8 @@ a {
 }
 
 button {
+  margin: 0 auto;
+  width: 50%;
   border-radius: 20px;
   border: 1px solid #6a1b9a;
   background-color: #6a1b9a;

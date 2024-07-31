@@ -1,264 +1,154 @@
 import { defineStore } from 'pinia';
+import axiosInstance from '@/axios';
 import { useTeamStore } from './teamStore';
-import { useMeetingStore } from './meetingStore';
-import axios from 'axios';
-
-// axios 인스턴스 생성
-const api = axios.create({
-  baseURL: 'http://localhost:5000/',
-});
-
-// 요청 인터셉터 추가
-api.interceptors.request.use(
-  config => {
-    const store = useUserStore();
-    if (store.accessToken) {
-      config.headers.Authorization = `Bearer ${store.accessToken}`;
-    }
-    return config;
-  },
-  error => Promise.reject(error)
-);
-
-// 응답 인터셉터 추가
-api.interceptors.response.use(
-  response => response,
-  async error => {
-    const store = useUserStore();
-    const originalRequest = error.config;
-
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const response = await store.refreshToken();
-      if (response.isSuccess) {
-        api.defaults.headers.common['Authorization'] = `Bearer ${store.accessToken}`;
-        return api(originalRequest);
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+import router from '@/router';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 1,
-    teams: [],
-    meetings: [],
-    userList: [],
+    userId: 0,
     userInfo: {},
-    profileImageUrl: '',
-    totalMeetingTime: 0,
-    teamList: [],
-    accessToken: '',
-    refreshToken: '',
-    BACKEND_URL: 'http://localhost:5000/',
+    accessToken: 1, /* 로그인 */
+    refreshToken: null,
+    userList: [],
   }),
+  getters: {
+    isLogin: (state) => !!state.accessToken,
+  },
+  
   actions: {
-    async fetchUserTeamsAndMeetings(userId = 1) {
-      this.userId = userId;
-
-      const teamStore = useTeamStore();
-      const meetingStore = useMeetingStore();
-      const userData = {
-        id: 1,
-        idCheck: true,
-        name: "주연수",
-        email: "jooys130@naver.com",
-        password: "1234",
-        profileImageUrl: "http://asdasdad.com/rads.png",
-        totalMeetingTime: 135,
-        teamList: [1, 2, 3, 4]
-      };
-      this.userInfo = userData;
-
-      const meetingIds = [];
-      for (const teamId of userData.teamList) {
-        const team = await teamStore.fetchTeamById(teamId);
-        if (team) {
-          meetingIds.push(...team.meetingList);
-        }
-      }
-
-      this.teams = teamStore.teams;
-      await meetingStore.fetchMeetingsByIds(meetingIds);
-      this.meetings = meetingStore.meetings;
-    },
-    
-    async fetchAllUsers() {
-      this.userList = [
-        { id: 1, username: 'alice', email: 'alice@example.com' },
-        { id: 2, username: 'bob', email: 'bob@google.com' },
-        { id: 3, username: 'charlie', email: 'charlie@naver.com' },
-        { id: 4, username: 'david', email: 'david@daum.net' },
-        { id: 5, username: 'eve', email: 'eve@example.com' },
-        { id: 6, username: 'frank', email: 'frank@google.com' },
-        { id: 7, username: 'grace', email: 'grace@naver.com' },
-        { id: 8, username: 'heidi', email: 'heidi@daum.net' },
-        { id: 9, username: 'ivan', email: 'ivan@example.com' },
-        { id: 10, username: 'judy', email: 'judy@google.com' }
-      ];
-      console.log('AllUsers', this.userList);
-    },
-    
-    async checkIdDuplication(id) {
+    async fetchUserInfo(userId) {
       try {
-        const response = await api.get(`api/users/duplication/${id}`);
-        return response.data.result.isAvailable;
+        const response = await axiosInstance.get(`api/users/${userId}`);
+        const userData = response.data;
+        this.userInfo = userData;
+        console.log(response.data)
+        return userData;
       } catch (error) {
-        console.error('Failed to check ID duplication:', error);
-        throw new Error(error.message);
+        this.showError('Failed to fetch user info');
       }
     },
 
-    async signUp({ id, idCheck, name, email, password, language }) {
+    async fetchAllUsers(){
       try {
-        if (!idCheck) {
-          return { isSuccess: false, message: 'ID has not been checked for duplication' };
-        }
-        
-        const signupResponse = await api.post(`api/users`, {
-          id,
-          idCheck,
-          name,
-          email,
-          password,
-          language
-        });
-        return signupResponse.data;
+        const response = await axiosInstance.get(`api/users`);
+        const users = response.data.result
+        console.log(response.data)
+        this.userList = users.map(user => ({
+          id: user.userId,
+          username: user.id,
+        }));
+        console.log(this.userList);
+        return this.userList;
       } catch (error) {
-        console.error('Failed to sign up:', error);
-        return { isSuccess: false, message: error.message };
+        console.log(error);
       }
     },
 
     async signIn({ id, password }) {
       try {
-        const response = await api.post(`api/users/login`, { id, password });
-        if (response.data.success) {
-          const result = response.data.result;
-          this.accessToken = result.jwt.accessToken;
-          this.refreshToken = result.jwt.refreshToken;
-          this.userId = result.userId;
-          console.log('User signed in:', this.userInfo);
+        const response = await axiosInstance.post('api/users/login', { id, password });
+        console.log(response.data);
+        if (response.data.result.userId) {
+          const { userId, jwt } = response.data.result;
+          this.userId = userId;
+          this.accessToken = jwt.accessToken;
+          this.refreshToken = jwt.refreshToken;
 
-          // Fetch user data after successful sign-in
-          const userResponse = await api.get(`api/users/${this.userId}`);
-          const userData = userResponse.data.data;
+          // 사용자 정보 가져오기
+          const userInfo = await this.fetchUserInfo(userId);
+          if (userInfo) {
+            console.log('User signed in:', this.userInfo);
 
-          // Update state with user data
-          this.userInfo = {
-            id: userData.id,
-            name: userData.name,
-            email: userData.email,
-            profileImageUrl: userData.profileImageUrl,
-            totalMeetingTime: userData.totalMeetingTime,
-            teamList: userData.teamList
-          };
-          this.profileImageUrl = userData.profileImageUrl;
-          this.totalMeetingTime = userData.totalMeetingTime;
-          this.teamList = userData.teamList;
+            // 팀 정보 가져오기
+            const teamStore = useTeamStore();
+            if (Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+              await Promise.all(
+                userInfo.teamList.map(teamId => teamStore.fetchTeamById(teamId))
+              );
+            }
 
-          return { isSuccess: true, data: userData };
+            // 로그인 성공 후 HomeView로 리디렉션
+            router.push({ name: 'HomeView' });
+
+            return { success: true, message: response.data.message };
+          } else {
+            return { success: false, message: 'Failed to fetch user info' };
+          }
         } else {
-          console.log('Login failed:', response.data.message);
-          return { isSuccess: false, message: response.data.message };
+          this.showError(response.data.message);
+          return { success: false, message: response.data.message };
         }
       } catch (error) {
-        console.error('Failed to sign in:', error);
-        return { isSuccess: false, message: error.message };
+        this.showError('Failed to sign in');
+        return { success: false, message: error.message };
       }
     },
 
-    async refreshToken() {
+    async signUp({ id, name, email, password, language }) {
       try {
-        const response = await api.post(`api/users/refresh`, { refreshToken: this.refreshToken });
-        if (response.data.isSuccess) {
-          this.accessToken = response.data.result.jwt.accessToken;
-          this.refreshToken = response.data.result.jwt.refreshToken;
-          return { isSuccess: true };
+        const signupResponse = await axiosInstance.post('api/users', {
+          id,
+          name,
+          idCheck: true,
+          email,
+          password,
+          language
+        });
+        console.log(signupResponse)
+        if (signupResponse.data.success) {
+          return { success: true, result: signupResponse.data.result };
         } else {
-          console.log('Refresh token failed:', response.data.message);
-          return { isSuccess: false, message: response.data.message };
+          return { success: false, message: signupResponse.data.message };
         }
       } catch (error) {
-        console.error('Failed to refresh token:', error);
-        return { isSuccess: false, message: error.message };
+        console.log('here')
+        return { success: false, message: error.message };
       }
     },
 
     async signOut() {
       try {
-        const response = await api.post(`api/users/logout`);
+        const headers = {
+          Authorization: `Bearer ${this.accessToken}`
+        };
+        console.log('Request Headers:', headers);
+        console.log('userId' ,this.userId);
+        const response = await axiosInstance.post('api/users/logout', { userId: this.userId });
+  
         if (response.data.success) {
+          // 사용자 정보를 초기화
+          this.userId = 0;
           this.userInfo = {};
-          this.profileImageUrl = '';
-          this.totalMeetingTime = 0;
-          this.teamList = [];
-          this.accessToken = '';
-          this.refreshToken = '';
-          console.log('User signed out');
-          return { isSuccess: true };
+          this.accessToken = null;
+          this.refreshToken = null;
+          console.log('User signed out successfully');
+          return { success: true, message: response.data.message };
         } else {
-          console.log('Logout failed:', response.data.message);
-          return { isSuccess: false, message: response.data.message };
+          return { success: false, message: response.data.message };
         }
       } catch (error) {
-        console.error('Failed to sign out:', error);
-        return { isSuccess: false, message: error.message };
+
+        return { success: false, message: error.message };
       }
     },
 
-    async updateUserProfile({ userId, email, password, language, profileImageUrl }) {
+    async checkIdDuplication(id) {
       try {
-        const response = await api.put(`api/users/${userId}`, {
-          email,
-          password,
-          language,
-          profileImageUrl
-        });
-        if (response.data.success) {
-          this.userInfo = { ...this.userInfo, email, password, language, profileImageUrl };
-          console.log('User profile updated:', this.userInfo);
-          return { isSuccess: true, data: this.userInfo };
-        } else {
-          console.log('Update failed:', response.data.message);
-          return { isSuccess: false, message: response.data.message };
-        }
+        const response = await axiosInstance.get(`api/users/duplication/${id}`);
+        return response.data.result.available;
       } catch (error) {
-        console.error('Failed to update profile:', error);
-        return { isSuccess: false, message: error.message };
+        throw new Error('ID already exists.');
       }
     },
-
-    async deleteUser(userId) {
-      try {
-        const response = await api.delete(`api/users/${userId}`);
-        if (response.data.success) {
-          this.userInfo = {};
-          this.profileImageUrl = '';
-          this.totalMeetingTime = 0;
-          this.teamList = [];
-          this.accessToken = '';
-          this.refreshToken = '';
-          console.log('User deleted');
-          return { isSuccess: true };
-        } else {
-          console.log('Delete failed:', response.data.message);
-          return { isSuccess: false, message: response.data.message };
-        }
-      } catch (error) {
-        console.error('Failed to delete user:', error);
-        return { isSuccess: false, message: error.message };
-      }
-    }
   },
   persist: {
     enabled: true,
     strategies: [
       {
-        key: 'user',
+        key: 'userStore',
         storage: localStorage,
-      },
-    ],
-  },
+        paths: ['userId', 'userInfo', 'accessToken', 'refreshToken']
+      }
+    ]
+  }
 });
