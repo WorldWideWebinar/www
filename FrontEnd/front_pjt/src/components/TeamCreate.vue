@@ -119,7 +119,7 @@ const selectUser = (user) => {
 const removeUser = (userId) => {
   console.log('removeUser userID', userId)
   console.log('removeUser selectedusers value', selectedUsers.value)
-  selectedUsers.value = selectedUsers.value.filter((user) => user.userId !== userId)
+  selectedUsers.value = selectedUsers.value.filter((user) => user.id !== userId)
 }
 
 const createTeam = async () => {

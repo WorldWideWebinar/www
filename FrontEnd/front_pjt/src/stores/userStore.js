@@ -13,7 +13,11 @@ export const useUserStore = defineStore('user', {
     userList: []
   }),
   getters: {
+<<<<<<< HEAD
     isLogin: (state) => state.userId != 0
+=======
+    isLogin: (state) => !!state.accessToken
+>>>>>>> ParkJunYoung
   },
 
   actions: {
@@ -35,8 +39,9 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await axiosInstance.get(`api/users`)
         const users = response.data.result
+        console.log(users)
         this.userList = users.map((user) => ({
-          userId: user.userId,
+          userId: user.userID,
           id: user.id
         }))
         console.log(this.userList)
@@ -50,7 +55,6 @@ export const useUserStore = defineStore('user', {
       const errorStore = useErrorStore()
       try {
         const response = await axiosInstance.post('api/users/login', { id, password })
-        console.log(response.data)
         if (response.data.result.userId) {
           const { userId, jwt } = response.data.result
           this.userId = userId
@@ -96,9 +100,9 @@ export const useUserStore = defineStore('user', {
           password,
           language
         })
-        console.log(signupResponse)
         if (signupResponse.data.success) {
-          return { success: true, result: signupResponse.data.result }
+          const signInResponse = await this.signIn({ id, password })
+          return signInResponse
         } else {
           errorStore.showError(signupResponse.data.message)
           return { success: false, message: signupResponse.data.message }
@@ -115,6 +119,8 @@ export const useUserStore = defineStore('user', {
         const headers = {
           Authorization: `Bearer ${this.accessToken}`
         }
+        console.log('Request Headers:', headers)
+        console.log('userId', this.userId)
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
 
         if (response.data.success) {
@@ -123,6 +129,7 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
+          console.log('User signed out successfully')
           return { success: true, message: response.data.message }
         } else {
           errorStore.showError(response.data.message)
