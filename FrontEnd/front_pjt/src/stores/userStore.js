@@ -39,9 +39,7 @@ export const useUserStore = defineStore('user', {
           userId: user.userId,
           id: user.id
         }))
-        console.log('1')
         console.log(this.userList)
-        console.log('1')
         return this.userList
       } catch (error) {
         errorStore.showError('Failed to fetch all users')
@@ -107,7 +105,6 @@ export const useUserStore = defineStore('user', {
         }
       } catch (error) {
         errorStore.showError('Failed to sign up')
-        console.log('here')
         return { success: false, message: error.message }
       }
     },
@@ -118,8 +115,6 @@ export const useUserStore = defineStore('user', {
         const headers = {
           Authorization: `Bearer ${this.accessToken}`
         }
-        console.log('Request Headers:', headers)
-        console.log('userId', this.userId)
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
 
         if (response.data.success) {
@@ -128,7 +123,6 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
-          console.log('User signed out successfully')
           return { success: true, message: response.data.message }
         } else {
           errorStore.showError(response.data.message)
