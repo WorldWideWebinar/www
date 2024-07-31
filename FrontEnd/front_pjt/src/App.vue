@@ -3,7 +3,7 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
-          <img src="../src/assets/img/chat.png" alt="logo">
+          <img src="../src/assets/img/nav_logo.png" alt="logo">
         </button>
       </div>
       <div class="seperator"></div>
@@ -25,7 +25,7 @@
       </ul>
       <div class="add-team">
         <button class="btn btn-add">
-          <RouterLink class="no-decoration" :to="{ name: 'TeamSearchView'}">
+          <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView'}">
             <span>+</span>
           </RouterLink>
         </button>

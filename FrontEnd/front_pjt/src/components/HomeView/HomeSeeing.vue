@@ -17,14 +17,14 @@
           <button @click="navigateToSignView('signup')">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({name:'ProfileView'})">My Page</button>
+          <button @click="router.push({name:'ProfileView'})" style="margin-right: 50px;">My Page</button>
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
-    </div>
-    <div class="scroll">
-      <div class="txt">Scroll Down</div>
-      <div class="circle"></div>
+      <div class="scroll">
+        <div class="txt">Scroll Down</div>
+        <div class="circle"></div>
+      </div>
     </div>
     
 
@@ -35,13 +35,15 @@
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team">
           <div class="plus-detail">
-            <p>You can ~</p>
+            <p>Our platform offers seamless team management capabilities, allowing you to effortlessly organize, schedule, and manage virtual meetings.</p>
+            <p>Collaborate with your team members in real-time, assign roles, and keep track of meeting progress and outcomes.</p>
           </div>
         </div>
         <div class="discription">
           <p class="plus">Multi-Lingual Translation</p>
           <img class="plus-image" src="../../assets/img/translation.png" alt="translation">
           <div class="plus-detail">
+            <p>Break language barriers with our instant, multi-lingual, real-time translation.</p>
             <table class="language-table">
               <tr>
                 <td>English</td>
@@ -62,43 +64,47 @@
           <p class="plus">Real-Time Conference</p>
           <img class="plus-image" src="../../assets/img/conference.png" alt="conference">
           <div class="plus-detail">
-            <p>You can ~</p>
+            <p>Experience seamless real-time video conferencing with our platform, which ensures high-quality video and audio for uninterrupted communication.</p>
+            <p>Engage with participants through interactive features such as screen sharing, chat, and virtual whiteboards.</p>
           </div>
         </div>
       </div>
+
       <!-- 로그인 후 -->
-      <div class="my-meeting" v-if="isLogin">
-        <h2>My Meeting</h2>
-        <div class="carousel">
-          <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-            <Slide v-for="(item, index) in carouselContent" :key="index">
-              <div class="carousel-section">
-                <h3>{{ item.category }}</h3>
-                <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
-                  <div class="meeting-detail-left">
-                    <p class="meeting-name">{{ meeting.name }}</p>
-                    <button>IN</button>
+      <div class="lower" v-if="isLogin">
+        <div class="my-meeting">
+          <h3 style="font-weight: bolder;">My Meeting</h3>
+          <div class="carousel">
+            <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
+              <Slide v-for="(item, index) in carouselContent" :key="index">
+                <div class="carousel-section">
+                  <h3>{{ item.category }}</h3>
+                  <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
+                    <div class="meeting-detail-left">
+                      <p class="meeting-name">{{ meeting.name }}</p>
+                      <button>IN</button>
+                    </div>
+                    <div class="meeting-detail-today" v-if="item.category!=='TODAY'">
+                      <p class="meeting-date">{{ meeting.date }}</p>
+                      <p class="meeting-time">{{ meeting.time }}</p>
+                    </div>
+                    <div class="meeting-detail-right" v-else>
+                      <p class="meeting-date">▶️</p>
+                      <p class="meeting-time"> 들어가기</p>
+                    </div>
+                    <div v-if="item.category==='NEXT'" class="meeting-detail-right">
+                      <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
+                    </div>
+                    <div v-else class="spacer"></div>
                   </div>
-                  <div class="meeting-detail-right" v-if="item.category!=='TODAY'">
-                    <p class="meeting-date">{{ meeting.date }}</p>
-                    <p class="meeting-time">{{ meeting.time }}</p>
-                  </div>
-                  <div class="meeting-detail-right" v-else>
-                    <p class="meeting-date">▶️</p>
-                    <p class="meeting-time"> 들어가기</p>
-                  </div>
-                  <div v-if="item.category==='NEXT'" class="meeting-detail-right">
-                    <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
-                  </div>
-                  <div v-else class="spacer"></div>
                 </div>
-              </div>
-            </Slide>
-            <template #addons>
-              <Navigation />
-              <!-- <Pagination /> -->
-            </template>
-          </Carousel>
+              </Slide>
+              <template #addons>
+                <Navigation />
+                <!-- <Pagination /> -->
+              </template>
+            </Carousel>
+          </div>
         </div>
       </div>
     </div>
@@ -184,17 +190,13 @@ const navigateToSignView = (mode) => {
 }
 
 .before-scroll {
-  height: 88vh;
+  height: 100vh;
   position: relative;
   overflow: hidden;
-  top: 0;
-  left: 0;
   background: url('@/assets/img/background.webp') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
-  margin-bottom: 15px;
 }
-
 
 .upper {
   display: flex;
@@ -202,33 +204,29 @@ const navigateToSignView = (mode) => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin: 0px auto;
-  margin-top: -20px;
-  padding-bottom: 100px;
-  background-color: rgba(211, 211, 211, 0.2);
+  margin: 50px auto;
+  padding: 0px 0px; /* WWW 글자 오른쪽으로 밀기*/
 }
 
 .main-title {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: bolder;
   opacity: 0;
   transform: translateX(-50px);
   animation: slideInFromLeft 1s forwards;
   animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
-  margin: 0 100px; /* 간격 조정 */
-  /* background-image: url('../assets/img/computer.png'); 
-  background-size: 90%;
-  background-repeat: no-repeat;
-  background-position: center;  */
+  margin: 0px 100px; /* 간격 조정 */
 }
 
 .main-image {
-  text-align: center;
+  position: absolute;
+  bottom: 7%;
+  right: 0;
+  margin: 20px;
 }
 
 .main-image img {
-  width: 250px;
-  margin: 320px 0 0 0px;
+  width: 220px;
   opacity: 0;
   transform: translateX(50px);
   animation: slideInFromRight 1s forwards;
@@ -249,7 +247,7 @@ const navigateToSignView = (mode) => {
 }
 
 .title .w {
-  font-size: 5rem;
+  font-size: 5.5rem;
   display: inline-block;
   transition: transform 0.2s ease-in-out;
 }
@@ -275,12 +273,11 @@ const navigateToSignView = (mode) => {
 
 /* 로그인/회원가입 */
 .main-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: -150px auto 0px auto;
-  padding-top: -50px;
-  background-color: rgba(211, 211, 211, 0);
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
 }
 
 button {
@@ -292,7 +289,7 @@ button {
   background-color: #6a1b9a;
   font-size: 12px;
   font-weight: bold;
-  padding: 12px 45px;
+  padding: 12px 40px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
@@ -302,24 +299,27 @@ button:hover {
   background-color: #b380bc;
 }
 
+
 /* scroll */
 .scroll {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  transform: translateX(-50%);
   text-align: center;
-  padding-bottom: 15px;
+  bottom: 10px;
 }
 
 .scroll .txt {
   font-size: 0.65rem;
   font-weight: bold;
-  /* padding-top: 20px; */
-  margin-bottom: 20px;
+  margin-bottom: 35px;
 }
 
 .scroll .circle {
     position: absolute;
     left: 50%;
-    top: 100%;
+    top: 90%;
     transform: translateX(-50%);
     width: 8px;
     height: 8px;
@@ -337,11 +337,11 @@ button:hover {
   }
 }
 
-/* lower */
-.lower {
-  height: 600px;
-  padding: 0px 30px;
-  margin: 0 auto;
+/* middle */
+.middle {
+  min-height: 85vh;
+  padding: 0px;
+  margin: 0px;
   text-align: center;
 }
 
@@ -349,15 +349,15 @@ button:hover {
 .sub-discription {
   display: flex;
   justify-content: space-around;
-  margin: 0 auto;
-  padding: 50px 0;
+  margin: 0px auto;
+  padding: 100px 30px;
 }
 
 .discription {
   width: 30%;
   min-height: 400px;
   background-color: rgba(250, 235, 240, 0.5);
-  padding: 40px 10px 10px 10px;
+  padding: 40px 30px 10px 30px;
 }
 
 .discription:hover {
@@ -370,6 +370,14 @@ button:hover {
   font-weight: bold;
   padding: 0px 15px;
   min-height: 50px;
+  cursor: pointer;
+}
+
+.discription .plus:hover {
+  text-decoration-line: underline;
+  text-decoration-style: line;
+  text-decoration-color: rgba(154, 130, 253, 0.2);
+  text-decoration-thickness: 3px;
 }
 
 .discription .plus-image {
@@ -381,12 +389,16 @@ button:hover {
 .plus-detail {
   margin: 40px auto 20px auto;
   width: 90%;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .language-table {
   border: 1px solid lightgray;
   width: 100%;
   margin: 0px auto;
+  text-align: center;
 }
 
 .language-table td {
@@ -402,13 +414,25 @@ button:hover {
 
 
 /* 로그인 후 */
+.lower {
+  width: 100%;
+  text-align: center;
+  margin: 0px auto;
+  background: url('@/assets/img/background2.webp') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
 .my-meeting {
   width: 100%;
   text-align: center;
+  margin: 0px auto;
+  padding: 100px 50px;
 }
 
+/* carousel */
 .carousel {
-  margin: 20px auto;
+  margin: 50px auto;
 }
 
 .carousel__slide {
@@ -452,9 +476,9 @@ button:hover {
 }
 
 .carousel-section {
-  padding: 10px;
+  padding: 20px;
   background-color: #fce9ff;
-  height: 300px;
+  height: 250px;
   width: 400px;
   border-radius: 30px;
 }
@@ -466,6 +490,7 @@ button:hover {
 }
 
 .meeting-detail-left,
+.meeting-detail-today,
 .meeting-detail-right {
   width: 33%;
 }
@@ -507,11 +532,23 @@ button:hover {
 @media (max-width: 992px) {
   .main-image,
   .main-character {
-    width: 30%;
+    bottom: 45%;
+  }
+
+  .main-image img {
+    width: 180px;
   }
 
   .main-title {
     width: 100%;
+  }
+
+  .plus-detail {
+    display: none;
+  }
+
+  .carousel__slide {
+    display: none;
   }
 }
 </style>
