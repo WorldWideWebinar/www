@@ -1,5 +1,7 @@
 package com.ssafy.globalcc;
 
+import com.ssafy.globalcc.domain.team.entity.Team;
+import com.ssafy.globalcc.domain.team.repository.TeamRepository;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.repository.UserDetailRepository;
 import com.ssafy.globalcc.domain.user.repository.UserRepository;
@@ -24,6 +26,9 @@ public class UserRepoTest {
 
     @Autowired
     private UserTeamRepository userTeamRepository;
+    @Autowired
+    private TeamRepository teamRepository;
+
     @Test
     @Transactional
     public void test() {
@@ -50,6 +55,14 @@ public class UserRepoTest {
         System.out.println(pages.getContent());
 
 
+    }
+
+    @Test
+    @Transactional
+    public void userListTest(){
+        Team team = teamRepository.findById(10).orElseThrow(null);
+        List<User> users = userTeamRepository.findUserByTeam(team);
+        System.out.println(users);
     }
 
 }
