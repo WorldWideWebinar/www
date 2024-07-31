@@ -153,7 +153,7 @@ const isLogin = computed(() => userStore.isLogin)
 
 const handleSignOut = async () => {
   const result = await userStore.signOut()
-  if (result.isSuccess) {
+  if (result.success) {
     alert('Successfully logged out')
     router.push({ name: 'HomeView' })
   } else {
