@@ -1,6 +1,7 @@
 FROM eclipse-temurin:17.0.12_7-jdk-ubi9-minimal AS build
 WORKDIR /app
 COPY . .
+RUN apt-get update && apt-get install -y findutils
 
 RUN chmod +x ./gradlew
 RUN ./gradlew bootJar
