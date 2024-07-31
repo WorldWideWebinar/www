@@ -25,9 +25,9 @@ const userStore = useUserStore();
 
 const handleSubmit = async () => {
   errorMessage.value = '';
-  const { isSuccess, message } = await userStore.signIn({ id: userId.value, password: password.value });
-  if (!isSuccess) {
-    errorMessage.value = 'ID or password is incorrect';
+  const { success, message } = await userStore.signIn({ id: userId.value, password: password.value });
+  if (!success) {
+    errorMessage.value = message;
   } else {
     router.push({ name: 'HomeView' });
   }

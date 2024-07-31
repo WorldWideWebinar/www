@@ -6,17 +6,6 @@ export const useMeetingStore = defineStore('meeting', {
     meetings: [],
   }),
   actions: {
-    async fetchMeetingsByIds(meetingIds) {
-      try {
-        const response = await axiosInstance.get('api/meetings', {
-          params: { ids: meetingIds.join(',') }
-        });
-        this.meetings = response.data.filter(meeting => meetingIds.includes(meeting.meeting_id));
-      } catch (error) {
-        console.error('Failed to fetch meetings:', error);
-      }
-    },
-
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('meetings', meeting);
@@ -28,6 +17,28 @@ export const useMeetingStore = defineStore('meeting', {
       } catch (error) {
         console.error('Error adding meeting:', error);
       }
+    },
+
+    async fetchMeetingById(meetingId) {
+      try {
+        const response = await axiosInstance.get(`api/meetings/${meetingId}`);
+        const meeting = response.data.meeting;
+        if (!this.meetings.find(m => m.id === meetingId)) {
+          this.meetings.push(meeting);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch meeting ${meetingId}:`, error);
+      }
+    },
+
+    async fetchMeetingsByIds(meetingIds) {
+      try {
+        for (const meetingId of meetingIds) {
+          await this.fetchMeetingById(meetingId);
+        }
+      } catch (error) {
+        console.error('Failed to fetch meetings:', error);
+      }
     }
   },
   getters: {
@@ -36,4 +47,5 @@ export const useMeetingStore = defineStore('meeting', {
     },
   }
 });
+
 
