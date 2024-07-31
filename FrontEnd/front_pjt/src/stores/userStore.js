@@ -13,11 +13,7 @@ export const useUserStore = defineStore('user', {
     userList: []
   }),
   getters: {
-<<<<<<< HEAD
     isLogin: (state) => state.userId != 0
-=======
-    isLogin: (state) => !!state.accessToken
->>>>>>> ParkJunYoung
   },
 
   actions: {
