@@ -1,11 +1,12 @@
-FROM openjdk:17-jdk AS build
+FROM eclipse-temurin:17.0.12_7-jdk-ubi9-minimal AS build
 WORKDIR /app
 COPY . .
+
 RUN chmod +x ./gradlew
 RUN ./gradlew bootJar --no-daemon
 
 # Step 2: Create the final image with JRE and the built application
-FROM openjdk:17-jdk
+FROM eclipse-temurin:17.0.12_7-jdk-ubi9-minimal
 WORKDIR /app
 COPY --from=build /app/build/libs/globalcc-0.0.1-SNAPSHOT.jar app.jar
 ENV SPRING_PROFILES_ACTIVE=prod
