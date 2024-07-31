@@ -87,25 +87,37 @@
       <!-- 로그인 후 -->
       <div class="lower" v-if="isLogin">
         <div class="my-meeting">
-          <h3 style="font-weight: bolder">My Meeting</h3>
-          <div class="carousel">
-            <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide v-for="(item, index) in sortedCarouselContent" :key="index">
-                <div class="carousel-section">
-                  <h3>{{ item.agenda }}</h3>
-                  <div class="meeting-details">
-                    <div :class="getMeetingDetailClass(item.date)">
-                      <p class="meeting-name">{{ item.agenda }}</p>
-                      <button v-if="getMeetingDetailClass(item.date) === 'meeting-detail-today'">
-                        들어가기
-                      </button>
-                      <button v-else>IN</button>
-                    </div>
-                    <div class="meeting-date-time">
-                      <p class="meeting-date">{{ item.date }}</p>
-                      <p class="meeting-time">{{ item.time }}</p>
-                    </div>
-                  </div>
+          <h3 style="font-weight: bolder">My Meetings</h3>
+
+          <div v-if="!meetings.length">
+            <p>회의 없음.</p>
+          </div>
+          <div v-else class="carousel">
+            <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
+              <Slide
+                v-for="(item, index) in groupedMeetings"
+                :key="index"
+                class="slide"
+                :class="slideClass(index)"
+              >
+                <div class="meeting-type">{{ index }} Meetings</div>
+                <div class="meeting-table-container">
+                  <table class="meeting-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Agenda</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(meeting, idx) in item" :key="idx">
+                        <td>{{ meeting.date }}</td>
+                        <td>{{ meeting.time }}</td>
+                        <td>{{ meeting.agenda }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </Slide>
               <template #addons>
@@ -117,26 +129,22 @@
       </div>
     </div>
 
-    <!-- footer  -->
+    <!-- footer -->
     <div class="footer">
       <div class="sub-footer">
         <p class="www">World Wide Webinar</p>
         <p class="copy-right">© 2024 All Rights Reserved.</p>
       </div>
-      <!-- <div class="sub-footer">
-        <p class="team-name">주영 업고 튀어</p>
-        <p class="team-member">권용수 | 김수빈 | 박준영 | 이선재 | 주연수</p>
-      </div> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import 'vue3-carousel/dist/carousel.css'
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
+import { Carousel, Slide, Navigation } from 'vue3-carousel'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -145,7 +153,7 @@ const isLogin = computed(() => userStore.isLogin)
 
 const handleSignOut = async () => {
   const result = await userStore.signOut()
-  if (result.success) {
+  if (result.isSuccess) {
     alert('Successfully logged out')
     router.push({ name: 'HomeView' })
   } else {
@@ -157,34 +165,63 @@ watch(isLogin, (newValue) => {
   console.log('isLogin changed:', newValue)
 })
 
-const carouselContent = ref([
+const meetings = ref([
   { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
   { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
   { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
   { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
   { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
-  { date: '2024-07-30', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
+  { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
   { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
-  { date: '2024-07-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
+  { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
   { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
   { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
 ])
 
-const getMeetingDetailClass = (meetingDate) => {
-  const today = new Date().toISOString().split('T')[0]
-  const date = new Date(meetingDate).toISOString().split('T')[0]
+const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
-  if (date === today) {
-    return 'meeting-detail-today'
-  } else if (date < today) {
-    return 'meeting-detail-left'
-  } else {
-    return 'meeting-detail-right'
+const carouselReady = ref(false)
+
+const groupMeetings = () => {
+  const groups = {
+    TODAY: [],
+    NEXT: [],
+    PREV: []
+  }
+  const today = new Date().toISOString().split('T')[0]
+  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
+  sortedMeetings.forEach((meeting) => {
+    if (meeting.date === today) {
+      groups.TODAY.push(meeting)
+    } else if (meeting.date > today) {
+      groups.NEXT.push(meeting)
+    } else {
+      groups.PREV.push(meeting)
+    }
+  })
+  groupedMeetings.value = groups
+  carouselReady.value = true
+}
+
+const slideClass = (group) => {
+  switch (group) {
+    case 'PREV':
+      return 'slide-prev'
+    case 'TODAY':
+      return 'slide-today'
+    case 'NEXT':
+      return 'slide-next'
+    default:
+      return ''
   }
 }
 
-const sortedCarouselContent = computed(() => {
-  return carouselContent.value.sort((a, b) => new Date(a.date) - new Date(b.date))
+onMounted(() => {
+  console.log('isLogin:', isLogin.value)
+  console.log('meetings:', meetings.value)
+  console.log('meetings 개수:', meetings.value.length)
+  groupMeetings()
+  console.log(groupedMeetings.value.NEXT.key)
 })
 </script>
 
@@ -459,14 +496,28 @@ button:hover {
 /* carousel */
 .carousel {
   margin: 50px auto;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__slide {
   padding: 5px;
+  margin: 0 10px; /* 좌우 간격 추가 */
+  background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
+  width: 200px; /* 슬라이드의 너비 설정 */
+  height: 300px; /* 슬라이드의 높이 설정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  transform: rotateY(-20deg) scale(0.9);
 }
 
 .carousel__viewport {
   perspective: 2000px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__track {
@@ -475,11 +526,6 @@ button:hover {
 
 .carousel__slide--sliding {
   transition: 0.5s;
-}
-
-.carousel__slide {
-  opacity: 0.9;
-  transform: rotateY(-20deg) scale(0.9);
 }
 
 .carousel__slide--active ~ .carousel__slide {
@@ -501,12 +547,18 @@ button:hover {
   transform: rotateY(0) scale(1.1);
 }
 
-.carousel-section {
-  padding: 20px;
-  background-color: #fce9ff;
-  height: 250px;
-  width: 400px;
-  border-radius: 30px;
+/* .slide {
+  width: 30%;
+} */
+
+.slide-today {
+  background-color: rgb(253, 218, 223);
+}
+
+.meeting-type {
+  text-align: center;
+  font-weight: bolder;
+  margin-bottom: 10px;
 }
 
 .meeting-details {
@@ -515,37 +567,60 @@ button:hover {
   align-items: flex-start;
 }
 
-.meeting-detail-left,
-.meeting-detail-today,
-.meeting-detail-right {
-  width: 33%;
-  margin-bottom: 10px;
+.meeting-table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
-.meeting-name,
-.meeting-date,
-.meeting-time {
-  font-size: 14px;
-  margin: 5px 0;
+.meeting-table {
+  width: 90%; /* 테이블을 가운데로 정렬하기 위해 90%로 설정 */
+  font-size: 0.6rem;
+  border-collapse: collapse;
+  margin: 10px 0;
 }
 
-.meeting-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.meeting-table tbody {
+  max-height: 100px;
+  overflow-y: scroll;
 }
 
-.meeting-detail-left {
-  background-color: lightgrey;
+.meeting-table tbody::-webkit-scrollbar {
+  width: 0;
+  /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent;
+  /* 스크롤바 배경을 투명하게 설정 */
 }
 
-.meeting-detail-today {
-  background-color: yellow;
+.meeting-table tr {
+  display: table;
+  width: calc(100% - 1rem);
+  /* 테이블 너비를 100%에서 약간 줄임 */
+  table-layout: fixed;
 }
 
-.meeting-detail-right {
-  background-color: lightgreen;
+.meeting-table th,
+.meeting-table td {
+  border: 1px solid #000000;
+  padding: 8px;
+  text-align: center;
 }
+
+.meeting-table th:nth-child(1),
+.meeting-table td:nth-child(1) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(2),
+.meeting-table td:nth-child(2) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(3),
+.meeting-table td:nth-child(3) {
+  width: auto;
+}
+
 /* footer */
 .footer {
   margin: 0 auto;
@@ -586,8 +661,18 @@ button:hover {
     display: none;
   }
 
+  .slide-prev,
+  .slide-next {
+    display: none;
+  }
+
   .carousel__slide {
     display: none;
+  }
+
+  .slide-today {
+    display: flex !important; /* Today Meetings 슬라이드를 flex로 표시 */
+    transform: rotateY(0) scale(1); /* 3D 효과 제거 */
   }
 }
 </style>
