@@ -34,14 +34,13 @@
       <h3>Selected Users:</h3>
       <ul>
         <li v-for="user in selectedUsers" :key="user.id">
-          {{ user.username }} ({{ user.email }})
+          {{ user.username }}
           <button class="btn btn-primary" @click="showProfile(user)">프로필 보기</button>
           <button @click="removeUser(user.id)" class="btn btn-secondary">Remove</button>
         </li>
       </ul>
     </div>
     <div>
-
       <button @click="createTeam" class="btn btn-success" style="margin: auto; justify-content: center; display: flex;">Create Team</button>
     </div>
   </div>
@@ -49,10 +48,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useTeamStore } from '@/stores/teamStore';
-import ProfileModal from '@/components/ProfileModal.vue'
+import ProfileModal from '@/components/ProfileModal.vue';
 
 const userStore = useUserStore();
 const teamStore = useTeamStore();
@@ -65,10 +64,13 @@ const teamName = ref('');
 const selectedIcon = ref('🚀');
 const icons = ['🚀', '💻', '💼', '📈', '🆕'];
 
+onMounted(async () => {
+  await userStore.fetchAllUsers();
+});
+
 const filteredUsers = computed(() =>
   userStore.userList.filter(user => 
-    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+    user.username.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 );
 
@@ -99,12 +101,11 @@ const removeUser = (userId) => {
 const createTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
     const userIds = selectedUsers.value.map(user => user.id);
-    console.log(JSON.stringify(userIds))
-    const ownerId = 1;
-    // const ownerId = userStore.currentUser.id;
-    console.log(ownerId)
-    console.log(teamName.value)
-    // await teamStore.createTeam(teamName.value, ownerId, userIds);
+    const ownerId = userStore.userId; // 사용자 ID를 현재 로그인한 사용자로 설정
+    console.log(JSON.stringify(userIds));
+    console.log(ownerId);
+    console.log(teamName.value);
+    await teamStore.createTeam(teamName.value, ownerId, userIds);
     // Reset fields
     teamName.value = '';
     selectedUsers.value = [];
@@ -113,11 +114,13 @@ const createTeam = async () => {
     alert('Please enter a team name, select users, and choose an icon.');
   }
 };
+
 const showProfile = user => {
   selectedUser.value = user;
   showProfileModal.value = true;
 };
 </script>
+
 
 <style scoped>
 .team-creation-wrap {

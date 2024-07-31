@@ -123,9 +123,12 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+import { useTeamStore } from '@/stores/teamStore';
 
 const router = useRouter();
 const userStore = useUserStore();
+const teamStore = useTeamStore();
+console.log(teamStore.teams)
 const isLogin = computed(() => userStore.isLogin);
 
 const handleSignOut = async () => {

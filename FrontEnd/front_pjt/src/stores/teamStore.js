@@ -4,9 +4,9 @@ import axiosInstance from '@/axios';
 
 export const useTeamStore = defineStore('team', {
   state: () => ({
-    teams: [
-    ],
+    teams: [],
     isOwner: false,
+    teamUserList: [],
   }),
   actions: {
     async fetchTeamById(teamId) {
