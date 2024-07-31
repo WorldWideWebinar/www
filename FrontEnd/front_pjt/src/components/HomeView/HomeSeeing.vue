@@ -1,4 +1,3 @@
-
 <template>
   <div class="home-container">
     <div class="before-scroll">
@@ -9,16 +8,20 @@
           <div class="title"><span class="w">W</span>ebinar</div>
         </div>
         <div class="main-image">
-          <img class="main-character" src="@/assets/img/main_logo.png" alt="logo">
+          <img class="main-character" src="@/assets/img/main_logo.png" alt="logo" />
         </div>
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
-          <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
-          <button @click="router.push({name:'SignView'})">Sign up</button>
+          <button @click="router.push({ name: 'SignView' })" style="margin-right: 50px">
+            Sign in
+          </button>
+          <button @click="router.push({ name: 'SignView' })">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({name:'ProfileView'})" style="margin-right: 50px;">My Page</button>
+          <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
+            My Page
+          </button>
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
@@ -27,20 +30,26 @@
         <div class="circle"></div>
       </div>
     </div>
-    
-    <div class="middle" >
+
+    <div class="middle">
       <div class="sub-discription carousel my-meeting">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
-          <img class="plus-image" src="../../assets/img/team.png" alt="team">
+          <img class="plus-image" src="../../assets/img/team.png" alt="team" />
           <div class="plus-detail">
-            <p>Our platform offers seamless team management capabilities, allowing you to effortlessly organize, schedule, and manage virtual meetings.</p>
-            <p>Collaborate with your team members in real-time, assign roles, and keep track of meeting progress and outcomes.</p>
+            <p>
+              Our platform offers seamless team management capabilities, allowing you to
+              effortlessly organize, schedule, and manage virtual meetings.
+            </p>
+            <p>
+              Collaborate with your team members in real-time, assign roles, and keep track of
+              meeting progress and outcomes.
+            </p>
           </div>
         </div>
         <div class="discription">
           <p class="plus">Multi-Lingual Translation</p>
-          <img class="plus-image" src="../../assets/img/translation.png" alt="translation">
+          <img class="plus-image" src="../../assets/img/translation.png" alt="translation" />
           <div class="plus-detail">
             <p>Break language barriers with our instant, multi-lingual, real-time translation.</p>
             <table class="language-table">
@@ -61,10 +70,16 @@
         </div>
         <div class="discription">
           <p class="plus">Real-Time Conference</p>
-          <img class="plus-image" src="../../assets/img/conference.png" alt="conference">
+          <img class="plus-image" src="../../assets/img/conference.png" alt="conference" />
           <div class="plus-detail">
-            <p>Experience seamless real-time video conferencing with our platform, which ensures high-quality video and audio for uninterrupted communication.</p>
-            <p>Engage with participants through interactive features such as screen sharing, chat, and virtual whiteboards.</p>
+            <p>
+              Experience seamless real-time video conferencing with our platform, which ensures
+              high-quality video and audio for uninterrupted communication.
+            </p>
+            <p>
+              Engage with participants through interactive features such as screen sharing, chat,
+              and virtual whiteboards.
+            </p>
           </div>
         </div>
       </div>
@@ -72,7 +87,7 @@
       <!-- 로그인 후 -->
       <div class="lower" v-if="isLogin">
         <div class="my-meeting">
-          <h3 style="font-weight: bolder;">My Meeting</h3>
+          <h3 style="font-weight: bolder">My Meeting</h3>
           <div class="carousel">
             <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
               <Slide v-for="(item, index) in sortedCarouselContent" :key="index">
@@ -81,7 +96,9 @@
                   <div class="meeting-details">
                     <div :class="getMeetingDetailClass(item.date)">
                       <p class="meeting-name">{{ item.agenda }}</p>
-                      <button v-if="getMeetingDetailClass(item.date) === 'meeting-detail-today'">들어가기</button>
+                      <button v-if="getMeetingDetailClass(item.date) === 'meeting-detail-today'">
+                        들어가기
+                      </button>
                       <button v-else>IN</button>
                     </div>
                     <div class="meeting-date-time">
@@ -115,30 +132,30 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore';
-import 'vue3-carousel/dist/carousel.css';
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import 'vue3-carousel/dist/carousel.css'
+import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel'
 
-const router = useRouter();
-const userStore = useUserStore();
+const router = useRouter()
+const userStore = useUserStore()
 
-const isLogin = computed(() => userStore.isLogin);
+const isLogin = computed(() => userStore.isLogin)
 
 const handleSignOut = async () => {
-  const result = await userStore.signOut();
-  if (result.isSuccess) {
-    alert('Successfully logged out');
-    router.push({ name: 'HomeView' });
+  const result = await userStore.signOut()
+  if (result.success) {
+    alert('Successfully logged out')
+    router.push({ name: 'HomeView' })
   } else {
-    alert(`Logout failed: ${result.message}`);
+    alert(`Logout failed: ${result.message}`)
   }
-};
+}
 
 watch(isLogin, (newValue) => {
-  console.log('isLogin changed:', newValue);
-});
+  console.log('isLogin changed:', newValue)
+})
 
 const carouselContent = ref([
   { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
@@ -151,26 +168,25 @@ const carouselContent = ref([
   { date: '2024-07-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
   { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
   { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
-]);
+])
 
 const getMeetingDetailClass = (meetingDate) => {
-  const today = new Date().toISOString().split('T')[0];
-  const date = new Date(meetingDate).toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]
+  const date = new Date(meetingDate).toISOString().split('T')[0]
 
   if (date === today) {
-    return 'meeting-detail-today';
+    return 'meeting-detail-today'
   } else if (date < today) {
-    return 'meeting-detail-left';
+    return 'meeting-detail-left'
   } else {
-    return 'meeting-detail-right';
+    return 'meeting-detail-right'
   }
-};
+}
 
 const sortedCarouselContent = computed(() => {
-  return carouselContent.value.sort((a, b) => new Date(a.date) - new Date(b.date));
-});
+  return carouselContent.value.sort((a, b) => new Date(a.date) - new Date(b.date))
+})
 </script>
-
 
 <style scoped>
 .home-container {
@@ -248,17 +264,39 @@ const sortedCarouselContent = computed(() => {
 }
 
 @keyframes shake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
 }
 
 /* 로그인/회원가입 */
@@ -289,7 +327,6 @@ button:hover {
   background-color: #b380bc;
 }
 
-
 /* scroll */
 .scroll {
   position: absolute;
@@ -307,15 +344,15 @@ button:hover {
 }
 
 .scroll .circle {
-    position: absolute;
-    left: 50%;
-    top: 90%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    background-color: black;
-    border-radius: 50%;
-    animation: bounce .65s infinite alternate cubic-bezier(.1, .49, .42, .99);
+  position: absolute;
+  left: 50%;
+  top: 90%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  animation: bounce 0.65s infinite alternate cubic-bezier(0.1, 0.49, 0.42, 0.99);
 }
 
 @keyframes bounce {
@@ -398,10 +435,9 @@ button:hover {
 }
 
 .language-table td:hover {
-  background-color: #FEF7FF;
+  background-color: #fef7ff;
   cursor: pointer;
 }
-
 
 /* 로그인 후 */
 .lower {
@@ -515,7 +551,7 @@ button:hover {
   margin: 0 auto;
   background-color: rgba(211, 211, 211, 0.2);
   text-align: center;
-  color: #8A8F95;
+  color: #8a8f95;
   font-size: 0.7rem;
 }
 
@@ -527,7 +563,8 @@ button:hover {
   margin: 5px;
 }
 
-.www, .team-name {
+.www,
+.team-name {
   font-weight: bolder;
 }
 

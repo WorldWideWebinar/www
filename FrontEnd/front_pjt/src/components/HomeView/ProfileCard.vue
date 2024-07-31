@@ -13,31 +13,30 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
-import { useUserStore } from '@/stores/userStore';
-import { useTeamStore } from '@/stores/teamStore';
+import { computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { useTeamStore } from '@/stores/teamStore'
 
-const userStore = useUserStore();
-const teamStore = useTeamStore();
+const userStore = useUserStore()
+const teamStore = useTeamStore()
 
 onMounted(async () => {
   // 필요한 경우 여기에서 userInfo 및 팀 정보를 가져옵니다.
   if (!userStore.userInfo.name) {
-    await userStore.fetchUserInfo(userStore.userId);
+    await userStore.fetchUserInfo(userStore.userId)
   }
   if (teamStore.teams.length === 0) {
-    await Promise.all(userStore.userInfo.teamList.map(teamId => teamStore.fetchTeamById(teamId)));
+    await Promise.all(userStore.userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
   }
-});
+})
 
-const name = computed(() => userStore.userInfo.name);
-const profileImage = computed(() => userStore.userInfo.profileImageUrl);
-const totalMeetingTime = computed(() => userStore.userInfo.totalMeetingTime);
+const name = computed(() => userStore.userInfo.name)
+const profileImage = computed(() => userStore.userInfo.profileImageUrl)
+const totalMeetingTime = computed(() => userStore.userInfo.totalMeetingTime)
 
 const hostedTeams = computed(() => {
-  return teamStore.teams.filter(team => userStore.userInfo.teamList.includes(team.id));
-});
-
+  return teamStore.teams.filter((team) => userStore.userInfo.teamList.includes(team.id))
+})
 </script>
 
 <style scoped>
