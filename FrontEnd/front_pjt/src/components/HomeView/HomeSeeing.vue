@@ -1,4 +1,3 @@
-
 <template>
   <div class="home-container">
     <div class="before-scroll">
@@ -27,8 +26,8 @@
         <div class="circle"></div>
       </div>
     </div>
-    
-    <div class="middle" >
+
+    <div class="middle">
       <div class="sub-discription carousel my-meeting">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
@@ -72,62 +71,61 @@
       <!-- 로그인 후 -->
       <div class="lower" v-if="isLogin">
         <div class="my-meeting">
-          <h3 style="font-weight: bolder;">My Meeting</h3>
-          <div class="carousel">
-            <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide v-for="(item, index) in carouselContent" :key="index">
-                <div class="carousel-section">
-                  <h3>{{ item.category }}</h3>
-                  <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
-                    <div class="meeting-detail-left">
-                      <p class="meeting-name">{{ meeting.name }}</p>
-                      <button>IN</button>
-                    </div>
-                    <div class="meeting-detail-today" v-if="item.category!=='TODAY'">
-                      <p class="meeting-date">{{ meeting.date }}</p>
-                      <p class="meeting-time">{{ meeting.time }}</p>
-                    </div>
-                    <div class="meeting-detail-right" v-else>
-                      <p class="meeting-date">▶️</p>
-                      <p class="meeting-time"> 들어가기</p>
-                    </div>
-                    <div v-if="item.category==='NEXT'" class="meeting-detail-right">
-                      <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
-                    </div>
-                    <div v-else class="spacer"></div>
-                  </div>
+          <h3 style="font-weight: bolder;">My Meetings</h3>
+          
+          <div v-if="!meetings.length">
+            <p>회의 없음.</p>
+          </div>
+          <div v-else class="carousel">
+            <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
+              <Slide v-for="(item, index) in groupedMeetings" :key="index" class="slide" :class="slideClass(index)">
+                <div class="meeting-type">
+                  {{ index }} Meetings
+                </div>
+                <div class="meeting-table-container">
+                  <table class="meeting-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Agenda</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(meeting, idx) in item" :key="idx">
+                        <td>{{ meeting.date }}</td>
+                        <td>{{ meeting.time }}</td>
+                        <td>{{ meeting.agenda }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </Slide>
               <template #addons>
                 <Navigation />
-                <!-- <Pagination /> -->
               </template>
             </Carousel>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- footer  -->
+    
+    <!-- footer -->
     <div class="footer">
       <div class="sub-footer">
         <p class="www">World Wide Webinar</p>
         <p class="copy-right">© 2024 All Rights Reserved.</p>
       </div>
-      <!-- <div class="sub-footer">
-        <p class="team-name">주영 업고 튀어</p>
-        <p class="team-member">권용수 | 김수빈 | 박준영 | 이선재 | 주연수</p>
-      </div> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import 'vue3-carousel/dist/carousel.css';
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
+import { Carousel, Slide, Navigation } from 'vue3-carousel';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -148,118 +146,69 @@ watch(isLogin, (newValue) => {
   console.log('isLogin changed:', newValue);
 });
 
-const session = ref(false);
-
-const carouselContent = ref([
-  {
-    date: '2024-11-15',
-    agenda: '현대자동차',
-    status: 'IN',
-    description: 'Detailed description of 현대자동차',
-    time: '13PM-16PM',
-    members: 7,
-    files: [
-      { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-10-29',
-    agenda: '현대오토에버',
-    status: 'IN',
-    description: 'Detailed description of 현대오토에버',
-    time: '8AM-11AM',
-    members: 3,
-    files: [
-      { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-10-05',
-    agenda: '현대케피코',
-    status: 'IN',
-    description: 'Detailed description of 현대케피코',
-    time: '16PM-18PM',
-    members: 5,
-    files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
-  },
-  {
-    date: '2024-09-15',
-    agenda: '뱅킹 서비스',
-    status: 'OUT',
-    description: 'Detailed description of 뱅킹 서비스',
-    time: '8AM-10AM',
-    members: 8,
-    files: [
-      { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-08-26',
-    agenda: '인스타그램',
-    status: 'OUT',
-    description: 'Detailed description of 인스타그램',
-    time: '11AM-13PM',
-    members: 5,
-    files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
-  },
-  {
-    date: '2024-07-30',
-    agenda: '웹 RTC',
-    status: 'IN',
-    description: 'Detailed description of 웹 RTC',
-    time: '15PM-17PM',
-    members: 4,
-    files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
-  },
-  {
-    date: '2024-06-28',
-    agenda: 'TTS',
-    status: 'IN',
-    description: 'Detailed description of TTS',
-    time: '14PM-16PM',
-    members: 6,
-    files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
-    summary: '/path/to/tts_summary.pdf',
-    record: '/path/to/tts_record.pdf'
-  },
-  {
-    date: '2024-07-23',
-    agenda: 'AI 요약',
-    status: 'OUT',
-    description: 'Detailed description of AI 요약',
-    time: '17PM-18PM',
-    members: 4,
-    files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
-    summary: '/path/to/ai_summary.pdf',
-    record: '/path/to/ai_record.pdf'
-  },
-  {
-    date: '2024-06-13',
-    agenda: 'STT',
-    status: 'IN',
-    description: 'Detailed description of STT',
-    time: '20PM-22PM',
-    members: 7,
-    files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
-    summary: '/path/to/stt_summary.pdf',
-    record: '/path/to/stt_record.pdf'
-  },
-  {
-    date: '2024-05-14',
-    agenda: '다국어 화상회의',
-    status: 'IN',
-    description: 'Detailed description of 다국어화상회의',
-    time: '11AM-15PM',
-    members: 4,
-    files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
-    summary: '/path/to/다국어 화상회의_summary.pdf',
-    record: '/path/to/다국어 화상회의_record.pdf'
-  }
+const meetings = ref([
+  { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
+  { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
+  { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
+  { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
+  { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
+  { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
+  { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
+  { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
+  { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
+  { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
 ]);
+
+const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] });
+
+const carouselReady = ref(false);
+
+const groupMeetings = () => {
+  const groups = {
+    TODAY: [],
+    NEXT: [],
+    PREV: []
+  };
+  const today = new Date().toISOString().split('T')[0];
+  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+  sortedMeetings.forEach((meeting) => {
+    if (meeting.date === today) {
+      groups.TODAY.push(meeting);
+    } else if (meeting.date > today) {
+      groups.NEXT.push(meeting);
+    } else {
+      groups.PREV.push(meeting);
+    }
+  });
+  groupedMeetings.value = groups;
+  carouselReady.value = true;
+};
+
+const slideClass = (group) => {
+  switch (group) {
+    case 'PREV':
+      return 'slide-prev';
+    case 'TODAY':
+      return 'slide-today';
+    case 'NEXT':
+      return 'slide-next';
+    default:
+      return '';
+  }
+};
+
+onMounted(() => {
+  console.log('isLogin:', isLogin.value);
+  console.log('meetings:', meetings.value);
+  console.log('meetings 개수:', meetings.value.length);
+  groupMeetings();
+  console.log(groupedMeetings.value.NEXT.key);
+});
+
+
 </script>
+
+
 
 
 <style scoped>
@@ -513,28 +462,39 @@ button:hover {
 /* carousel */
 .carousel {
   margin: 50px auto;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__slide {
   padding: 5px;
+  margin: 0 10px; /* 좌우 간격 추가 */
+  background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
+  width: 200px; /* 슬라이드의 너비 설정 */
+  height: 300px; /* 슬라이드의 높이 설정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  transform: rotateY(-20deg) scale(0.9);
 }
 
 .carousel__viewport {
   perspective: 2000px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__track {
   transform-style: preserve-3d;
+  
 }
 
 .carousel__slide--sliding {
   transition: 0.5s;
 }
 
-.carousel__slide {
-  opacity: 0.9;
-  transform: rotateY(-20deg) scale(0.9);
-}
 
 .carousel__slide--active ~ .carousel__slide {
   transform: rotateY(20deg) scale(0.9);
@@ -555,38 +515,84 @@ button:hover {
   transform: rotateY(0) scale(1.1);
 }
 
-.carousel-section {
-  padding: 20px;
-  background-color: #fce9ff;
-  height: 250px;
-  width: 400px;
-  border-radius: 30px;
+/* .slide {
+  width: 30%;
+} */
+
+
+.slide-today {
+  background-color: rgb(253, 218, 223);
+}
+
+.meeting-type {
+  text-align: center;
+  font-weight: bolder;
+  margin-bottom: 10px;
 }
 
 .meeting-details {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.meeting-table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+
+.meeting-table {
+  width: 90%; /* 테이블을 가운데로 정렬하기 위해 90%로 설정 */
+  font-size: 0.6rem;
+  border-collapse: collapse;
   margin: 10px 0;
-  justify-content: space-between;
 }
 
-.meeting-detail-left,
-.meeting-detail-today,
-.meeting-detail-right {
-  width: 33%;
+.meeting-table tbody {
+  max-height: 100px;
+  overflow-y: scroll;
 }
 
-.meeting-name,
-.meeting-date,
-.meeting-time {
-  font-size: 14px;
-  margin: 5px 0;
+.meeting-table tbody::-webkit-scrollbar {
+  width: 0;
+  /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent;
+  /* 스크롤바 배경을 투명하게 설정 */
 }
 
-.meeting-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.meeting-table tr {
+  display: table;
+  width: calc(100% - 1rem);
+  /* 테이블 너비를 100%에서 약간 줄임 */
+  table-layout: fixed;
 }
+
+.meeting-table th,
+.meeting-table td {
+  border: 1px solid #000000;
+  padding: 8px;
+  text-align: center;
+}
+
+.meeting-table th:nth-child(1),
+.meeting-table td:nth-child(1) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(2),
+.meeting-table td:nth-child(2) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(3),
+.meeting-table td:nth-child(3) {
+  width: auto;
+}
+
+
+
 
 /* footer */
 .footer {
@@ -627,8 +633,18 @@ button:hover {
     display: none;
   }
 
+  .slide-prev,
+  .slide-next {
+    display: none;
+  }
+
   .carousel__slide {
     display: none;
+  }
+
+  .slide-today {
+    display: flex !important; /* Today Meetings 슬라이드를 flex로 표시 */
+    transform: rotateY(0) scale(1); /* 3D 효과 제거 */
   }
 }
 </style>
