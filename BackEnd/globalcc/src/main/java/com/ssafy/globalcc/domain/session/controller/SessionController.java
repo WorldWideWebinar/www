@@ -167,7 +167,7 @@ public class SessionController {
         log.debug("Checking OpenVidu URL accessibility...");
         try {
             this.openvidu.fetch();
-            log.debug("OpenVidu URL is accessible.");
+            log.debug("OpenVidu URL : {} is accessible.", OPENVIDU_URL);
             return new ResponseEntity<>("URL is accessible", HttpStatus.OK);
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             log.error("Failed to access OpenVidu URL: {}", e.getMessage(), e);
