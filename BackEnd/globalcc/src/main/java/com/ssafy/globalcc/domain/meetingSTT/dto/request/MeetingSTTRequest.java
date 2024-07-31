@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MeetingSTTRequest {
-    private String meetingId;
+    private Integer meetingId;
     private String content;
 }

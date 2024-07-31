@@ -68,7 +68,7 @@ const calendarDays = computed(() => {
 const selectedMeetings = computed(() => {
   if (!selectedDate.value || !userStore.meetings) return [];
   return userStore.meetings.filter(meeting =>
-    meeting.date === selectedDate.value.format('YYYY-MM-DD')
+    dayjs(meeting.start_at).format('YYYY-MM-DD') === selectedDate.value.format('YYYY-MM-DD')
   );
 });
 
@@ -86,7 +86,9 @@ function isSelected(day) {
 }
 
 function hasMeeting(date) {
-  return userStore.meetings && userStore.meetings.some(meeting => meeting.date === date.format('YYYY-MM-DD'));
+  return userStore.meetings && userStore.meetings.some(meeting => 
+    dayjs(meeting.start_at).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
+  );
 }
 
 function previousMonth() {
