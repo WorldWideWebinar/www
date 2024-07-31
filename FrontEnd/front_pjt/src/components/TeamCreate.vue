@@ -100,24 +100,12 @@ const removeUser = (userId) => {
 
 const createTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
-<<<<<<< HEAD
-    // const userIds = selectedUsers.value.map(user => user.id);
-    const userNames = selectedUsers.value.map(user => user.username);
-    // console.log(userIds)
-    const ownerId = 1;
-    // const ownerId = userStore.currentUser.id;
-    console.log(ownerId)
-    console.log(teamName.value)
-    console.log(userNames)
-    // await teamStore.createTeam(teamName.value, ownerId, userIds);
-=======
     const userIds = selectedUsers.value.map(user => user.id);
     const ownerId = userStore.userId; // 사용자 ID를 현재 로그인한 사용자로 설정
     console.log(JSON.stringify(userIds));
     console.log(ownerId);
     console.log(teamName.value);
     await teamStore.createTeam(teamName.value, ownerId, userIds);
->>>>>>> 090a278c5482bf93380020ca56e4075a6a9e10c2
     // Reset fields
     teamName.value = '';
     selectedUsers.value = [];

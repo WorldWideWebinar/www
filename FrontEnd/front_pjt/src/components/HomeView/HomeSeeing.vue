@@ -17,7 +17,7 @@
           <button @click="navigateToSignView('signup')">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({name:'ProfileView'})" style="margin-right: 50px;">My Page</button>
+          <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px;">My Page</button>
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
@@ -26,17 +26,19 @@
         <div class="circle"></div>
       </div>
     </div>
-    
 
-    <div class="lower" >
+
+    <div class="lower">
       <!-- 로그인 전 -->
       <div class="sub-discription carousel my-meeting" v-if="!isLogin">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team">
           <div class="plus-detail">
-            <p>Our platform offers seamless team management capabilities, allowing you to effortlessly organize, schedule, and manage virtual meetings.</p>
-            <p>Collaborate with your team members in real-time, assign roles, and keep track of meeting progress and outcomes.</p>
+            <p>Our platform offers seamless team management capabilities, allowing you to effortlessly organize,
+              schedule, and manage virtual meetings.</p>
+            <p>Collaborate with your team members in real-time, assign roles, and keep track of meeting progress and
+              outcomes.</p>
           </div>
         </div>
         <div class="discription">
@@ -64,8 +66,10 @@
           <p class="plus">Real-Time Conference</p>
           <img class="plus-image" src="../../assets/img/conference.png" alt="conference">
           <div class="plus-detail">
-            <p>Experience seamless real-time video conferencing with our platform, which ensures high-quality video and audio for uninterrupted communication.</p>
-            <p>Engage with participants through interactive features such as screen sharing, chat, and virtual whiteboards.</p>
+            <p>Experience seamless real-time video conferencing with our platform, which ensures high-quality video and
+              audio for uninterrupted communication.</p>
+            <p>Engage with participants through interactive features such as screen sharing, chat, and virtual
+              whiteboards.</p>
           </div>
         </div>
       </div>
@@ -84,7 +88,7 @@
                       <p class="meeting-name">{{ meeting.name }}</p>
                       <button>IN</button>
                     </div>
-                    <div class="meeting-detail-today" v-if="item.category!=='TODAY'">
+                    <div class="meeting-detail-today" v-if="item.category !== 'TODAY'">
                       <p class="meeting-date">{{ meeting.date }}</p>
                       <p class="meeting-time">{{ meeting.time }}</p>
                     </div>
@@ -92,7 +96,7 @@
                       <p class="meeting-date">▶️</p>
                       <p class="meeting-time"> 들어가기</p>
                     </div>
-                    <div v-if="item.category==='NEXT'" class="meeting-detail-right">
+                    <div v-if="item.category === 'NEXT'" class="meeting-detail-right">
                       <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
                     </div>
                     <div v-else class="spacer"></div>
@@ -124,12 +128,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
 import { useTeamStore } from '@/stores/teamStore';
+import dayjs from 'dayjs';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -151,30 +156,77 @@ watch(isLogin, (newValue) => {
   console.log('isLogin changed:', newValue);
 });
 
-const carouselContent = ref([
+// const carouselContent = ref([
+//   {
+//     category: "TODAY",
+//     meetings: [
+//       { name: "웹 RTC", date: "2024.07.11", time: "14PM-16PM" },
+//       { name: "뱅킹서비스", date: "2024.07.11", time: "14PM-16PM" },
+//       { name: "인스타그램", date: "2024.07.11", time: "14PM-16PM" }
+//     ]
+//   },
+//   {
+//     category: "NEXT",
+//     meetings: [
+//       { name: "서비스", date: "2024.09.15", time: "10AM-13PM" },
+//       { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" }
+//     ]
+//   },
+//   {
+//     category: "PREV",
+//     meetings: [
+//       { name: "TTS", date: "2024.06.28", time: "10AM-13PM" },
+//       { name: "AI 요약", date: "2024.06.22", time: "15PM-16PM" }
+//     ]
+//   }
+// ]);
+
+const meetingContent = ref([
   {
-    category: "TODAY",
     meetings: [
       { name: "웹 RTC", date: "2024.07.11", time: "14PM-16PM" },
       { name: "뱅킹서비스", date: "2024.07.11", time: "14PM-16PM" },
-      { name: "인스타그램", date: "2024.07.11", time: "14PM-16PM" }
-    ]
-  },
-  {
-    category: "NEXT",
-    meetings: [
+      { name: "인스타그램", date: "2024.07.31", time: "14PM-16PM" },
       { name: "서비스", date: "2024.09.15", time: "10AM-13PM" },
-      { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" }
-    ]
-  },
-  {
-    category: "PREV",
-    meetings: [
+      { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" },
       { name: "TTS", date: "2024.06.28", time: "10AM-13PM" },
       { name: "AI 요약", date: "2024.06.22", time: "15PM-16PM" }
     ]
   }
+])
+
+const carouselContent = ref([
+  {
+    category : "TODAY",
+    meetings : []
+  },
+  {
+    category : "NEXT",
+    meetings : []
+  },
+  {
+    category : "PREV",
+    meetings : []
+  }
 ]);
+
+const categorizeMeetings = () => {
+  const today = dayjs().format('YYYY.MM.DD');
+  meetingContent.value[0].meetings.forEach(meeting => {
+    if (meeting.date === today) {
+      carouselContent.value[0].meetings.push(meeting);
+    } else if (dayjs(meeting.date).isBefore(today)) {
+      carouselContent.value[2].meetings.push(meeting);
+    } else {
+      carouselContent.value[1].meetings.push(meeting);
+    }
+  });
+};
+
+onMounted(()=>{
+categorizeMeetings();
+// console.log(carouselContent.value)
+})
 
 const navigateToSignView = (mode) => {
   router.push({ name: 'SignView', query: { mode } });
@@ -205,7 +257,8 @@ const navigateToSignView = (mode) => {
   align-items: center;
   width: 100%;
   margin: 50px auto;
-  padding: 0px 0px; /* WWW 글자 오른쪽으로 밀기*/
+  padding: 0px 0px;
+  /* WWW 글자 오른쪽으로 밀기*/
 }
 
 .main-title {
@@ -214,8 +267,10 @@ const navigateToSignView = (mode) => {
   opacity: 0;
   transform: translateX(-50px);
   animation: slideInFromLeft 1s forwards;
-  animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
-  margin: 0px 100px; /* 간격 조정 */
+  animation-delay: 1s;
+  /* 1초 후에 애니메이션 시작 */
+  margin: 0px 100px;
+  /* 간격 조정 */
 }
 
 .main-image {
@@ -258,17 +313,49 @@ const navigateToSignView = (mode) => {
 }
 
 @keyframes shake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
 }
 
 /* 로그인/회원가입 */
@@ -317,21 +404,22 @@ button:hover {
 }
 
 .scroll .circle {
-    position: absolute;
-    left: 50%;
-    top: 90%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    background-color: black;
-    border-radius: 50%;
-    animation: bounce .65s infinite alternate cubic-bezier(.1, .49, .42, .99);
+  position: absolute;
+  left: 50%;
+  top: 90%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  animation: bounce .65s infinite alternate cubic-bezier(.1, .49, .42, .99);
 }
 
 @keyframes bounce {
   0% {
     transform: translate(-50%, 0);
   }
+
   100% {
     transform: translate(-50%, -20px);
   }
@@ -456,7 +544,7 @@ button:hover {
   transform: rotateY(-20deg) scale(0.9);
 }
 
-.carousel__slide--active ~ .carousel__slide {
+.carousel__slide--active~.carousel__slide {
   transform: rotateY(20deg) scale(0.9);
 }
 
@@ -525,11 +613,13 @@ button:hover {
   margin: 5px;
 }
 
-.www, .team-name {
+.www,
+.team-name {
   font-weight: bolder;
 }
 
 @media (max-width: 992px) {
+
   .main-image,
   .main-character {
     bottom: 45%;
