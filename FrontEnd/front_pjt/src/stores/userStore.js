@@ -2,12 +2,13 @@ import { defineStore } from 'pinia';
 import axiosInstance from '@/axios';
 import { useTeamStore } from './teamStore';
 import router from '@/router';
+import { useErrorStore } from './errorStore';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     userId: 0,
     userInfo: {},
-    accessToken: 1, /* 로그인 */
+    accessToken: null, 
     refreshToken: null,
     userList: [],
   }),
@@ -17,6 +18,7 @@ export const useUserStore = defineStore('user', {
   
   actions: {
     async fetchUserInfo(userId) {
+      const errorStore = useErrorStore();
       try {
         const response = await axiosInstance.get(`api/users/${userId}`);
         const userData = response.data;
@@ -24,27 +26,30 @@ export const useUserStore = defineStore('user', {
         console.log(response.data)
         return userData;
       } catch (error) {
-        this.showError('Failed to fetch user info');
+        errorStore.showError('Failed to fetch user info');
       }
     },
 
     async fetchAllUsers(){
+      const errorStore = useErrorStore();
       try {
         const response = await axiosInstance.get(`api/users`);
         const users = response.data.result
-        console.log(response.data)
         this.userList = users.map(user => ({
-          id: user.userId,
-          username: user.id,
+          userId: user.userId,
+          id: user.id,
         }));
-        console.log(this.userList);
+        console.log('1');
+        console.log(this.userList)
+        console.log('1');
         return this.userList;
       } catch (error) {
-        console.log(error);
+        errorStore.showError('Failed to fetch all users');
       }
     },
 
     async signIn({ id, password }) {
+      const errorStore = useErrorStore();
       try {
         const response = await axiosInstance.post('api/users/login', { id, password });
         console.log(response.data);
@@ -75,16 +80,17 @@ export const useUserStore = defineStore('user', {
             return { success: false, message: 'Failed to fetch user info' };
           }
         } else {
-          this.showError(response.data.message);
+          errorStore.showError(response.data.message);
           return { success: false, message: response.data.message };
         }
       } catch (error) {
-        this.showError('Failed to sign in');
+        errorStore.showError('Failed to sign in');
         return { success: false, message: error.message };
       }
     },
 
     async signUp({ id, name, email, password, language }) {
+      const errorStore = useErrorStore();
       try {
         const signupResponse = await axiosInstance.post('api/users', {
           id,
@@ -98,15 +104,18 @@ export const useUserStore = defineStore('user', {
         if (signupResponse.data.success) {
           return { success: true, result: signupResponse.data.result };
         } else {
+          errorStore.showError(signupResponse.data.message)
           return { success: false, message: signupResponse.data.message };
         }
       } catch (error) {
+        errorStore.showError('Failed to sign up');
         console.log('here')
         return { success: false, message: error.message };
       }
     },
 
     async signOut() {
+      const errorStore = useErrorStore();
       try {
         const headers = {
           Authorization: `Bearer ${this.accessToken}`
@@ -124,10 +133,11 @@ export const useUserStore = defineStore('user', {
           console.log('User signed out successfully');
           return { success: true, message: response.data.message };
         } else {
+          errorStore.showError(response.data.message);
           return { success: false, message: response.data.message };
         }
       } catch (error) {
-
+        errorStore.showError('Failed to sign out');
         return { success: false, message: error.message };
       }
     },

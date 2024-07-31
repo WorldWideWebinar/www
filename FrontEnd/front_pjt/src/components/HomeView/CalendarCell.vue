@@ -1,7 +1,9 @@
 <template>
-  <div class="calendar-cell"
-       :class="{ 'hasMeeting': hasMeeting, 'currentMonth': day.currentMonth, 'selected': selected }"
-       @click="$emit('select', day)">
+  <div
+    class="calendar-cell"
+    :class="{ hasMeeting: hasMeeting, currentMonth: day.currentMonth, selected: selected }"
+    @click="$emit('select', day)"
+  >
     {{ day.date.format('D') }}
     <span v-if="hasMeeting" class="meeting-marker"></span>
   </div>
@@ -12,9 +14,9 @@ const props = defineProps({
   day: Object,
   hasMeeting: Boolean,
   selected: Boolean
-});
+})
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select'])
 </script>
 
 <style scoped>
@@ -34,7 +36,7 @@ const emit = defineEmits(['select']);
   right: 5px;
   width: 8px;
   height: 8px;
-  background-color: #F8EFBB; /* 보색 1 */
+  background-color: #f8efbb; /* 보색 1 */
   border-radius: 50%;
 }
 
@@ -47,7 +49,7 @@ const emit = defineEmits(['select']);
 }
 
 .calendar-cell.selected {
-  background-color: #F8EFBB; /* 보색 1 */
+  background-color: #f8efbb; /* 보색 1 */
   color: #1d252c;
 }
 

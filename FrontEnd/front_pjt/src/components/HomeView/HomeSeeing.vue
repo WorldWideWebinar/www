@@ -1,3 +1,4 @@
+
 <template>
   <div class="home-container">
     <div class="before-scroll">
@@ -13,8 +14,8 @@
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
-          <button @click="navigateToSignView('signin')" style="margin-right: 50px;">Sign in</button>
-          <button @click="navigateToSignView('signup')">Sign up</button>
+          <button @click="router.push({name:'SignView'})" style="margin-right: 50px;">Sign in</button>
+          <button @click="router.push({name:'SignView'})">Sign up</button>
         </div>
         <div v-else>
           <button @click="router.push({name:'ProfileView'})" style="margin-right: 50px;">My Page</button>
@@ -27,10 +28,8 @@
       </div>
     </div>
     
-
-    <div class="lower" >
-      <!-- 로그인 전 -->
-      <div class="sub-discription carousel my-meeting" v-if="!isLogin">
+    <div class="middle" >
+      <div class="sub-discription carousel my-meeting">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team">
@@ -76,32 +75,24 @@
           <h3 style="font-weight: bolder;">My Meeting</h3>
           <div class="carousel">
             <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide v-for="(item, index) in carouselContent" :key="index">
+              <Slide v-for="(item, index) in sortedCarouselContent" :key="index">
                 <div class="carousel-section">
-                  <h3>{{ item.category }}</h3>
-                  <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
-                    <div class="meeting-detail-left">
-                      <p class="meeting-name">{{ meeting.name }}</p>
-                      <button>IN</button>
+                  <h3>{{ item.agenda }}</h3>
+                  <div class="meeting-details">
+                    <div :class="getMeetingDetailClass(item.date)">
+                      <p class="meeting-name">{{ item.agenda }}</p>
+                      <button v-if="getMeetingDetailClass(item.date) === 'meeting-detail-today'">들어가기</button>
+                      <button v-else>IN</button>
                     </div>
-                    <div class="meeting-detail-today" v-if="item.category!=='TODAY'">
-                      <p class="meeting-date">{{ meeting.date }}</p>
-                      <p class="meeting-time">{{ meeting.time }}</p>
+                    <div class="meeting-date-time">
+                      <p class="meeting-date">{{ item.date }}</p>
+                      <p class="meeting-time">{{ item.time }}</p>
                     </div>
-                    <div class="meeting-detail-right" v-else>
-                      <p class="meeting-date">▶️</p>
-                      <p class="meeting-time"> 들어가기</p>
-                    </div>
-                    <div v-if="item.category==='NEXT'" class="meeting-detail-right">
-                      <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
-                    </div>
-                    <div v-else class="spacer"></div>
                   </div>
                 </div>
               </Slide>
               <template #addons>
                 <Navigation />
-                <!-- <Pagination /> -->
               </template>
             </Carousel>
           </div>
@@ -129,17 +120,15 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
-import { useTeamStore } from '@/stores/teamStore';
 
 const router = useRouter();
 const userStore = useUserStore();
-const teamStore = useTeamStore();
-console.log(teamStore.teams)
+
 const isLogin = computed(() => userStore.isLogin);
 
 const handleSignOut = async () => {
   const result = await userStore.signOut();
-  if (result.success) {
+  if (result.isSuccess) {
     alert('Successfully logged out');
     router.push({ name: 'HomeView' });
   } else {
@@ -152,33 +141,34 @@ watch(isLogin, (newValue) => {
 });
 
 const carouselContent = ref([
-  {
-    category: "TODAY",
-    meetings: [
-      { name: "웹 RTC", date: "2024.07.11", time: "14PM-16PM" },
-      { name: "뱅킹서비스", date: "2024.07.11", time: "14PM-16PM" },
-      { name: "인스타그램", date: "2024.07.11", time: "14PM-16PM" }
-    ]
-  },
-  {
-    category: "NEXT",
-    meetings: [
-      { name: "서비스", date: "2024.09.15", time: "10AM-13PM" },
-      { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" }
-    ]
-  },
-  {
-    category: "PREV",
-    meetings: [
-      { name: "TTS", date: "2024.06.28", time: "10AM-13PM" },
-      { name: "AI 요약", date: "2024.06.22", time: "15PM-16PM" }
-    ]
-  }
+  { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
+  { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
+  { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
+  { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
+  { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
+  { date: '2024-07-30', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
+  { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
+  { date: '2024-07-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
+  { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
+  { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
 ]);
 
-const navigateToSignView = (mode) => {
-  router.push({ name: 'SignView', query: { mode } });
+const getMeetingDetailClass = (meetingDate) => {
+  const today = new Date().toISOString().split('T')[0];
+  const date = new Date(meetingDate).toISOString().split('T')[0];
+
+  if (date === today) {
+    return 'meeting-detail-today';
+  } else if (date < today) {
+    return 'meeting-detail-left';
+  } else {
+    return 'meeting-detail-right';
+  }
 };
+
+const sortedCarouselContent = computed(() => {
+  return carouselContent.value.sort((a, b) => new Date(a.date) - new Date(b.date));
+});
 </script>
 
 
@@ -485,14 +475,15 @@ button:hover {
 
 .meeting-details {
   display: flex;
-  margin: 10px 0;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .meeting-detail-left,
 .meeting-detail-today,
 .meeting-detail-right {
   width: 33%;
+  margin-bottom: 10px;
 }
 
 .meeting-name,
@@ -508,6 +499,17 @@ button:hover {
   text-overflow: ellipsis;
 }
 
+.meeting-detail-left {
+  background-color: lightgrey;
+}
+
+.meeting-detail-today {
+  background-color: yellow;
+}
+
+.meeting-detail-right {
+  background-color: lightgreen;
+}
 /* footer */
 .footer {
   margin: 0 auto;

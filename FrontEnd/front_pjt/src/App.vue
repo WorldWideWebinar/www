@@ -49,6 +49,7 @@
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
     <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+    <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
@@ -61,8 +62,10 @@ import { useTeamStore } from './stores/teamStore';
 import router from './router';
 import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
+import ErrorModal from '@/components/ErrorModal.vue';
+import { useErrorStore } from './stores/errorStore';
 
-
+const errorStore = useErrorStore();
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 const isLogin = computed(() => userStore.isLogin);
@@ -73,6 +76,7 @@ const goingHome = () => {
 };
 
 onMounted(async () => {
+  console.log(userStore.userInfo)
   if (isLogin.value && !hasFetchedUserInfo.value) {
     await userStore.fetchUserInfo(userStore.userId);
     const userInfo = userStore.userInfo;
@@ -93,6 +97,12 @@ const teams = computed(() => teamStore.teams);
 const isChatOpen = ref(false);
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value;
+};
+
+const showError = computed(() => errorStore.showError);
+const errorMessage = computed(() => errorStore.errorMessage);
+const closeError = () => {
+  errorStore.hideError();
 };
 </script>
 
@@ -215,5 +225,27 @@ main {
   flex-grow: 1;
   background-color: #fff;
   margin-left: 70px;
+}
+
+.error-modal .error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error-modal .error-content p {
+  margin: 0 0 10px;
+}
+
+.error-modal .error-content button {
+  padding: 5px 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.error-modal .error-content button:hover {
+  background: #d32f2f;
 }
 </style>
