@@ -5,7 +5,6 @@ import ReadyView from '@/views/ReadyView.vue'
 import ConferenceView from '@/views/ConferenceView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SignView from '@/views/SignView.vue'
-import TeamSearchView from '@/views/TeamSearchView.vue'
 import TeamCreateView from '@/views/TeamCreateView.vue'
 import MeetingCreateView from '@/views/MeetingCreateView.vue'
 
@@ -43,11 +42,6 @@ const router = createRouter({
       path: '/team',
       name: 'Team',
       children: [
-        {
-          path: 'search',
-          name: 'TeamSearchView',
-          component: TeamSearchView,
-        },
         {
           path: 'create',
           name: 'TeamCreateView',

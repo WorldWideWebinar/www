@@ -9,6 +9,7 @@ export const useUserStore = defineStore('user', {
     userInfo: {},
     accessToken: 1, /* 로그인 */
     refreshToken: null,
+    userList: [],
   }),
   getters: {
     isLogin: (state) => !!state.accessToken,
@@ -24,6 +25,22 @@ export const useUserStore = defineStore('user', {
         return userData;
       } catch (error) {
         this.showError('Failed to fetch user info');
+      }
+    },
+
+    async fetchAllUsers(){
+      try {
+        const response = await axiosInstance.get(`api/users`);
+        const users = response.data.result
+        console.log(response.data)
+        this.userList = users.map(user => ({
+          id: user.userId,
+          username: user.id,
+        }));
+        console.log(this.userList);
+        return this.userList;
+      } catch (error) {
+        console.log(error);
       }
     },
 

@@ -1,52 +1,69 @@
 <template>
-  <div class="meeting-creation-wrap">
-    <h2>Create Meeting</h2>
-    <form @submit.prevent="createMeeting">
-      <!-- 위에 팀만 수정하면 됨-->
-      <div class="form-group">
-        <label for="team">Team</label>
-        <select v-model="teamId" required>
-          <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.teamName }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="name">Meeting Name</label>
-        <input type="text" v-model="name" id="name" required />
-      </div>
-      <div class="form-group">
-        <label for="start">Start Time</label>
-        <input type="datetime-local" v-model="start" id="start" required />
-      </div>
-      <div class="form-group">
-        <label for="end">End Time</label>
-        <input type="datetime-local" v-model="end" id="end" required />
-      </div>
-      <div class="form-group">
-        <label for="detail">Details</label>
-        <textarea v-model="detail" id="detail"></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Create Meeting</button>
-    </form>
+  <div class="modal-overlay" @click.self="close">
+    <div class="meeting-creation-wrap">
+      <h2>Create Meeting</h2>
+      <form @submit.prevent="createMeeting">
+        <!-- 위에 팀만 수정하면 됨-->
+        <div class="form-group">
+          <label for="team">Team</label>
+          <!-- <select v-model="teamId" required>
+            <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.teamName }}</option>
+          </select> -->
+          <div>{{ propedTeamId }}</div>
+        </div>
+        <div class="form-group">
+          <label for="name">Meeting Name</label>
+          <input type="text" v-model="name" id="name" required />
+        </div>
+        <div class="form-group">
+          <label for="start">Start Time</label>
+          <input type="datetime-local" v-model="start" id="start" required />
+        </div>
+        <div class="form-group">
+          <label for="end">End Time</label>
+          <input type="datetime-local" v-model="end" id="end" required />
+        </div>
+        <div class="form-group">
+          <label for="detail">Details</label>
+          <textarea v-model="detail" id="detail"></textarea>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary">Create Meeting</button>
+        </div>
+      </form>
+      <button @click="close" class="btn btn-secondary">Close</button>
+    </div>
   </div>
-</template>
+  </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { defineProps } from 'vue';
 import axios from 'axios';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const teams = computed(() => teamStore.teams);
 
-const teamId = ref(null);
+
 const name = ref('');
 const start = ref('');
 const end = ref('');
 const detail = ref('');
 
+const props = defineProps({
+  propedTeamId: {
+    type: Number,
+    required: true
+  }
+});
+
+const teamId = ref(props.propedTeamId);
+
 const createMeeting = async () => {
+
   if (!teamId.value || !name.value || !start.value || !end.value) {
     alert('Please fill out all required fields');
     return;
@@ -65,6 +82,7 @@ const createMeeting = async () => {
 
   meetingStore.addMeeting(newMeeting);
 
+  close();
   // try {
   //   const response = await axios.post('http://localhost:5000/api/meetings', newMeeting);
   //   if (response.data.isSuccess) {
@@ -84,11 +102,31 @@ const createMeeting = async () => {
   //   alert('Error creating meeting');
   // }
 };
+
+const emits = defineEmits(['close']);
+  
+  const close = () => {
+    emits('close');
+  };
 </script>
 
+
 <style scoped>
+ .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
 .meeting-creation-wrap {
-  max-width: 600px;
+  /* max-width: 1200px; */
+  min-width: 600px;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid #ccc;

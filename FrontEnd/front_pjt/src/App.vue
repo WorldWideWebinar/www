@@ -25,7 +25,7 @@
       </ul>
       <div class="add-team">
         <button class="btn btn-add">
-          <RouterLink class="no-decoration" :to="{ name: 'TeamSearchView'}">
+          <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView'}">
             <span>+</span>
           </RouterLink>
         </button>
