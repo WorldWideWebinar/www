@@ -3,6 +3,7 @@ package com.ssafy.globalcc.domain.image.service;
 import com.ssafy.globalcc.domain.image.dto.FileDto;
 import com.ssafy.globalcc.domain.image.exception.NoSuchFileException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ImageServiceImpl implements ImageService{
 
     @Value("${file.uploads-dir}")
@@ -44,6 +46,7 @@ public class ImageServiceImpl implements ImageService{
             String url = UPLOAD_URL + newFileName;
             return url;
         } catch (IOException e) {
+            log.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }
