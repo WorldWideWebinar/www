@@ -2,7 +2,7 @@ package com.ssafy.globalcc.domain.session.controller;
 
 import com.ssafy.globalcc.aop.ApiResponse;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
-import com.ssafy.globalcc.domain.meeting.service.MeetingServiceImpl;
+import com.ssafy.globalcc.domain.meeting.service.MeetingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -39,10 +39,10 @@ public class SessionController {
 
     private OpenVidu openvidu;
 
-    private final MeetingServiceImpl meetingServiceImpl;
+    private final MeetingService meetingService;
 
-    public SessionController(MeetingServiceImpl meetingServiceImpl) {
-        this.meetingServiceImpl = meetingServiceImpl;
+    public SessionController(MeetingService meetingService) {
+        this.meetingService = meetingService;
     }
 
 
@@ -62,7 +62,7 @@ public class SessionController {
                                                @PathVariable("userId") Integer userId,
                                                @RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        Meeting meeting = meetingServiceImpl.findMeetingById(meetingId);
+        Meeting meeting = meetingService.findMeetingById(meetingId);
 
         // 이미 sessionId가 있는지 확인
         if (meeting.getSessionId() != null && !meeting.getSessionId().isEmpty()) {
@@ -70,7 +70,7 @@ public class SessionController {
         }
 
         // 팀장인지 확인
-        if (!meetingServiceImpl.isUserTeamLeader(meetingId, userId)) {
+        if (!meetingService.isUserTeamLeader(meetingId, userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("", "팀장만 세션을 만들 수 있습니다"));
         }
 
@@ -80,7 +80,7 @@ public class SessionController {
         String sessionId = session.getSessionId();
 
         // meeting의 session_id 업데이트
-        meetingServiceImpl.updateMeetingSessionId(meetingId, sessionId);
+        meetingService.updateMeetingSessionId(meetingId, sessionId);
 
         return ResponseEntity.ok(ApiResponse.success(sessionId, "세션 만들기 성공"));
     }
@@ -117,7 +117,7 @@ public class SessionController {
         // 서버 상태 업데이트
         openvidu.fetch();
 
-        Meeting meeting = meetingServiceImpl.findMeetingById(meetingId);
+        Meeting meeting = meetingService.findMeetingById(meetingId);
         if (meeting == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.fail(null, "미팅 정보 찾기 실패"));
@@ -150,9 +150,24 @@ public class SessionController {
         }
 
         // 모든 연결을 삭제했다면 meeting에서 sessionId 값 제거
-        meetingServiceImpl.updateMeetingSessionId(meetingId, null);
+        meetingService.updateMeetingSessionId(meetingId, null);
 
         return ResponseEntity.ok(ApiResponse.success(meetingId, "커넥션 끊기 성공"));
+    }
+
+    /**
+     * Openvidu URL 확인 /api/sessions/check
+     *
+     * @return ResponseEntity
+     */
+    @GetMapping("/check")
+    public ResponseEntity<String> checkOpenviduUrl() {
+        try {
+            this.openvidu.fetch();
+            return new ResponseEntity<>("URL is accessible", HttpStatus.OK);
+        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+            return new ResponseEntity<>("URL is not accessible: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 }
 
