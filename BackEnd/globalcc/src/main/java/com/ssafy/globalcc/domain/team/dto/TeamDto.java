@@ -12,6 +12,7 @@ import java.util.List;
 public class TeamDto {
     private Integer ownerId;
     private String teamName;
+    private String emoji;
     private List<String> userList;
 
 }

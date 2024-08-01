@@ -45,6 +45,7 @@ public class TeamServiceImpl implements TeamService{
         Team team = new Team();
         team.setName(dto.getTeamName());
         team.setOwner(owner);
+        team.setEmoji(dto.getEmoji());
         team = teamRepository.save(team);
         log.debug("saved team: {}", team);
         Team finalTeam = team;
