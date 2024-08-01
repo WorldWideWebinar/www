@@ -8,12 +8,7 @@ import argparse
 
 import websockets.connection
 import whisper_online
-import soundfile
-import librosa
-import numpy as np
-import io
 
-import uuid
 import json
 import translator
 import threading
@@ -116,6 +111,7 @@ async def connect_from_ai_to_client(server_socket : WebSocket, websocket : WebSo
             recv = await server_socket.recv()
             logging.debug(f"get message form ai server : {recv}")
             message = json.loads(recv)
+
             await websocket.send_json(message)
     except Exception as e:
         logging.error(f"Error on connection_from_ai_to_client : {e}")
