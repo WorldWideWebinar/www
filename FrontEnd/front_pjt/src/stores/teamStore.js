@@ -40,11 +40,14 @@ export const useTeamStore = defineStore('team', {
     },
     
     async createTeam(teamName, ownerId, emoji, userList) {
+      const userStore = useUserStore()
+      const currentUserId = userStore.id;
+      userList.push(currentUserId);
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
-        if (response.data.isSuccess) {
-          const teamId = response.data.result.teamId;
-          this.teams.push({ id: teamId, teamName, ownerId, userList, icon: '🆕', meetingList: [] });
+        if (response.data.success) {
+          const teamId = response.data.result;
+          this.teams.push({ id: teamId, teamName, ownerId, userList, icon: emoji, meetingList: [] });
         } else {
           console.error('Failed to create team:', response.data.message);
         }

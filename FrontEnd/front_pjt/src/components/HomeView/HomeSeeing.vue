@@ -222,7 +222,9 @@ onMounted(async () => {
   console.log('isLogin:', isLogin.value)
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
+  console.log(userStore.userId)
   if (userStore.userId != 0) {
+    console.log('소속 팀 목록' , userStore.userInfo.teamList)
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)

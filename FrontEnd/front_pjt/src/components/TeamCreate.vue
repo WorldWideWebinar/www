@@ -47,7 +47,7 @@
     </div>
     <div>
       <button
-        @click="createTeam"
+        @click="handleCreateTeam"
         class="btn btn-success"
         style="margin: auto; justify-content: center; display: flex"
       >
@@ -58,7 +58,6 @@
   <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
   <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/userStore'
@@ -101,11 +100,7 @@ const handleInput = () => {
 }
 
 const searchUsers = () => {
-  if (filteredUsers.value.length) {
-    showUsers.value = true
-  } else {
-    showUsers.value = false
-  }
+  showUsers.value = filteredUsers.value.length > 0
 }
 
 const selectUser = (user) => {
@@ -117,23 +112,22 @@ const selectUser = (user) => {
 }
 
 const removeUser = (userId) => {
-  console.log('removeUser userID', userId)
-  console.log('removeUser selectedusers value', selectedUsers.value)
   selectedUsers.value = selectedUsers.value.filter((user) => user.id !== userId)
 }
 
-const createTeam = async () => {
+const handleCreateTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
     const userIds = selectedUsers.value.map((user) => user.id)
-    const ownerId = userStore.userId // 사용자 ID를 현재 로그인한 사용자로 설정
-    console.log(JSON.stringify(userIds))
-    console.log(ownerId)
-    console.log(teamName.value)
-    await teamStore.createTeam(teamName.value, ownerId, selectedIcon, userIds)
-    // Reset fields
-    teamName.value = ''
-    selectedUsers.value = []
-    selectedIcon.value = '🚀'
+    const ownerId = userStore.userId
+    try {
+      await teamStore.createTeam(teamName.value, ownerId, selectedIcon.value, userIds)
+      // Reset fields
+      teamName.value = ''
+      selectedUsers.value = []
+      selectedIcon.value = '🚀'
+    } catch (error) {
+      errorStore.showError('Failed to create team.')
+    }
   } else {
     errorStore.showError('Please enter a team name, select users, and choose an icon.')
   }
@@ -144,7 +138,7 @@ const showProfile = (user) => {
   showProfileModal.value = true
 }
 </script>
-
+요약
 <style scoped>
 .team-creation-wrap {
   max-width: 600px;
