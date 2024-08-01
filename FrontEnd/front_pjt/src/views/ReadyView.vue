@@ -278,6 +278,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
+import { useMeetingStore } from '@/stores/meetingStore';
 import axios from 'axios';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 
@@ -306,115 +307,6 @@ const members = ref([
   { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
   { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
 ]);
-const meetings = ref([
-  {
-    date: '2024-11-15',
-    agenda: '현대자동차',
-    status: 'IN',
-    description: 'Detailed description of 현대자동차',
-    time: '13PM-16PM',
-    members: 7,
-    files: [
-      { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-10-29',
-    agenda: '현대오토에버',
-    status: 'IN',
-    description: 'Detailed description of 현대오토에버',
-    time: '8AM-11AM',
-    members: 3,
-    files: [
-      { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-10-05',
-    agenda: '현대케피코',
-    status: 'IN',
-    description: 'Detailed description of 현대케피코',
-    time: '16PM-18PM',
-    members: 5,
-    files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
-  },
-  {
-    date: '2024-09-15',
-    agenda: '뱅킹 서비스',
-    status: 'OUT',
-    description: 'Detailed description of 뱅킹 서비스',
-    time: '8AM-10AM',
-    members: 8,
-    files: [
-      { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
-      { name: 'services.png', link: '#', uploader: 'Robert' }
-    ]
-  },
-  {
-    date: '2024-08-26',
-    agenda: '인스타그램',
-    status: 'OUT',
-    description: 'Detailed description of 인스타그램',
-    time: '11AM-13PM',
-    members: 5,
-    files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
-  },
-  {
-    date: '2024-07-30',
-    agenda: '웹 RTC',
-    status: 'IN',
-    description: 'Detailed description of 웹 RTC',
-    time: '15PM-17PM',
-    members: 4,
-    files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
-  },
-  {
-    date: '2024-06-28',
-    agenda: 'TTS',
-    status: 'IN',
-    description: 'Detailed description of TTS',
-    time: '14PM-16PM',
-    members: 6,
-    files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
-    summary: '/path/to/tts_summary.pdf',
-    record: '/path/to/tts_record.pdf'
-  },
-  {
-    date: '2024-07-23',
-    agenda: 'AI 요약',
-    status: 'OUT',
-    description: 'Detailed description of AI 요약',
-    time: '17PM-18PM',
-    members: 4,
-    files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
-    summary: '/path/to/ai_summary.pdf',
-    record: '/path/to/ai_record.pdf'
-  },
-  {
-    date: '2024-06-13',
-    agenda: 'STT',
-    status: 'IN',
-    description: 'Detailed description of STT',
-    time: '20PM-22PM',
-    members: 7,
-    files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
-    summary: '/path/to/stt_summary.pdf',
-    record: '/path/to/stt_record.pdf'
-  },
-  {
-    date: '2024-05-14',
-    agenda: '다국어 화상회의',
-    status: 'IN',
-    description: 'Detailed description of 다국어화상회의',
-    time: '11AM-15PM',
-    members: 4,
-    files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
-    summary: '/path/to/다국어 화상회의_summary.pdf',
-    record: '/path/to/다국어 화상회의_record.pdf'
-  }
-]);
 
 const isOwner = ref(false);
 const previewUrl = ref(null);
@@ -423,6 +315,7 @@ const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
+const meetingStore = useMeetingStore()
 
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];

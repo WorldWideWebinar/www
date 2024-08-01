@@ -143,13 +143,15 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import { useTeamStore } from '@/stores/teamStore'
 import 'vue3-carousel/dist/carousel.css'
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
 
 const router = useRouter()
 const userStore = useUserStore()
-
+const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
+const teams = computed(() => teamStore.teams)
 
 const handleSignOut = async () => {
   const result = await userStore.signOut()
@@ -166,16 +168,16 @@ watch(isLogin, (newValue) => {
 })
 
 const meetings = ref([
-  { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
-  { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
-  { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
-  { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
-  { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
-  { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
-  { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
-  { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
-  { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
-  { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
+  // { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
+  // { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
+  // { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
+  // { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
+  // { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
+  // { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
+  // { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
+  // { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
+  // { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
+  // { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
 ])
 
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
@@ -216,12 +218,16 @@ const slideClass = (group) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   console.log('isLogin:', isLogin.value)
-  console.log('meetings:', meetings.value)
-  console.log('meetings 개수:', meetings.value.length)
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
+
+  const teamList = userStore.userInfo.teamList || []
+  for (const teamId of teamList) {
+    await teamStore.fetchTeamById(teamId)
+  }
+  console.log('Teams:', teams.value)
 })
 </script>
 
