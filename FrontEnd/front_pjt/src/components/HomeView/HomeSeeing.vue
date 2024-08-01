@@ -222,17 +222,18 @@ onMounted(async () => {
   console.log('isLogin:', isLogin.value)
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
-
+  if (userStore.userId != 0) {
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)
   }
   console.log('Teams:', teams.value)
+  }
 })
 </script>
 
 <style scoped>
-.home-container {
+.home-container { 
   margin: 0px auto;
   width: 100%;
   position: relative;

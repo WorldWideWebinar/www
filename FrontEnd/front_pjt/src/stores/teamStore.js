@@ -39,9 +39,9 @@ export const useTeamStore = defineStore('team', {
       this.teams.push(team);
     },
     
-    async createTeam(teamName, ownerId, userList) {
+    async createTeam(teamName, ownerId, emoji, userList) {
       try {
-        const response = await axiosInstance.post('api/teams', { teamName, ownerId, userList });
+        const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
         if (response.data.isSuccess) {
           const teamId = response.data.result.teamId;
           this.teams.push({ id: teamId, teamName, ownerId, userList, icon: '🆕', meetingList: [] });

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useUserStore } from './stores/userStore';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://i11a501.p.ssafy.io:443/',
+  baseURL: 'https://i11a501.p.ssafy.io/',
 });
 
 axiosInstance.interceptors.request.use(

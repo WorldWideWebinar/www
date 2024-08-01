@@ -129,7 +129,7 @@ const createTeam = async () => {
     console.log(JSON.stringify(userIds))
     console.log(ownerId)
     console.log(teamName.value)
-    await teamStore.createTeam(teamName.value, ownerId, userIds)
+    await teamStore.createTeam(teamName.value, ownerId, selectedIcon, userIds)
     // Reset fields
     teamName.value = ''
     selectedUsers.value = []

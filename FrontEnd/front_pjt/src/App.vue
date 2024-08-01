@@ -111,6 +111,7 @@ const closeError = () => {
 }
 
 .sidebar {
+  
   width: 70px;
   height: 100vh;
   background-color: #f3e5f5;
