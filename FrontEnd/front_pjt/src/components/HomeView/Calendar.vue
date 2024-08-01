@@ -30,73 +30,76 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useUserStore } from '@/stores/userStore';
-import CalendarCard from './CalendarCard.vue';
-import CalendarCell from './CalendarCell.vue';
-import dayjs from 'dayjs';
+import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import CalendarCard from './CalendarCard.vue'
+import CalendarCell from './CalendarCell.vue'
+import dayjs from 'dayjs'
 
-const userStore = useUserStore();
-const currentMonth = ref(dayjs().startOf('month'));
-const selectedDate = ref(null);
+const userStore = useUserStore()
+const currentMonth = ref(dayjs().startOf('month'))
+const selectedDate = ref(null)
 
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const calendarDays = computed(() => {
-  const startOfMonth = currentMonth.value.startOf('month');
-  const endOfMonth = currentMonth.value.endOf('month');
-  const startDate = startOfMonth.startOf('week');
-  const endDate = endOfMonth.endOf('week');
-  
-  const days = [];
-  let date = startDate;
-  
+  const startOfMonth = currentMonth.value.startOf('month')
+  const endOfMonth = currentMonth.value.endOf('month')
+  const startDate = startOfMonth.startOf('week')
+  const endDate = endOfMonth.endOf('week')
+
+  const days = []
+  let date = startDate
+
   while (date.isBefore(endDate, 'day')) {
-    const week = [];
+    const week = []
     for (let i = 0; i < 7; i++) {
       week.push({
         date: date.clone(),
         currentMonth: date.isSame(currentMonth.value, 'month')
-      });
-      date = date.add(1, 'day');
+      })
+      date = date.add(1, 'day')
     }
-    days.push(week);
+    days.push(week)
   }
-  return days;
-});
+  return days
+})
 
 const selectedMeetings = computed(() => {
-  if (!selectedDate.value || !userStore.meetings) return [];
-  return userStore.meetings.filter(meeting =>
-    dayjs(meeting.start_at).format('YYYY-MM-DD') === selectedDate.value.format('YYYY-MM-DD')
-  );
-});
+  if (!selectedDate.value || !userStore.meetings) return []
+  return userStore.meetings.filter(
+    (meeting) =>
+      dayjs(meeting.start_at).format('YYYY-MM-DD') === selectedDate.value.format('YYYY-MM-DD')
+  )
+})
 
 onMounted(async () => {
-  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-  console.log('Meetings:', userStore.meetings); // 디버깅용
-});
+  console.log('Meetings:', userStore.meetings) // 디버깅용
+})
 
 function selectDay(day) {
-  selectedDate.value = day.date;
+  selectedDate.value = day.date
 }
 
 function isSelected(day) {
-  return selectedDate.value && selectedDate.value.isSame(day.date, 'day');
+  return selectedDate.value && selectedDate.value.isSame(day.date, 'day')
 }
 
 function hasMeeting(date) {
-  return userStore.meetings && userStore.meetings.some(meeting => 
-    dayjs(meeting.start_at).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
-  );
+  return (
+    userStore.meetings &&
+    userStore.meetings.some(
+      (meeting) => dayjs(meeting.start_at).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
+    )
+  )
 }
 
 function previousMonth() {
-  currentMonth.value = currentMonth.value.subtract(1, 'month');
+  currentMonth.value = currentMonth.value.subtract(1, 'month')
 }
 
 function nextMonth() {
-  currentMonth.value = currentMonth.value.add(1, 'month');
+  currentMonth.value = currentMonth.value.add(1, 'month')
 }
 </script>
 <style scoped>
@@ -136,7 +139,7 @@ function nextMonth() {
 }
 
 .nav-button {
-  background-color: #BBE8F8; /* 보색 2 */
+  background-color: #bbe8f8; /* 보색 2 */
   color: #1d252c;
   border: none;
   padding: 10px 20px;
@@ -145,7 +148,7 @@ function nextMonth() {
 }
 
 .nav-button:hover {
-  background-color: #A0D1E0; /* 보색 2 음영 */
+  background-color: #a0d1e0; /* 보색 2 음영 */
 }
 
 .calendar {
@@ -187,12 +190,12 @@ function nextMonth() {
   right: 5px;
   width: 8px;
   height: 8px;
-  background-color: #F8EFBB; /* 보색 1 */
+  background-color: #f8efbb; /* 보색 1 */
   border-radius: 50%;
 }
 
 .calendar-cell.selected {
-  background-color: #F8EFBB; /* 보색 1 */
+  background-color: #f8efbb; /* 보색 1 */
   color: #1d252c;
 }
 
@@ -201,4 +204,3 @@ function nextMonth() {
   color: #1d252c;
 }
 </style>
-

@@ -12,7 +12,20 @@ export const useTeamStore = defineStore('team', {
     async fetchTeamById(teamId) {
       try {
         const response = await axiosInstance.get(`api/teams/${teamId}`);
-        return response.data;
+        const teamData = response.data;
+        console.log('Teamdata', teamData)
+        const teamExists = this.teams.some(team => team.id === teamId);
+        if (!teamExists) {
+          this.teams.push({
+            id: teamId, // 추가된 ID 필드
+            ...teamData
+          });
+        } else {
+          console.log(`Team with id ${teamData.id} already exists in the store`);
+        }
+
+        return teamData;
+        
       } catch (error) {
         console.error(`Failed to fetch team ${teamId}:`, error);
         return null;

@@ -25,7 +25,8 @@
     "pinia-plugin-persistedstate": "^3.2.1",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3",
-    "vue3-carousel": "^0.3.3"
+    "vue3-carousel": "^0.3.3",
+    "websocket": "^1.0.35"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",

@@ -8,16 +8,20 @@
           <div class="title"><span class="w">W</span>ebinar</div>
         </div>
         <div class="main-image">
-          <img class="main-character" src="@/assets/img/main_logo.png" alt="logo">
+          <img class="main-character" src="@/assets/img/main_logo.png" alt="logo" />
         </div>
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
-          <button @click="navigateToSignView('signin')" style="margin-right: 50px;">Sign in</button>
-          <button @click="navigateToSignView('signup')">Sign up</button>
+          <button @click="router.push({ name: 'SignView' })" style="margin-right: 50px">
+            Sign in
+          </button>
+          <button @click="router.push({ name: 'SignView' })">Sign up</button>
         </div>
         <div v-else>
-          <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px;">My Page</button>
+          <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
+            My Page
+          </button>
           <button @click="handleSignOut">Log Out</button>
         </div>
       </div>
@@ -27,23 +31,25 @@
       </div>
     </div>
 
-
-    <div class="lower">
-      <!-- 로그인 전 -->
-      <div class="sub-discription carousel my-meeting" v-if="!isLogin">
+    <div class="middle">
+      <div class="sub-discription carousel my-meeting">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
-          <img class="plus-image" src="../../assets/img/team.png" alt="team">
+          <img class="plus-image" src="../../assets/img/team.png" alt="team" />
           <div class="plus-detail">
-            <p>Our platform offers seamless team management capabilities, allowing you to effortlessly organize,
-              schedule, and manage virtual meetings.</p>
-            <p>Collaborate with your team members in real-time, assign roles, and keep track of meeting progress and
-              outcomes.</p>
+            <p>
+              Our platform offers seamless team management capabilities, allowing you to
+              effortlessly organize, schedule, and manage virtual meetings.
+            </p>
+            <p>
+              Collaborate with your team members in real-time, assign roles, and keep track of
+              meeting progress and outcomes.
+            </p>
           </div>
         </div>
         <div class="discription">
           <p class="plus">Multi-Lingual Translation</p>
-          <img class="plus-image" src="../../assets/img/translation.png" alt="translation">
+          <img class="plus-image" src="../../assets/img/translation.png" alt="translation" />
           <div class="plus-detail">
             <p>Break language barriers with our instant, multi-lingual, real-time translation.</p>
             <table class="language-table">
@@ -64,12 +70,16 @@
         </div>
         <div class="discription">
           <p class="plus">Real-Time Conference</p>
-          <img class="plus-image" src="../../assets/img/conference.png" alt="conference">
+          <img class="plus-image" src="../../assets/img/conference.png" alt="conference" />
           <div class="plus-detail">
-            <p>Experience seamless real-time video conferencing with our platform, which ensures high-quality video and
-              audio for uninterrupted communication.</p>
-            <p>Engage with participants through interactive features such as screen sharing, chat, and virtual
-              whiteboards.</p>
+            <p>
+              Experience seamless real-time video conferencing with our platform, which ensures
+              high-quality video and audio for uninterrupted communication.
+            </p>
+            <p>
+              Engage with participants through interactive features such as screen sharing, chat,
+              and virtual whiteboards.
+            </p>
           </div>
         </div>
       </div>
@@ -77,35 +87,41 @@
       <!-- 로그인 후 -->
       <div class="lower" v-if="isLogin">
         <div class="my-meeting">
-          <h3 style="font-weight: bolder;">My Meeting</h3>
-          <div class="carousel">
-            <Carousel :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide v-for="(item, index) in carouselContent" :key="index">
-                <div class="carousel-section">
-                  <h3>{{ item.category }}</h3>
-                  <div class="meeting-details" v-for="(meeting, idx) in item.meetings" :key="idx">
-                    <div class="meeting-detail-left">
-                      <p class="meeting-name">{{ meeting.name }}</p>
-                      <button>IN</button>
-                    </div>
-                    <div class="meeting-detail-today" v-if="item.category !== 'TODAY'">
-                      <p class="meeting-date">{{ meeting.date }}</p>
-                      <p class="meeting-time">{{ meeting.time }}</p>
-                    </div>
-                    <div class="meeting-detail-right" v-else>
-                      <p class="meeting-date">▶️</p>
-                      <p class="meeting-time"> 들어가기</p>
-                    </div>
-                    <div v-if="item.category === 'NEXT'" class="meeting-detail-right">
-                      <p class="go_detail" @click="router.push()">> details</p> <!-- 여기서 저장 되어 있는 미팅 그룹의 아이디로 들어간다.-->
-                    </div>
-                    <div v-else class="spacer"></div>
-                  </div>
+          <h3 style="font-weight: bolder">My Meetings</h3>
+
+          <div v-if="!meetings.length">
+            <p>회의 없음.</p>
+          </div>
+          <div v-else class="carousel">
+            <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
+              <Slide
+                v-for="(item, index) in groupedMeetings"
+                :key="index"
+                class="slide"
+                :class="slideClass(index)"
+              >
+                <div class="meeting-type">{{ index }} Meetings</div>
+                <div class="meeting-table-container">
+                  <table class="meeting-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Agenda</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(meeting, idx) in item" :key="idx">
+                        <td>{{ meeting.date }}</td>
+                        <td>{{ meeting.time }}</td>
+                        <td>{{ meeting.agenda }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </Slide>
               <template #addons>
                 <Navigation />
-                <!-- <Pagination /> -->
               </template>
             </Carousel>
           </div>
@@ -113,126 +129,101 @@
       </div>
     </div>
 
-    <!-- footer  -->
+    <!-- footer -->
     <div class="footer">
       <div class="sub-footer">
         <p class="www">World Wide Webinar</p>
         <p class="copy-right">© 2024 All Rights Reserved.</p>
       </div>
-      <!-- <div class="sub-footer">
-        <p class="team-name">주영 업고 튀어</p>
-        <p class="team-member">권용수 | 김수빈 | 박준영 | 이선재 | 주연수</p>
-      </div> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore';
-import 'vue3-carousel/dist/carousel.css';
-import { Carousel, Slide, Pagination, Navigation } from 'vue3-carousel';
-import { useTeamStore } from '@/stores/teamStore';
-import dayjs from 'dayjs';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import 'vue3-carousel/dist/carousel.css'
+import { Carousel, Slide, Navigation } from 'vue3-carousel'
 
-const router = useRouter();
-const userStore = useUserStore();
-const teamStore = useTeamStore();
-console.log(teamStore.teams)
-const isLogin = computed(() => userStore.isLogin);
+const router = useRouter()
+const userStore = useUserStore()
+
+const isLogin = computed(() => userStore.isLogin)
 
 const handleSignOut = async () => {
-  const result = await userStore.signOut();
+  const result = await userStore.signOut()
   if (result.success) {
-    alert('Successfully logged out');
-    router.push({ name: 'HomeView' });
+    alert('Successfully logged out')
+    router.push({ name: 'HomeView' })
   } else {
-    alert(`Logout failed: ${result.message}`);
+    alert(`Logout failed: ${result.message}`)
   }
-};
+}
 
 watch(isLogin, (newValue) => {
-  console.log('isLogin changed:', newValue);
-});
-
-// const carouselContent = ref([
-//   {
-//     category: "TODAY",
-//     meetings: [
-//       { name: "웹 RTC", date: "2024.07.11", time: "14PM-16PM" },
-//       { name: "뱅킹서비스", date: "2024.07.11", time: "14PM-16PM" },
-//       { name: "인스타그램", date: "2024.07.11", time: "14PM-16PM" }
-//     ]
-//   },
-//   {
-//     category: "NEXT",
-//     meetings: [
-//       { name: "서비스", date: "2024.09.15", time: "10AM-13PM" },
-//       { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" }
-//     ]
-//   },
-//   {
-//     category: "PREV",
-//     meetings: [
-//       { name: "TTS", date: "2024.06.28", time: "10AM-13PM" },
-//       { name: "AI 요약", date: "2024.06.22", time: "15PM-16PM" }
-//     ]
-//   }
-// ]);
-
-const meetingContent = ref([
-  {
-    meetings: [
-      { name: "웹 RTC", date: "2024.07.11", time: "14PM-16PM" },
-      { name: "뱅킹서비스", date: "2024.07.11", time: "14PM-16PM" },
-      { name: "인스타그램", date: "2024.07.31", time: "14PM-16PM" },
-      { name: "서비스", date: "2024.09.15", time: "10AM-13PM" },
-      { name: "AI 개발", date: "2024.08.26", time: "15PM-16PM" },
-      { name: "TTS", date: "2024.06.28", time: "10AM-13PM" },
-      { name: "AI 요약", date: "2024.06.22", time: "15PM-16PM" }
-    ]
-  }
-])
-
-const carouselContent = ref([
-  {
-    category : "TODAY",
-    meetings : []
-  },
-  {
-    category : "NEXT",
-    meetings : []
-  },
-  {
-    category : "PREV",
-    meetings : []
-  }
-]);
-
-const categorizeMeetings = () => {
-  const today = dayjs().format('YYYY.MM.DD');
-  meetingContent.value[0].meetings.forEach(meeting => {
-    if (meeting.date === today) {
-      carouselContent.value[0].meetings.push(meeting);
-    } else if (dayjs(meeting.date).isBefore(today)) {
-      carouselContent.value[2].meetings.push(meeting);
-    } else {
-      carouselContent.value[1].meetings.push(meeting);
-    }
-  });
-};
-
-onMounted(()=>{
-categorizeMeetings();
-// console.log(carouselContent.value)
+  console.log('isLogin changed:', newValue)
 })
 
-const navigateToSignView = (mode) => {
-  router.push({ name: 'SignView', query: { mode } });
-};
-</script>
+const meetings = ref([
+  { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
+  { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
+  { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
+  { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
+  { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
+  { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
+  { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
+  { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
+  { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
+  { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
+])
 
+const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
+
+const carouselReady = ref(false)
+
+const groupMeetings = () => {
+  const groups = {
+    TODAY: [],
+    NEXT: [],
+    PREV: []
+  }
+  const today = new Date().toISOString().split('T')[0]
+  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
+  sortedMeetings.forEach((meeting) => {
+    if (meeting.date === today) {
+      groups.TODAY.push(meeting)
+    } else if (meeting.date > today) {
+      groups.NEXT.push(meeting)
+    } else {
+      groups.PREV.push(meeting)
+    }
+  })
+  groupedMeetings.value = groups
+  carouselReady.value = true
+}
+
+const slideClass = (group) => {
+  switch (group) {
+    case 'PREV':
+      return 'slide-prev'
+    case 'TODAY':
+      return 'slide-today'
+    case 'NEXT':
+      return 'slide-next'
+    default:
+      return ''
+  }
+}
+
+onMounted(() => {
+  console.log('isLogin:', isLogin.value)
+  console.log('meetings:', meetings.value)
+  console.log('meetings 개수:', meetings.value.length)
+  groupMeetings()
+  console.log(groupedMeetings.value.NEXT.key)
+})
+</script>
 
 <style scoped>
 .home-container {
@@ -316,43 +307,33 @@ const navigateToSignView = (mode) => {
   0% {
     transform: translate(1px, 1px) rotate(0deg);
   }
-
   10% {
     transform: translate(-1px, -2px) rotate(-1deg);
   }
-
   20% {
     transform: translate(-3px, 0px) rotate(1deg);
   }
-
   30% {
     transform: translate(3px, 2px) rotate(0deg);
   }
-
   40% {
     transform: translate(1px, -1px) rotate(1deg);
   }
-
   50% {
     transform: translate(-1px, 2px) rotate(-1deg);
   }
-
   60% {
     transform: translate(-3px, 1px) rotate(0deg);
   }
-
   70% {
     transform: translate(3px, 1px) rotate(-1deg);
   }
-
   80% {
     transform: translate(-1px, -1px) rotate(1deg);
   }
-
   90% {
     transform: translate(1px, 2px) rotate(0deg);
   }
-
   100% {
     transform: translate(1px, -2px) rotate(-1deg);
   }
@@ -386,7 +367,6 @@ button:hover {
   background-color: #b380bc;
 }
 
-
 /* scroll */
 .scroll {
   position: absolute;
@@ -412,7 +392,7 @@ button:hover {
   height: 8px;
   background-color: black;
   border-radius: 50%;
-  animation: bounce .65s infinite alternate cubic-bezier(.1, .49, .42, .99);
+  animation: bounce 0.65s infinite alternate cubic-bezier(0.1, 0.49, 0.42, 0.99);
 }
 
 @keyframes bounce {
@@ -496,10 +476,9 @@ button:hover {
 }
 
 .language-table td:hover {
-  background-color: #FEF7FF;
+  background-color: #fef7ff;
   cursor: pointer;
 }
-
 
 /* 로그인 후 */
 .lower {
@@ -521,14 +500,28 @@ button:hover {
 /* carousel */
 .carousel {
   margin: 50px auto;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__slide {
   padding: 5px;
+  margin: 0 10px; /* 좌우 간격 추가 */
+  background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
+  width: 200px; /* 슬라이드의 너비 설정 */
+  height: 300px; /* 슬라이드의 높이 설정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  transform: rotateY(-20deg) scale(0.9);
 }
 
 .carousel__viewport {
   perspective: 2000px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .carousel__track {
@@ -539,12 +532,7 @@ button:hover {
   transition: 0.5s;
 }
 
-.carousel__slide {
-  opacity: 0.9;
-  transform: rotateY(-20deg) scale(0.9);
-}
-
-.carousel__slide--active~.carousel__slide {
+.carousel__slide--active ~ .carousel__slide {
   transform: rotateY(20deg) scale(0.9);
 }
 
@@ -563,37 +551,78 @@ button:hover {
   transform: rotateY(0) scale(1.1);
 }
 
-.carousel-section {
-  padding: 20px;
-  background-color: #fce9ff;
-  height: 250px;
-  width: 400px;
-  border-radius: 30px;
+/* .slide {
+  width: 30%;
+} */
+
+.slide-today {
+  background-color: rgb(253, 218, 223);
+}
+
+.meeting-type {
+  text-align: center;
+  font-weight: bolder;
+  margin-bottom: 10px;
 }
 
 .meeting-details {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.meeting-table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.meeting-table {
+  width: 90%; /* 테이블을 가운데로 정렬하기 위해 90%로 설정 */
+  font-size: 0.6rem;
+  border-collapse: collapse;
   margin: 10px 0;
-  justify-content: space-between;
 }
 
-.meeting-detail-left,
-.meeting-detail-today,
-.meeting-detail-right {
-  width: 33%;
+.meeting-table tbody {
+  max-height: 100px;
+  overflow-y: scroll;
 }
 
-.meeting-name,
-.meeting-date,
-.meeting-time {
-  font-size: 14px;
-  margin: 5px 0;
+.meeting-table tbody::-webkit-scrollbar {
+  width: 0;
+  /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent;
+  /* 스크롤바 배경을 투명하게 설정 */
 }
 
-.meeting-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.meeting-table tr {
+  display: table;
+  width: calc(100% - 1rem);
+  /* 테이블 너비를 100%에서 약간 줄임 */
+  table-layout: fixed;
+}
+
+.meeting-table th,
+.meeting-table td {
+  border: 1px solid #000000;
+  padding: 8px;
+  text-align: center;
+}
+
+.meeting-table th:nth-child(1),
+.meeting-table td:nth-child(1) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(2),
+.meeting-table td:nth-child(2) {
+  width: 25%;
+}
+
+.meeting-table th:nth-child(3),
+.meeting-table td:nth-child(3) {
+  width: auto;
 }
 
 /* footer */
@@ -601,7 +630,7 @@ button:hover {
   margin: 0 auto;
   background-color: rgba(211, 211, 211, 0.2);
   text-align: center;
-  color: #8A8F95;
+  color: #8a8f95;
   font-size: 0.7rem;
 }
 
@@ -637,8 +666,18 @@ button:hover {
     display: none;
   }
 
+  .slide-prev,
+  .slide-next {
+    display: none;
+  }
+
   .carousel__slide {
     display: none;
+  }
+
+  .slide-today {
+    display: flex !important; /* Today Meetings 슬라이드를 flex로 표시 */
+    transform: rotateY(0) scale(1); /* 3D 효과 제거 */
   }
 }
 </style>

@@ -6,8 +6,8 @@
 </template>
 
 <script setup>
-import Calendar from '@/components/Calendar.vue';
-import ProfileCard from '@/components/ProfileCard.vue';
+import Calendar from '@/components/HomeView/Calendar.vue';
+import ProfileCard from '@/components/HomeView/ProfileCard.vue';
 </script>
 
 <style scoped>

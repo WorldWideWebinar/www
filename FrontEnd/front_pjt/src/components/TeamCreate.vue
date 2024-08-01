@@ -1,5 +1,5 @@
 <template>
-  <div style="text-align: center; margin: auto;">임시</div>
+  <div style="text-align: center; margin: auto">임시</div>
   <div class="team-creation-wrap">
     <div class="team-info">
       <input type="text" v-model="teamName" placeholder="Enter team name" class="team-input" />
@@ -22,11 +22,16 @@
         </button>
       </div>
       <ul v-if="showUsers && filteredUsers.length" class="results">
-        <li v-for="user in filteredUsers" :key="user.id" class="showingResult" @click="selectUser(user)">
-          <div class="user-info">
-            {{ user.username }} ({{ user.email }})
-          </div>
-          <button @click="selectUser(user)" style="float: right;" class="btn btn-primary">select</button>
+        <li
+          v-for="user in filteredUsers"
+          :key="user.userId"
+          class="showingResult"
+          @click="selectUser(user)"
+        >
+          <div class="user-info">{{ user.id }}</div>
+          <button @click="selectUser(user)" style="float: right" class="btn btn-primary">
+            select
+          </button>
         </li>
       </ul>
     </div>
@@ -34,93 +39,111 @@
       <h3>Selected Users:</h3>
       <ul>
         <li v-for="user in selectedUsers" :key="user.id">
-          {{ user.username }}
+          {{ user.id }}
           <button class="btn btn-primary" @click="showProfile(user)">프로필 보기</button>
           <button @click="removeUser(user.id)" class="btn btn-secondary">Remove</button>
         </li>
       </ul>
     </div>
     <div>
-      <button @click="createTeam" class="btn btn-success" style="margin: auto; justify-content: center; display: flex;">Create Team</button>
+      <button
+        @click="createTeam"
+        class="btn btn-success"
+        style="margin: auto; justify-content: center; display: flex"
+      >
+        Create Team
+      </button>
     </div>
   </div>
   <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
+  <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useUserStore } from '@/stores/userStore';
-import { useTeamStore } from '@/stores/teamStore';
-import ProfileModal from '@/components/ProfileModal.vue';
+import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { useTeamStore } from '@/stores/teamStore'
+import { useErrorStore } from '@/stores/errorStore'
+import ProfileModal from '@/components/ProfileModal.vue'
+import ErrorModal from '@/components/ErrorModal.vue'
 
-const userStore = useUserStore();
-const teamStore = useTeamStore();
-const searchQuery = ref('');
-const showUsers = ref(false);
-const showProfileModal = ref(false);
-const selectedUser = ref(null);
-const selectedUsers = ref([]);
-const teamName = ref('');
-const selectedIcon = ref('🚀');
-const icons = ['🚀', '💻', '💼', '📈', '🆕'];
+const userStore = useUserStore()
+const teamStore = useTeamStore()
+const errorStore = useErrorStore()
+
+const searchQuery = ref('')
+const showUsers = ref(false)
+const showProfileModal = ref(false)
+const selectedUser = ref(null)
+const selectedUsers = ref([])
+const teamName = ref('')
+const selectedIcon = ref('🚀')
+const icons = ['🚀', '💻', '💼', '📈', '🆕']
+
+const showError = computed(() => errorStore.showError)
+const errorMessage = computed(() => errorStore.errorMessage)
+const closeError = () => {
+  errorStore.hideError()
+}
 
 onMounted(async () => {
-  await userStore.fetchAllUsers();
-});
+  await userStore.fetchAllUsers()
+})
 
 const filteredUsers = computed(() =>
-  userStore.userList.filter(user => 
-    user.username.toLowerCase().includes(searchQuery.value.toLowerCase())
+  userStore.userList.filter((user) =>
+    user.id.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
-);
+)
 
 const handleInput = () => {
-  showUsers.value = searchQuery.value.length > 0;
-};
+  showUsers.value = searchQuery.value.length > 0
+}
 
 const searchUsers = () => {
   if (filteredUsers.value.length) {
-    showUsers.value = true;
+    showUsers.value = true
   } else {
-    showUsers.value = false;
+    showUsers.value = false
   }
-};
+}
 
 const selectUser = (user) => {
   if (!selectedUsers.value.includes(user)) {
-    selectedUsers.value.push(user);
+    selectedUsers.value.push(user)
   }
-  searchQuery.value = '';
-  showUsers.value = false;
-};
+  searchQuery.value = ''
+  showUsers.value = false
+}
 
 const removeUser = (userId) => {
-  selectedUsers.value = selectedUsers.value.filter(user => user.id !== userId);
-};
+  console.log('removeUser userID', userId)
+  console.log('removeUser selectedusers value', selectedUsers.value)
+  selectedUsers.value = selectedUsers.value.filter((user) => user.id !== userId)
+}
 
 const createTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
-    const userIds = selectedUsers.value.map(user => user.id);
-    const ownerId = userStore.userId; // 사용자 ID를 현재 로그인한 사용자로 설정
-    console.log(JSON.stringify(userIds));
-    console.log(ownerId);
-    console.log(teamName.value);
-    await teamStore.createTeam(teamName.value, ownerId, userIds);
+    const userIds = selectedUsers.value.map((user) => user.id)
+    const ownerId = userStore.userId // 사용자 ID를 현재 로그인한 사용자로 설정
+    console.log(JSON.stringify(userIds))
+    console.log(ownerId)
+    console.log(teamName.value)
+    await teamStore.createTeam(teamName.value, ownerId, userIds)
     // Reset fields
-    teamName.value = '';
-    selectedUsers.value = [];
-    selectedIcon.value = '🚀';
+    teamName.value = ''
+    selectedUsers.value = []
+    selectedIcon.value = '🚀'
   } else {
-    alert('Please enter a team name, select users, and choose an icon.');
+    errorStore.showError('Please enter a team name, select users, and choose an icon.')
   }
-};
+}
 
-const showProfile = user => {
-  selectedUser.value = user;
-  showProfileModal.value = true;
-};
+const showProfile = (user) => {
+  selectedUser.value = user
+  showProfileModal.value = true
+}
 </script>
-
 
 <style scoped>
 .team-creation-wrap {
