@@ -111,9 +111,10 @@ public class UserController {
     }
 
     @GetMapping("/refresh")
-    public ResponseEntity<?> refresh(@Param("id") int id, @RequestHeader("X-ACCESS-TOKEN") String token){
+    public ResponseEntity<?> refresh(@Param("id") int id, @RequestHeader("Authorization") String token){
+        if(!token.startsWith("Bearer ")) return new ResponseEntity<>(ApiResponse.fail(null,"리프레시 실패"),HttpStatus.BAD_REQUEST);
+        token = token.replace("Bearer ", "");
         String accessToken = userService.getNewAccessTokenWithRefreshToken(id, token);
-
         if(accessToken == null){
             return new ResponseEntity<>(ApiResponse.fail(null,"리프레시 실패"),HttpStatus.BAD_REQUEST);
         }
