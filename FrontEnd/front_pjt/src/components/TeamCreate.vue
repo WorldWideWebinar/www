@@ -138,7 +138,6 @@ const showProfile = (user) => {
   showProfileModal.value = true
 }
 </script>
-요약
 <style scoped>
 .team-creation-wrap {
   max-width: 600px;

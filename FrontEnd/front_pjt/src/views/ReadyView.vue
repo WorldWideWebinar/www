@@ -315,12 +315,9 @@ const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
-const meetingStore = useMeetingStore()
+const meetingStore = useMeetingStore();
 
-const todayMeeting = computed(() => {
-  const today = new Date().toISOString().split('T')[0];
-  return meetings.value.find((meeting) => meeting.date === today);
-});
+const meetings = computed(() => meetingStore.meetings);
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);

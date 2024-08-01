@@ -114,5 +114,6 @@ export const useTeamStore = defineStore('team', {
     getUserTeamsByHostId: (state) => (hostId) => {
       return state.teams.filter(team => team.ownerId === hostId);
     }
-  }
+  },
+  persist: true 
 });

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useUserStore } from './stores/userStore';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://i11a501.p.ssafy.io/',
+  baseURL: 'https://i11a501.p.ssafy.io/', // baseURL이 올바르게 설정되어 있는지 확인
 });
 
 axiosInstance.interceptors.request.use(
@@ -22,12 +22,14 @@ axiosInstance.interceptors.response.use(
     const userStore = useUserStore();
     const originalRequest = error.config;
 
+    // 오류가 발생할 때 originalRequest.url을 로깅하여 확인
+    console.log('Original request URL:', originalRequest.url);
+
     if (error.response.status === 400 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await axios.post(
-          `${userStore.BACKEND_URL}api/users/refresh`,
-          {},
+        const response = await axios.get(
+          'https://i11a501.p.ssafy.io/api/users/refresh',
           {
             headers: { Authorization: `Bearer ${userStore.refreshToken}` },
           }
@@ -39,6 +41,9 @@ axiosInstance.interceptors.response.use(
 
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+
+        // originalRequest.url을 확인하고 수정
+        originalRequest.url = originalRequest.url.replace('undefined', '');
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
