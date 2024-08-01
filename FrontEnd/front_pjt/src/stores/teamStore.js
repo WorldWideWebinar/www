@@ -10,6 +10,9 @@ export const useTeamStore = defineStore('team', {
     teamUserList: [],
   }),
   actions: {
+    clearTeams() {
+      this.teams = [];
+    },
     async fetchTeamById(teamId) {
       const meetingStore = useMeetingStore(); // Access the meeting store
       try {

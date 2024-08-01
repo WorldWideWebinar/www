@@ -3,6 +3,7 @@ import axiosInstance from '@/axios'
 import { useTeamStore } from './teamStore'
 import router from '@/router'
 import { useErrorStore } from './errorStore'
+import { useMeetingStore } from './meetingStore'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -112,6 +113,8 @@ export const useUserStore = defineStore('user', {
 
     async signOut() {
       const errorStore = useErrorStore()
+      const teamStore = useTeamStore()
+      const meetingStore = useMeetingStore()
       try {
         const headers = {
           Authorization: `Bearer ${this.accessToken}`
@@ -126,8 +129,10 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
+          meetingStore.clearMeetings()
+          teamStore.clearTeams()
           console.log('User signed out successfully')
-          router.push({name: 'HomeView'})
+          router.push({ name: 'HomeView' })
           return { success: true, message: response.data.message }
         } else {
           errorStore.showError(response.data.message)
