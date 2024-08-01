@@ -12,6 +12,7 @@ import io.netty.util.internal.StringUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RedisOperations<String, String> redisOperations;
+    @Value("${file.default}")
+    private String fileDefault;
 
     @Override
     public boolean checkDuplicateUserById(String id) {
@@ -100,7 +103,7 @@ public class UserServiceImpl implements UserService {
                 .uid(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
-                .profileImage(user.getProfileImageUrl())
+                .profileImage(fileDefault)
                 .password(password)
                 .language(user.getLanguage())
                 .build();
