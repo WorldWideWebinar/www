@@ -550,7 +550,7 @@ class ServeClientBase(object):
             )
         except Exception as e:
             logging.error(f"[ERROR]: Sending data to client: {e}")
-
+    
     def disconnect(self):
         """
         Notify the client of disconnection and send a disconnect message.
