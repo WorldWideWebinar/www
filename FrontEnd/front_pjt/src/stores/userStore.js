@@ -19,11 +19,18 @@ export const useUserStore = defineStore('user', {
   actions: {
     async fetchUserInfo(userId) {
       const errorStore = useErrorStore()
+      const teamStore = useTeamStore()
       try {
         const response = await axiosInstance.get(`api/users/${userId}`)
-        const userData = response.data
+        const userData = response.data.result
         this.userInfo = userData
         console.log(response.data)
+
+        // teamList를 이용해 teamStore에 팀 정보 추가
+        if (Array.isArray(userData.teamList) && userData.teamList.length > 0) {
+          await Promise.all(userData.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
+        }
+
         return userData
       } catch (error) {
         errorStore.showError('Failed to fetch user info')
@@ -61,12 +68,6 @@ export const useUserStore = defineStore('user', {
           const userInfo = await this.fetchUserInfo(userId)
           if (userInfo) {
             console.log('User signed in:', this.userInfo)
-
-            // 팀 정보 가져오기
-            const teamStore = useTeamStore()
-            if (Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-              await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-            }
 
             // 로그인 성공 후 HomeView로 리디렉션
             router.push({ name: 'HomeView' })
@@ -126,6 +127,7 @@ export const useUserStore = defineStore('user', {
           this.accessToken = null
           this.refreshToken = null
           console.log('User signed out successfully')
+          router.push({name: 'HomeView'})
           return { success: true, message: response.data.message }
         } else {
           errorStore.showError(response.data.message)

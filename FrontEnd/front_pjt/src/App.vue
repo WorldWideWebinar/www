@@ -14,7 +14,7 @@
             :to="{ name: 'ReadyView', params: { id: team.id } }"
             active-class="active"
           >
-            <span class="icon">{{ team.icon }}</span>
+            <span class="icon">{{ team.emoji }}</span>
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
@@ -64,13 +64,13 @@ const errorStore = useErrorStore()
 const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
-const hasFetchedUserInfo = ref(false) // 유저 정보가 이미 fetch되었는지 확인
+const hasFetchedUserInfo = ref(false)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
 }
 
-onMounted(async () => {
+const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
     await userStore.fetchUserInfo(userStore.userId)
     const userInfo = userStore.userInfo
@@ -78,8 +78,12 @@ onMounted(async () => {
       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
       console.log('Teams:', teamStore.teams)
     }
-    hasFetchedUserInfo.value = true // 유저 정보 fetch 완료
+    hasFetchedUserInfo.value = true
   }
+}
+
+onMounted(async () => {
+  await fetchUserTeams()
   console.log('isLogin:', isLogin.value)
 })
 
@@ -97,7 +101,6 @@ const closeError = () => {
   errorStore.hideError()
 }
 </script>
-
 <style scoped>
 #app {
   display: flex;

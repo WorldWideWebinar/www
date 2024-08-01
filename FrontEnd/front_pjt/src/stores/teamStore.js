@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { useUserStore } from './userStore';
+import { useMeetingStore } from './meetingStore';
 import axiosInstance from '@/axios';
 
 export const useTeamStore = defineStore('team', {
@@ -10,10 +11,14 @@ export const useTeamStore = defineStore('team', {
   }),
   actions: {
     async fetchTeamById(teamId) {
+      const meetingStore = useMeetingStore(); // Access the meeting store
       try {
+        // 초기화 로직
+        meetingStore.clearMeetings();
+
         const response = await axiosInstance.get(`api/teams/${teamId}`);
-        const teamData = response.data;
-        console.log('Teamdata', teamData)
+        const teamData = response.data.result;
+        console.log('Teamdata', teamData);
         const teamExists = this.teams.some(team => team.id === teamId);
         if (!teamExists) {
           this.teams.push({
@@ -21,11 +26,14 @@ export const useTeamStore = defineStore('team', {
             ...teamData
           });
         } else {
-          console.log(`Team with id ${teamData.id} already exists in the store`);
+          console.log(`Team with id ${teamId} already exists in the store`);
         }
 
+        // Fetch meetings for the team
+        await meetingStore.fetchMeetingsByIds(teamData.meetingList);
+
         return teamData;
-        
+
       } catch (error) {
         console.error(`Failed to fetch team ${teamId}:`, error);
         return null;
@@ -46,8 +54,7 @@ export const useTeamStore = defineStore('team', {
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
         if (response.data.success) {
-          const teamId = response.data.result;
-          this.teams.push({ id: teamId, teamName, ownerId, userList, icon: emoji, meetingList: [] });
+          console.log("TeamStore" ,this.teams)
         } else {
           console.error('Failed to create team:', response.data.message);
         }
@@ -114,6 +121,5 @@ export const useTeamStore = defineStore('team', {
     getUserTeamsByHostId: (state) => (hostId) => {
       return state.teams.filter(team => team.ownerId === hostId);
     }
-  },
-  persist: true 
+  }, 
 });
