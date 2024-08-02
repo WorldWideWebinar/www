@@ -29,7 +29,7 @@ public class MeetingController {
     @PostMapping
     public ResponseEntity<?> createMeeting(@RequestBody MeetingDto meeting, @AuthenticationPrincipal SecurityUser user) {
         int meeting_id = meetingService.addMeeting(meeting, user.getUsername());
-        return new ResponseEntity<>(ApiResponse.success(meeting_id,"회의 생성 성공"), HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.success(meeting_id,"미팅 생성 성공"), HttpStatus.OK);
     }
 
     @GetMapping("/{meetingId}")
@@ -41,7 +41,7 @@ public class MeetingController {
     public ResponseEntity<?> updateMeeting(@PathVariable int meetingId,
                                            @RequestBody MeetingDto meetingDto, @AuthenticationPrincipal SecurityUser user) {
         MeetingDetailsDto ressult = meetingService.updateMeetingDetails(meetingId,meetingDto,user.getUsername());
-        return new ResponseEntity<>(ApiResponse.success(ressult,"회의 수정 성공"), HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.success(ressult,"미팅 수정 성공"), HttpStatus.OK);
 
     }
 
@@ -65,6 +65,6 @@ public class MeetingController {
     }
     @ExceptionHandler(NoSuchMeetingException.class)
     public ResponseEntity<?> noMeetingForId(NoSuchMeetingException e) {
-        return new ResponseEntity<>(ApiResponse.fail("","회의 존재하지 않음."),HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ApiResponse.fail("","미팅 존재하지 않음."),HttpStatus.NOT_FOUND);
     }
 }
