@@ -166,7 +166,6 @@ const handleSignOut = async () => {
 }
 
 watch(isLogin, (newValue) => {
-  console.log('isLogin changed:', newValue)
 })
 
 const meetings = ref([
@@ -191,7 +190,6 @@ const groupMeetings = () => {
     TODAY: [],
     NEXT: [],
     PREV: [],
-    // TODO:[]
   }
   const today = new Date().toISOString().split('T')[0]
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -222,18 +220,12 @@ const slideClass = (group) => {
 }
 
 onMounted(async () => {
-  console.log('isLogin:', isLogin.value)
   groupMeetings()
-  console.log(groupedMeetings.value.NEXT.key)
-  console.log('유저 아이디',userStore.userId)
-  console.log('유저 팀', userStore.userInfo.teamList)
   if (userStore.userId != 0) {
-    console.log('소속 팀 목록' , userStore.userInfo.teamList)
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)
   }
-  console.log('Teams:', teams.value)
   }
 })
 </script>
