@@ -400,7 +400,8 @@ const nextMeetingHoursPercentage = computed(() => {
 const joinConference = async () => {
   try {
     const response = await axios.get('http://localhost:5000/api/sessions');
-    const meetingId = selectedMeeting.value.meeting_id; 
+    sessionId.value = response.data.sessionId;
+
     router
       .push({ name: 'ConferenceView', params: { sessionId: sessionId.value } })
       .then(() => {

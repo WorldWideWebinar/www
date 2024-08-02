@@ -99,7 +99,6 @@ async function handleSignUp() {
 }
 </script>
 
-
 <style scoped>
 * {
   box-sizing: border-box;
