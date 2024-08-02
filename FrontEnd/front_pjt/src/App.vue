@@ -3,11 +3,24 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
+<<<<<<< HEAD
+          <img src="../src/assets/img/nav_logo.png" alt="logo" />
+=======
           <img src="../src/assets/img/chat.png" alt="logo">
+>>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
         </button>
       </div>
       <div class="seperator"></div>
       <ul class="nav flex-column">
+<<<<<<< HEAD
+        <li class="nav-item" v-for="team in teams" :key="team.id">
+          <RouterLink
+            class="nav-link"
+            :to="{ name: 'ReadyView', params: { id: team.id } }"
+            active-class="active"
+          >
+            <span class="icon">{{ team.emoji }}</span>
+=======
         <li 
         class="nav-item" 
         v-for="team in teams" 
@@ -19,16 +32,14 @@
             active-class="active"
             >
             <span class="icon">{{ team.icon }}</span>
+>>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
       </ul>
       <div class="add-team">
         <button class="btn btn-add">
-          <RouterLink
-            class="no-decoration"
-            :to="{ name: 'TeamSearchView'}"
-          >
+          <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView' }">
             <span>+</span>
           </RouterLink>
         </button>
@@ -50,43 +61,63 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
-    <ChatButton @toggleChat="toggleChat" />
+    <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
     <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
-
+    <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
-import { onMounted, computed, ref } from 'vue';
-import { useUserStore } from './stores/userStore';
-import { useTeamStore } from './stores/teamStore';
-import router from './router';
-import ChatButton from '@/components/ChatButton.vue';
-import ChatBox from '@/components/ChatBox.vue';
+import { RouterLink, RouterView } from 'vue-router'
+import { onMounted, computed, ref } from 'vue'
+import { useUserStore } from './stores/userStore'
+import { useTeamStore } from './stores/teamStore'
+import router from './router'
+import ChatButton from '@/components/ChatButton.vue'
+import ChatBox from '@/components/ChatBox.vue'
+import ErrorModal from '@/components/ErrorModal.vue'
+import { useErrorStore } from './stores/errorStore'
 
-const userStore = useUserStore();
-// const teamStore = useTeamStore();
+const errorStore = useErrorStore()
+const userStore = useUserStore()
+const teamStore = useTeamStore()
+const isLogin = computed(() => userStore.isLogin)
+const hasFetchedUserInfo = ref(false)
 
 const goingHome = () => {
-  router.push({ name: 'HomeView' });
-};
+  router.push({ name: 'HomeView' })
+}
+
+const fetchUserTeams = async () => {
+  if (isLogin.value && !hasFetchedUserInfo.value) {
+    await userStore.fetchUserInfo(userStore.userId)
+    const userInfo = userStore.userInfo
+    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
+      console.log('Teams:', teamStore.teams)
+    }
+    hasFetchedUserInfo.value = true
+  }
+}
 
 onMounted(async () => {
-  await userStore.fetchUserTeamsAndMeetings(userStore.userId);
-  console.log('Teams:', userStore.teams); // 디버깅용
-  await userStore.fetchAllUsers() 
-});
+  await fetchUserTeams()
+})
 
-const teams = computed(() => userStore.teams);
+const teams = computed(() => teamStore.teams)
 
 // 챗봇
-const isChatOpen = ref(false);
+const isChatOpen = ref(false)
 const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value;
-};
-</script>
+  isChatOpen.value = !isChatOpen.value
+}
 
+const showError = computed(() => errorStore.showError)
+const errorMessage = computed(() => errorStore.errorMessage)
+const closeError = () => {
+  errorStore.hideError()
+}
+</script>
 <style scoped>
 #app {
   display: flex;
@@ -100,6 +131,7 @@ const toggleChat = () => {
 }
 
 .sidebar {
+  
   width: 70px;
   height: 100vh;
   background-color: #f3e5f5;
@@ -206,5 +238,27 @@ main {
   flex-grow: 1;
   background-color: #fff;
   margin-left: 70px;
+}
+
+.error-modal .error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error-modal .error-content p {
+  margin: 0 0 10px;
+}
+
+.error-modal .error-content button {
+  padding: 5px 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.error-modal .error-content button:hover {
+  background: #d32f2f;
 }
 </style>
