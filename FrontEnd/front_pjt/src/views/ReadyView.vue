@@ -8,6 +8,7 @@
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <div class="top-section">
+        <button @click="startConference" class="join-button">Start</button>
         <div class="notice-and-intro">
           <section class="notice-section">
             <div class="notice-header">
@@ -103,7 +104,6 @@
           <div class="meeting-header">
             <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
             <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
-            <!-- 여기가 넣는 곳-->
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
@@ -276,6 +276,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useSessionStore } from '@/stores/sessionStore';
 import axios from 'axios';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 
@@ -304,14 +305,12 @@ const members = ref([
   { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
 ]);
 
-const isOwner = ref(false);
-const previewUrl = ref(null);
-
 const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
+const sessionStore = useSessionStore();
 
 const meetings = computed(() => meetingStore.meetings);
 
@@ -319,6 +318,12 @@ const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.teams.find((team) => team.id === teamId);
   return teamData ? teamData.teamName : '';
+});
+
+const isOwner = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+  const teamData = teamStore.teams.find((team) => team.id === teamId);
+  return teamData && teamData.ownerId == userStore.userId;
 });
 
 const todayMeeting = computed(() => {
@@ -332,15 +337,17 @@ const groupedMeetings = computed(() => {
     TODAY: [],
     NEXT: []
   };
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
   sortedMeetings.forEach((meeting) => {
-    if (meeting.start_at.split('T')[0] === today) {
-      groups.TODAY.push(meeting);
-    } else if (meeting.start_at.split('T')[0] > today) {
-      groups.NEXT.push(meeting);
-    } else {
+    const startDateTime = new Date(meeting.start_at);
+    const endDateTime = new Date(meeting.end_at);
+    if (endDateTime < now) {
       groups.PREV.push(meeting);
+    } else if (startDateTime <= now && endDateTime >= now) {
+      groups.TODAY.push(meeting);
+    } else if (startDateTime > now) {
+      groups.NEXT.push(meeting);
     }
   });
   return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
@@ -350,7 +357,7 @@ const totalMeetingHours = computed(() => {
   return meetings.value.reduce((total, meeting) => {
     const start = new Date(meeting.start_at);
     const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // convert ms to hours
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
@@ -358,7 +365,7 @@ const prevMeetingHours = computed(() => {
   return groupedMeetings.value.PREV.reduce((total, meeting) => {
     const start = new Date(meeting.start_at);
     const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // convert ms to hours
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
@@ -366,7 +373,7 @@ const todayMeetingHours = computed(() => {
   return groupedMeetings.value.TODAY.reduce((total, meeting) => {
     const start = new Date(meeting.start_at);
     const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // convert ms to hours
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
@@ -374,7 +381,7 @@ const nextMeetingHours = computed(() => {
   return groupedMeetings.value.NEXT.reduce((total, meeting) => {
     const start = new Date(meeting.start_at);
     const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // convert ms to hours
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
@@ -408,35 +415,14 @@ const joinConference = async () => {
   }
 };
 
-const startConference = async () => {
-  try {
-    const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
-    const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
-
-    sessionId.value = response.data.id;
-    console.log('Starting conference with OpenVidu, sessionId:', sessionId.value);
-
-    router
-      .push({ name: 'ConferenceView', params: { sessionId: sessionId.value } })
-      .then(() => {
-        inConference.value = true;
-      })
-      .catch((err) => {
-        console.error('Error navigating to ConferenceView:', err);
-      });
-  } catch (error) {
-    console.error('Failed to create OpenVidu session:', error);
-  }
-};
-
 const selectMeeting = (meeting) => {
   selectedMeeting.value = meeting;
   detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
-  showMembersList.value = false; // 초기에는 멤버 목록을 숨김
-  showFilesList.value = false; // 초기에는 파일 목록을 숨김
-  previewUrl.value = null; // 초기에는 파일 미리보기 URL 숨김
-  showOverlay.value = true; // 오버레이 표시
+  showMembersList.value = false;
+  showFilesList.value = false;
+  previewUrl.value = null;
+  showOverlay.value = true;
 };
 
 const closeMeetingDetails = () => {
@@ -444,8 +430,8 @@ const closeMeetingDetails = () => {
   selectedMeetingMembers.value = [];
   showMembersList.value = false;
   showFilesList.value = false;
-  previewUrl.value = null; // 파일 미리보기 URL 초기화
-  showOverlay.value = false; // 오버레이 숨김
+  previewUrl.value = null;
+  showOverlay.value = false;
 };
 
 const toggleStatus = (meeting) => {
@@ -480,7 +466,7 @@ const computeDetailType = (start_at) => {
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
-  showOverlay.value = showMemberListDropdown.value; // 오버레이 표시
+  showOverlay.value = showMemberListDropdown.value;
 };
 
 const toggleTodayMembersList = () => {
@@ -488,7 +474,7 @@ const toggleTodayMembersList = () => {
   if (todayMeeting.value) {
     todayMeetingMembers.value = members.value.slice(0, todayMeeting.value.members);
   }
-  showOverlay.value = showTodayMembersList.value; // 오버레이 표시
+  showOverlay.value = showTodayMembersList.value;
 };
 
 const selectLatestTodayMeeting = () => {
@@ -517,33 +503,21 @@ const closeDropdowns = () => {
   showTodayMembersList.value = false;
   showFilesList.value = false;
   showMembersList.value = false;
-  showOverlay.value = false; // 오버레이 숨김
+  showOverlay.value = false;
 };
 
 onMounted(async () => {
   const teamId = parseInt(route.params.id, 10);
-  const team = teamStore.teams.find(team => team.id === teamId);
-  if (team) {
-    isOwner.value = team.owner_id === userStore.userId;
-    meetingStore.resetMeetings(); // Reset meetings before fetching new ones
-    await meetingStore.fetchMeetingsByIds(team.meetingList); // 팀의 미팅 리스트를 로드
-  } else {
-    console.error(`Team ${teamId} not found in store`);
-  }
+  await teamStore.fetchTeamById(teamId);
   selectLatestTodayMeeting();
 });
 
 watch(
   () => route.params.id,
-  (newId) => {
+  async (newId) => {
     const teamId = parseInt(newId, 10);
-    propTeamId.value = parseInt(route.params.id, 10);
-    const team = teamStore.teams.find(team => team.id === teamId);
-    if (team) {
-      isOwner.value = team.owner_id === userStore.userId;
-    } else {
-      console.error(`Team ${teamId} not found in store`);
-    }
+    propTeamId.value = teamId;
+    await teamStore.fetchTeamById(teamId);
   }
 );
 
@@ -553,10 +527,18 @@ watch(activeTab, (newTab) => {
   }
 });
 
-const CreateMeeting = ()=>{
-  meetingCreateModal.value=true;
-}
+const CreateMeeting = () => {
+  meetingCreateModal.value = true;
+};
+
+const startConference = async () => {
+  const meetingId = selectedMeeting.value.meeting_id; 
+  const userId = userStore.userId; 
+  await sessionStore.startConference(meetingId, userId);
+};
 </script>
+
+
 
 <style scoped>
 .ready-page-container {

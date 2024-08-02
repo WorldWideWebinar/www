@@ -7,29 +7,82 @@ import com.ssafy.globalcc.domain.meetingSTT.dto.response.MeetingSTTResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.repository.MeetingSTTRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
+    private final RabbitTemplate rabbitTemplate;
 
-    private final SimpMessagingTemplate template;
+    private static final String EXCHANGE_NAME = "meetingSTT.exchange";
+    private static final String ROUTING_KEY = "meetingSTT.key";
     private final MeetingSTTRepository meetingSTTRepository;
     private final MeetingRepository meetingRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    @MessageMapping(value = "/stt/message")
-    public void message(MeetingSTTRequest request) {
-        Meeting meeting = meetingRepository.findById(request.getMeetingId())
-                .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
-        MeetingSTT meetingSTT = new MeetingSTT();
-        meetingSTT.setMeeting(meeting);
-        meetingSTT.setContent(request.getContent());
+    @MessageMapping("meetingSTT.{meetingId}")
+    public void share(
+            @DestinationVariable("meetingId") final Integer meetingId,
+            @Payload final MeetingSTTRequest request
+    ) {
+        //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
 
-        meetingSTTRepository.save(meetingSTT);
+        String redisKey = "MeetingSTT:" + meetingId;
+        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
+
         MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent());
-        template.convertAndSend("/sub/stt/room/" + request.getMeetingId(), response);
+        rabbitTemplate.convertAndSend(
+                EXCHANGE_NAME, ROUTING_KEY + meetingId, response
+        );
+    }
+    
+    //Redis에서 DB 저장
+    @Scheduled(fixedDelay = 60000) // 60초마다 실행
+    public void saveToDatabase() {
+        Set<String> keys = redisTemplate.keys("MeetingSTT:*");
+        if (keys != null) {
+            for (String key : keys) {
+                List<String> messageList = redisTemplate.opsForList().range(key, 0, -1);
+                if (messageList != null && !messageList.isEmpty()) {
+                    Integer meetingId = extractMeetingId(key);
+                    Meeting meeting = meetingRepository.findById(meetingId)
+                            .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
+
+                    List<MeetingSTT> meetingSTTList = messageList.stream()
+                            .map(content -> {
+                                MeetingSTT meetingSTT = new MeetingSTT();
+                                meetingSTT.setMeeting(meeting);
+                                meetingSTT.setContent(content);
+                                return meetingSTT;
+                            })
+                            .toList();
+                    meetingSTTRepository.saveAll(meetingSTTList);
+
+                    redisTemplate.delete(key);
+                }
+            }
+        }
     }
 
+    private Integer extractMeetingId(String key) {
+        String[] parts = key.split(":");
+        if (parts.length > 1) {
+            try {
+                return Integer.valueOf(parts[1]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid meetingId in Redis key");
+            }
+        }
+        throw new IllegalArgumentException("Invalid Redis key format");
+    }
 }
+

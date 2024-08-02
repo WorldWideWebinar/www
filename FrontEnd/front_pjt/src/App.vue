@@ -3,11 +3,16 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
+<<<<<<< HEAD
           <img src="../src/assets/img/nav_logo.png" alt="logo" />
+=======
+          <img src="../src/assets/img/chat.png" alt="logo">
+>>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
         </button>
       </div>
       <div class="seperator"></div>
       <ul class="nav flex-column">
+<<<<<<< HEAD
         <li class="nav-item" v-for="team in teams" :key="team.id">
           <RouterLink
             class="nav-link"
@@ -15,6 +20,19 @@
             active-class="active"
           >
             <span class="icon">{{ team.emoji }}</span>
+=======
+        <li 
+        class="nav-item" 
+        v-for="team in teams" 
+        :key="team.id"
+        >
+          <RouterLink 
+            class="nav-link" 
+            :to="{ name: 'ReadyView', params: { id: team.id } }" 
+            active-class="active"
+            >
+            <span class="icon">{{ team.icon }}</span>
+>>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
@@ -84,7 +102,6 @@ const fetchUserTeams = async () => {
 
 onMounted(async () => {
   await fetchUserTeams()
-  console.log('isLogin:', isLogin.value)
 })
 
 const teams = computed(() => teamStore.teams)

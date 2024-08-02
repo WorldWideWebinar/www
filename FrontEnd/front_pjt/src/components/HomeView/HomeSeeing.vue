@@ -165,8 +165,6 @@ const handleSignOut = async () => {
   }
 }
 
-watch(isLogin, (newValue) => {
-})
 
 const meetings = ref([
   // { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
@@ -221,6 +219,7 @@ const slideClass = (group) => {
 
 onMounted(async () => {
   groupMeetings()
+  console.log(groupedMeetings.value.NEXT.key)
   if (userStore.userId != 0) {
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {

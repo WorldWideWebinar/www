@@ -1,15 +1,21 @@
 package com.ssafy.globalcc.domain.meeting.entity;
 
 import com.ssafy.globalcc.domain.team.entity.Team;
+import com.ssafy.globalcc.domain.user.entity.UserMeeting;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "meeting")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Meeting {
 
     @Id
@@ -30,17 +36,25 @@ public class Meeting {
     private String content;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Column(name = "session_id")
     private String sessionId;
 
+    @Column(name = "detail")
+    private String detail;
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserMeeting> userMeetings;
+
     @ManyToOne
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
-    private Team teamId;
+    private Team team;
 
     @PreUpdate
     protected void onUpdate() {
