@@ -69,16 +69,6 @@ const createMeeting = async () => {
 
   console.log(newMeeting);
 
-<<<<<<< HEAD
-  try {
-    await meetingStore.addMeeting(newMeeting);
-    alert('Meeting created successfully');
-    close();
-  } catch (error) {
-    console.error('Error creating meeting:', error);
-    alert('Error creating meeting');
-  }
-=======
   // meetingStore.addMeeting(newMeeting);
 
   close();
@@ -100,7 +90,6 @@ const createMeeting = async () => {
   //   console.error('Error creating meeting:', error);
   //   alert('Error creating meeting');
   // }
->>>>>>> 90d52ee3254379b5a7f89c222fcfd261ae2051fb
 };
 
 const emits = defineEmits(['close']);
