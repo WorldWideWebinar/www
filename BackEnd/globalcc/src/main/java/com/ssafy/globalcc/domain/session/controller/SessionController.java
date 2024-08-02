@@ -45,9 +45,11 @@ public class SessionController {
         this.meetingServiceImpl = meetingServiceImpl;
     }
 
-
     @PostConstruct
     public void init() {
+        if (OPENVIDU_URL == null || OPENVIDU_URL.isEmpty()) {
+            throw new IllegalArgumentException("OPENVIDU_URL is not specified.");
+        }
         this.openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
     }
 
@@ -153,6 +155,24 @@ public class SessionController {
         meetingServiceImpl.updateMeetingSessionId(meetingId, null);
 
         return ResponseEntity.ok(ApiResponse.success(meetingId, "커넥션 끊기 성공"));
+    }
+
+    /**
+     * Openvidu URL 확인 /api/sessions/check
+     *
+     * @return ResponseEntity
+     */
+    @GetMapping("/check")
+    public ResponseEntity<String> checkOpenviduUrl() {
+        log.debug("Checking OpenVidu URL accessibility... : {}", OPENVIDU_URL);
+        try {
+            this.openvidu.fetch();
+            log.debug("OpenVidu URL is accessible.");
+            return new ResponseEntity<>("URL is accessible", HttpStatus.OK);
+        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+            log.error("Failed to access OpenVidu URL: {}", e.getMessage(), e);
+            return new ResponseEntity<>("URL is not accessible: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 }
 

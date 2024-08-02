@@ -13,12 +13,16 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableRabbit
 public class RabbitMQConfig {
+
+    @Value("${spring.rabbitmq.host}")
+    private String host;
 
     private static final String QUEUE_NAME = "meetingSTT.queue";
     private static final String EXCHANGE_NAME = "meetingSTT.exchange";
@@ -27,7 +31,7 @@ public class RabbitMQConfig {
     @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory factory = new CachingConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost(host);
         factory.setUsername("guest");
         factory.setPassword("guest");
         return factory;
