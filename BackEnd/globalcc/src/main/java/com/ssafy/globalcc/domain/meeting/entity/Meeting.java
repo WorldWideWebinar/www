@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -27,10 +28,10 @@ public class Meeting {
     private String name;
 
     @Column(name = "start_at")
-    private LocalDateTime startAt;
+    private ZonedDateTime startAt;
 
     @Column(name = "end_at")
-    private LocalDateTime endAt;
+    private ZonedDateTime endAt;
 
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;

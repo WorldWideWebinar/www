@@ -97,7 +97,7 @@ public class MeetingServiceImpl implements MeetingService{
 
         Team team = teamService.getTeamByIdAndOwnerUid(meeting.getTeam_id(),username);
 
-        log.debug("creating team for userId : {}",username);
+        log.debug("creating meeting for userId : {}",username);
         log.debug("creating meeting : {}", meeting);
 
         Meeting newMeeting = Meeting.builder()
