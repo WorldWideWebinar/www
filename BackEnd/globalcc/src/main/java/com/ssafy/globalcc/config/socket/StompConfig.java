@@ -20,10 +20,10 @@ public class StompConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/stomp/chat")
-                .setAllowedOrigins("http://localhost:5000") // "*" 오류 발생
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
         registry.addEndpoint("/stomp/stt")
-                .setAllowedOrigins("http://localhost:5000")
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
