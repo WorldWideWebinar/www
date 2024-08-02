@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     userId: 0,
     userInfo: {},
-    accessToken: 1,
+    accessToken: null,
     refreshToken: null,
     userList: []
   }),
