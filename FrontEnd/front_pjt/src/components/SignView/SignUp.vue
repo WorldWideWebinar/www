@@ -128,18 +128,24 @@ a {
 }
 
 button {
-  margin: 0 auto;
-  width: 50%;
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
   border-radius: 20px;
-  border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
-  color: #FFFFFF;
   font-size: 12px;
   font-weight: bold;
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
+  width: 40%;
+  margin: 0px auto;
+}
+
+button:hover {
+  background-color: #b380bc;
 }
 
 button:active {

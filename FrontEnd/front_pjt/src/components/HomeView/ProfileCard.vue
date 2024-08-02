@@ -1,13 +1,30 @@
 <template>
   <div class="profile-card-outer">
     <div class="profile-card-inner">
-      <img :src="profileImage" alt="Profile Image" class="profile-image" />
-      <h2>{{ name }}</h2>
-      <p>Total Meeting Time: {{ totalMeetingTime }} hours</p>
-      <h3>Hosted Teams</h3>
-      <ul>
-        <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
-      </ul>
+      <!-- <img :src="profileImage" alt="Profile Image" class="profile-image" /> -->
+      <img src="../../assets/img/profile.png" alt="profile image" class="profile-image" />
+      <!-- <div class="profile-name">{{ name }}</div> -->
+      <div class="profile-name">Robert</div>
+      <div class="profile-time">
+        <span style="font-weight: bold;">Total Meeting Time</span><br>
+        <!-- <span>{{ totalMeetingTime }} hours</span> -->
+         <span>2hours 32minutes</span>
+      </div>
+      <div class="profile-team">
+        <span style="font-weight: bold;">Hosted Teams</span>
+        <ul>
+          <li>R&D</li>
+          <li>Purchase</li>
+          <li>Sales</li>
+          <li>Development</li>
+          <li>Intelligence</li>
+          <li>팀 abcdefghijklm</li>
+          <li>팀 nopqrstuvwxyz</li>
+          <li>팀 가나다라마바사</li>
+          <li>팀 아자차카타파하</li>
+          <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -44,15 +61,18 @@ const hostedTeams = computed(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  max-height: 100vh;
 }
 
 .profile-card-inner {
   background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 526px; /* 높이 조정 */
+  padding: 40px 60px;
   text-align: center;
+  margin: 0px auto;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* 내부 컨텐츠가 넘칠 때 숨김 처리 */
 }
 
 .profile-image {
@@ -61,5 +81,42 @@ const hostedTeams = computed(() => {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 20px;
+  border: 1px solid black;
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  font-weight: bolder;
+  padding-bottom: 20px;
+  border-bottom: 2px dashed lightgray;
+}
+
+.profile-time {
+  margin: 20px auto;
+  padding: 10px;
+  padding-bottom: 30px;
+  border-bottom: 2px dashed lightgray;
+}
+
+.profile-team {
+  margin: 10px auto;
+  max-height: calc(100% - 300px); /* 이미지, 이름, 타임, 마진 등을 제외한 높이 */
+  padding: 0px;
+  overflow-y: auto; /* 스크롤 추가 */
+  text-align: center;
+  scrollbar-width: thin;
+}
+
+.profile-team ul {
+  margin-top: 10px;
+  padding-bottom: 15px;
+}
+
+.profile-team li {
+  list-style-type: none;
+  list-style-position: unset;
+  text-align: center;
+  margin-left: -25px;
+  padding: 0px 15px;
 }
 </style>

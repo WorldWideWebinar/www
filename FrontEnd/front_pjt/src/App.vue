@@ -61,9 +61,9 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
-    <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
-    <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
+    <ChatButton @toggleChat="handleChatButtonClick" />
+    <ChatBox v-if="isChatOpen" :selectedTeamId="selectedTeamId" @toggleChat="toggleChat" @selectTeam="selectTeam" />
+    <ErrorModal v-if="isErrorVisible" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
@@ -83,6 +83,7 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
+const isErrorVisible = ref(false)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -108,16 +109,33 @@ const teams = computed(() => teamStore.teams)
 
 // 챗봇
 const isChatOpen = ref(false)
+const selectedTeamId = ref(null)
+
 const toggleChat = () => {
+  console.log("Toggling chat...");
   isChatOpen.value = !isChatOpen.value
 }
 
-const showError = computed(() => errorStore.showError)
+const handleChatButtonClick = () => {
+  if (isLogin.value) {
+    toggleChat();
+  } else {
+    alert("Please SIGN IN to use the chat feature.");
+  }
+}
+
+const selectTeam = (teamId) => {
+  selectedTeamId.value = teamId
+}
+
 const errorMessage = computed(() => errorStore.errorMessage)
 const closeError = () => {
   errorStore.hideError()
+  isErrorVisible.value = false
 }
 </script>
+
+
 <style scoped>
 #app {
   display: flex;
@@ -131,7 +149,6 @@ const closeError = () => {
 }
 
 .sidebar {
-  
   width: 70px;
   height: 100vh;
   background-color: #f3e5f5;
