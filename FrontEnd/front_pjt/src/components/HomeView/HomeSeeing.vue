@@ -163,9 +163,6 @@ const handleSignOut = async () => {
   }
 }
 
-watch(isLogin, (newValue) => {
-  console.log('isLogin changed:', newValue)
-})
 
 const meetings = ref([
   // { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
@@ -219,11 +216,8 @@ const slideClass = (group) => {
 }
 
 onMounted(async () => {
-  console.log('isLogin:', isLogin.value)
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
-  console.log('유저 아이디',userStore.userId)
-  console.log('유저 팀', userStore.userInfo.teamList)
   if (userStore.userId != 0) {
     console.log('소속 팀 목록' , userStore.userInfo.teamList)
   const teamList = userStore.userInfo.teamList || []

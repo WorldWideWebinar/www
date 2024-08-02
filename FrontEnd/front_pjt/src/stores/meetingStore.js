@@ -34,9 +34,9 @@ export const useMeetingStore = defineStore('meeting', {
         console.error(`Failed to fetch meeting ${meetingId}:`, error)
       }
     },
-    async fetchMeetingsByIds(meetingIds) {
+    async fetchMeetingsByIds(meetingList) {
       try {
-        for (const meetingId of meetingIds) {
+        for (const meetingId of meetingList) {
           await this.fetchMeetingById(meetingId)
         }
       } catch (error) {

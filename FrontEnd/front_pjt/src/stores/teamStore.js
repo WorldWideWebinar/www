@@ -21,22 +21,17 @@ export const useTeamStore = defineStore('team', {
 
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
-        console.log('Teamdata', teamData);
         const teamExists = this.teams.some(team => team.id === teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드
             ...teamData
           });
+          await meetingStore.fetchMeetingsByIds(teamData.meetingList);
+          return teamData;
         } else {
-          console.log(`Team with id ${teamId} already exists in the store`);
+          console.log(`Team with id ${teamId} already exists`);
         }
-
-        // Fetch meetings for the team
-        await meetingStore.fetchMeetingsByIds(teamData.meetingList);
-
-        return teamData;
-
       } catch (error) {
         console.error(`Failed to fetch team ${teamId}:`, error);
         return null;
@@ -107,7 +102,6 @@ export const useTeamStore = defineStore('team', {
       if (team) {
         if (!team.userList.includes(userId)) { 
           team.userList.push(userId);
-          console.log('성공');
           console.log(`팀 ${teamId}의 userList:`, JSON.stringify(team.userList)); //
         } else {
           console.log(`User ${userId} is already a member of team ${teamId}`);

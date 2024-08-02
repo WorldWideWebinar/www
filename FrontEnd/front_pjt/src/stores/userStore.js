@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', {
         const response = await axiosInstance.get(`api/users/${userId}`)
         const userData = response.data.result
         this.userInfo = userData
-        console.log(response.data)
+
 
         // teamList를 이용해 teamStore에 팀 정보 추가
         if (Array.isArray(userData.teamList) && userData.teamList.length > 0) {
@@ -43,12 +43,10 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await axiosInstance.get(`api/users`)
         const users = response.data.result
-        console.log(users)
         this.userList = users.map((user) => ({
           userId: user.userID,
           id: user.id
         }))
-        console.log(this.userList)
         return this.userList
       } catch (error) {
         errorStore.showError('Failed to fetch all users')
@@ -68,7 +66,6 @@ export const useUserStore = defineStore('user', {
           // 사용자 정보 가져오기
           const userInfo = await this.fetchUserInfo(userId)
           if (userInfo) {
-            console.log('User signed in:', this.userInfo)
 
             // 로그인 성공 후 HomeView로 리디렉션
             router.push({ name: 'HomeView' })
@@ -119,8 +116,6 @@ export const useUserStore = defineStore('user', {
         const headers = {
           Authorization: `Bearer ${this.accessToken}`
         }
-        console.log('Request Headers:', headers)
-        console.log('userId', this.userId)
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
 
         if (response.data.success) {
@@ -131,7 +126,6 @@ export const useUserStore = defineStore('user', {
           this.refreshToken = null
           meetingStore.clearMeetings()
           teamStore.clearTeams()
-          console.log('User signed out successfully')
           router.push({ name: 'HomeView' })
           return { success: true, message: response.data.message }
         } else {
