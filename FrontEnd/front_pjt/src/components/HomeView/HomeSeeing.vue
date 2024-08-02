@@ -94,15 +94,14 @@
           </div>
           <div v-else class="carousel">
             <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide
-                v-for="(item, index) in groupedMeetings"
+              <Slide                v-for="(item, index) in groupedMeetings"
                 :key="index"
                 class="slide"
                 :class="slideClass(index)"
               >
                 <div class="meeting-type">{{ index }} Meetings</div>
                 <div class="meeting-table-container">
-                  <table class="meeting-table">
+                  <table class="meeting-table" v-if="item.length>0">
                     <thead>
                       <tr>
                         <th>Date</th>
@@ -118,6 +117,9 @@
                       </tr>
                     </tbody>
                   </table>
+                  <div v-else>
+                    No meeting Day
+                  </div>
                 </div>
               </Slide>
               <template #addons>
@@ -185,7 +187,8 @@ const groupMeetings = () => {
   const groups = {
     TODAY: [],
     NEXT: [],
-    PREV: []
+    PREV: [],
+    // TODO:[]
   }
   const today = new Date().toISOString().split('T')[0]
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -256,7 +259,8 @@ onMounted(async () => {
   align-items: center;
   width: 100%;
   margin: 50px auto;
-  padding: 0px 0px; /* WWW 글자 오른쪽으로 밀기*/
+  padding: 0px 0px;
+  /* WWW 글자 오른쪽으로 밀기*/
 }
 
 .main-title {
@@ -265,8 +269,10 @@ onMounted(async () => {
   opacity: 0;
   transform: translateX(-50px);
   animation: slideInFromLeft 1s forwards;
-  animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
-  margin: 0px 100px; /* 간격 조정 */
+  animation-delay: 1s;
+  /* 1초 후에 애니메이션 시작 */
+  margin: 0px 100px;
+  /* 간격 조정 */
 }
 
 .main-image {
@@ -404,6 +410,7 @@ button:hover {
   0% {
     transform: translate(-50%, 0);
   }
+
   100% {
     transform: translate(-50%, -20px);
   }
@@ -503,17 +510,18 @@ button:hover {
 
 /* carousel */
 .carousel {
+  padding: auto;
   margin: 50px auto;
+  padding-right: 0.15%;
   overflow: hidden;
   width: 100%;
 }
 
 .carousel__slide {
   padding: 5px;
-  margin: 0 10px; /* 좌우 간격 추가 */
   background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
-  width: 200px; /* 슬라이드의 너비 설정 */
-  height: 300px; /* 슬라이드의 높이 설정 */
+  /* max-width: 32.8%; */
+  height: 300px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -533,26 +541,35 @@ button:hover {
 }
 
 .carousel__slide--sliding {
-  transition: 0.5s;
+  transition: 0.5s ease-in-out;
 }
 
 .carousel__slide--active ~ .carousel__slide {
-  transform: rotateY(20deg) scale(0.9);
+  transform: rotateY(20deg) scale(0.95);
+  /* margin-right: 5px; */
+  /* margin-right: 3%; */
 }
 
 .carousel__slide--prev {
   opacity: 1;
   transform: rotateY(-10deg) scale(0.95);
+  /* margin-right: 1%; */
+  /* margin-left: 2%; */
+  /* padding-left: 0; */
 }
 
 .carousel__slide--next {
   opacity: 1;
   transform: rotateY(10deg) scale(0.95);
+  /* margin-right: 1%; */
+  /* margin-left: 1%; */
 }
 
 .carousel__slide--active {
   opacity: 1;
-  transform: rotateY(0) scale(1.1);
+  transform: rotateY(0) scale(1.05);
+  margin-left: 1%;
+  /* margin-right: 1%; */
 }
 
 /* .slide {
@@ -566,6 +583,7 @@ button:hover {
 .meeting-type {
   text-align: center;
   font-weight: bolder;
+  margin: auto;
   margin-bottom: 10px;
 }
 
@@ -579,6 +597,7 @@ button:hover {
   display: flex;
   justify-content: center;
   width: 100%;
+  height: 230px;
 }
 
 .meeting-table {
@@ -591,6 +610,7 @@ button:hover {
 .meeting-table tbody {
   max-height: 100px;
   overflow-y: scroll;
+  /* width: 100%; */
 }
 
 .meeting-table tbody::-webkit-scrollbar {
@@ -602,7 +622,8 @@ button:hover {
 
 .meeting-table tr {
   display: table;
-  width: calc(100% - 1rem);
+  /* width: calc(100% - 1rem); */
+  width: 100%;
   /* 테이블 너비를 100%에서 약간 줄임 */
   table-layout: fixed;
 }
@@ -612,6 +633,7 @@ button:hover {
   border: 1px solid #000000;
   padding: 8px;
   text-align: center;
+  
 }
 
 .meeting-table th:nth-child(1),
@@ -652,6 +674,7 @@ button:hover {
 }
 
 @media (max-width: 992px) {
+
   .main-image,
   .main-character {
     bottom: 45%;

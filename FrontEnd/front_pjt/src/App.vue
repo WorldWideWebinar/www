@@ -3,24 +3,11 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
-<<<<<<< HEAD
-          <img src="../src/assets/img/nav_logo.png" alt="logo" />
-=======
           <img src="../src/assets/img/chat.png" alt="logo">
->>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
         </button>
       </div>
       <div class="seperator"></div>
       <ul class="nav flex-column">
-<<<<<<< HEAD
-        <li class="nav-item" v-for="team in teams" :key="team.id">
-          <RouterLink
-            class="nav-link"
-            :to="{ name: 'ReadyView', params: { id: team.id } }"
-            active-class="active"
-          >
-            <span class="icon">{{ team.emoji }}</span>
-=======
         <li 
         class="nav-item" 
         v-for="team in teams" 
@@ -32,7 +19,6 @@
             active-class="active"
             >
             <span class="icon">{{ team.icon }}</span>
->>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
@@ -61,9 +47,9 @@
     <main class="flex-grow-1">
       <RouterView />
     </main>
-    <ChatButton @toggleChat="handleChatButtonClick" />
-    <ChatBox v-if="isChatOpen" :selectedTeamId="selectedTeamId" @toggleChat="toggleChat" @selectTeam="selectTeam" />
-    <ErrorModal v-if="isErrorVisible" :message="errorMessage" @close="closeError" />
+    <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+    <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
@@ -83,7 +69,6 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
-const isErrorVisible = ref(false)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -109,33 +94,16 @@ const teams = computed(() => teamStore.teams)
 
 // 챗봇
 const isChatOpen = ref(false)
-const selectedTeamId = ref(null)
-
 const toggleChat = () => {
-  console.log("Toggling chat...");
   isChatOpen.value = !isChatOpen.value
 }
 
-const handleChatButtonClick = () => {
-  if (isLogin.value) {
-    toggleChat();
-  } else {
-    alert("Please SIGN IN to use the chat feature.");
-  }
-}
-
-const selectTeam = (teamId) => {
-  selectedTeamId.value = teamId
-}
-
+const showError = computed(() => errorStore.showError)
 const errorMessage = computed(() => errorStore.errorMessage)
 const closeError = () => {
   errorStore.hideError()
-  isErrorVisible.value = false
 }
 </script>
-
-
 <style scoped>
 #app {
   display: flex;
@@ -149,6 +117,7 @@ const closeError = () => {
 }
 
 .sidebar {
+  
   width: 70px;
   height: 100vh;
   background-color: #f3e5f5;
