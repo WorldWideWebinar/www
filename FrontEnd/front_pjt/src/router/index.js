@@ -38,7 +38,7 @@ const router = createRouter({
           props: true
         },
         {
-          paht: ':userID',
+          path: ':userID',
           name: 'UserEditView',
           component: UserEditView,
           props: true

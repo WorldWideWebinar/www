@@ -14,9 +14,9 @@
       <div class="main-btn">
         <div v-if="!isLogin">
           <button @click="navigateToSignVeiw('signin')" style="margin-right: 50px">
-            Sign In
+            SIGN IN
           </button>
-          <button @click="navigateToSignVeiw('signup')">Sign Up</button>
+          <button @click="navigateToSignVeiw('signup')">SIGN UP</button>
         </div>
         <div v-else>
           <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
@@ -368,7 +368,7 @@ button {
   background-color: #6a1b9a;
   font-size: 12px;
   font-weight: bold;
-  padding: 12px 40px;
+  padding: 12px 35px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
