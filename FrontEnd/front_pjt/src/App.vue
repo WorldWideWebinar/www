@@ -18,7 +18,7 @@
             :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
             >
-            <span class="icon">{{ team.icon }}</span>
+            <span class="icon">{{ team.emoji }}</span>
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>

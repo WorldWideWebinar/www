@@ -1,30 +1,19 @@
 <template>
   <div class="profile-card-outer">
     <div class="profile-card-inner">
-      <!-- <img :src="profileImage" alt="Profile Image" class="profile-image" /> -->
-      <img src="../../assets/img/profile.png" alt="profile image" class="profile-image" />
-      <!-- <div class="profile-name">{{ name }}</div> -->
-      <div class="profile-name">Robert</div>
+      <img :src="profileImage" alt="Profile Image" class="profile-image" />
+      <div class="profile-name">{{ name }}</div>
       <div class="profile-time">
         <span style="font-weight: bold;">Total Meeting Time</span><br>
-        <!-- <span>{{ totalMeetingTime }} hours</span> -->
-         <span>2hours 32minutes</span>
+        <span>{{ totalMeetingTime }} hours</span>
       </div>
       <div class="profile-team">
         <span style="font-weight: bold;">Hosted Teams</span>
         <ul>
-          <li>R&D</li>
-          <li>Purchase</li>
-          <li>Sales</li>
-          <li>Development</li>
-          <li>Intelligence</li>
-          <li>팀 abcdefghijklm</li>
-          <li>팀 nopqrstuvwxyz</li>
-          <li>팀 가나다라마바사</li>
-          <li>팀 아자차카타파하</li>
           <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
         </ul>
       </div>
+      <button @click="goToUserEditView" class="profile-edit-button">Edit Profile</button>
     </div>
   </div>
 </template>
@@ -33,9 +22,11 @@
 import { computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
+import { useRouter} from 'vue-router'
 
 const userStore = useUserStore()
 const teamStore = useTeamStore()
+const router = useRouter()
 
 onMounted(async () => {
   // 필요한 경우 여기에서 userInfo 및 팀 정보를 가져옵니다.
@@ -54,6 +45,10 @@ const totalMeetingTime = computed(() => userStore.userInfo.totalMeetingTime)
 const hostedTeams = computed(() => {
   return teamStore.teams.filter((team) => userStore.userInfo.teamList.includes(team.id))
 })
+
+const goToUserEditView = () => {
+  router.push({ name: 'UserEditView', params: { userId: userStore.userId }})
+}
 </script>
 
 <style scoped>

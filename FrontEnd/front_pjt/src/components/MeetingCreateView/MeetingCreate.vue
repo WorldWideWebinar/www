@@ -69,7 +69,6 @@ const createMeeting = async () => {
 
   console.log(newMeeting);
 
-<<<<<<< HEAD
   try {
     await meetingStore.addMeeting(newMeeting);
     alert('Meeting created successfully');
@@ -78,29 +77,6 @@ const createMeeting = async () => {
     console.error('Error creating meeting:', error);
     alert('Error creating meeting');
   }
-=======
-  // meetingStore.addMeeting(newMeeting);
-
-  close();
-  // try {
-  //   const response = await axios.post('http://localhost:5000/api/meetings', newMeeting);
-  //   if (response.data.isSuccess) {
-  //     alert('Meeting created successfully');
-  //     // Reset fields
-  //     teamId.value = null;
-  //     name.value = '';
-  //     start.value = '';
-  //     end.value = '';
-  //     detail.value = '';
-  //   } else {
-  //     console.error('Failed to create meeting:', response.data.message);
-  //     alert('Failed to create meeting');
-  //   }
-  // } catch (error) {
-  //   console.error('Error creating meeting:', error);
-  //   alert('Error creating meeting');
-  // }
->>>>>>> 90d52ee3254379b5a7f89c222fcfd261ae2051fb
 };
 
 const emits = defineEmits(['close']);
