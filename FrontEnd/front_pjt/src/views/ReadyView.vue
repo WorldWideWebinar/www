@@ -215,7 +215,7 @@
                 <tr>
                   <td><strong>Members</strong></td>
                   <td class="show-member before-dropdown" @click="toggleMembersList">
-                    {{ selectedMeeting?.members.length }} members joined!
+                    <!-- {{ selectedMeeting?.members.length }} members joined! -->
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
                       <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
                         <img :src="member.avatar" :alt="member.name" />{{ member.name }}
@@ -226,7 +226,7 @@
                 <tr>
                   <td><strong>Files</strong></td>
                   <td class="before-dropdown" @click="toggleFilesList">
-                    {{ selectedMeeting?.files.length }} files uploaded
+                    <!-- {{ selectedMeeting?.files.length }} files uploaded -->
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
                         <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
