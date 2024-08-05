@@ -3,6 +3,7 @@ package com.ssafy.globalcc.domain.meeting.controller;
 import com.ssafy.globalcc.aop.ApiResponse;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDetailsDto;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDto;
+import com.ssafy.globalcc.domain.meeting.dto.MeetingListDto;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.exception.NoSuchMeetingException;
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
@@ -16,7 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/meetings")
@@ -49,6 +54,16 @@ public class MeetingController {
     public ResponseEntity<?> deleteMeeting(@PathVariable int meetingId, @AuthenticationPrincipal SecurityUser user) {
         meetingService.delete(meetingId);
         return new ResponseEntity<>(ApiResponse.success(meetingId,"미팅 삭제 완료"),HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllMeetings(@RequestParam int teamId,
+                                            @RequestParam ZonedDateTime today,
+                                            @RequestParam boolean prev,
+                                            @RequestParam boolean next) {
+        MeetingListDto dto = new MeetingListDto(teamId,today,prev,next);
+        List<MeetingDetailsDto> list = meetingService.findMEetingListByDto(dto);
+        return new ResponseEntity<>(ApiResponse.success(list,"미팅 리스트 조회 성공!"),HttpStatus.OK);
     }
 
 
