@@ -64,11 +64,13 @@ const users = ref([
   { user_id: 3, name: 'Charlie', profile_image: 'https://via.placeholder.com/40' },
 ]);
 
-const messages = ref([
-  { chat_id: 1, sender_id: 1, team_id: 1, content: 'Hello, Team Alpha!', created_at: '2024-08-01T10:00:00Z' },
-  { chat_id: 2, sender_id: 2, team_id: 1, content: 'Hi Alice!', created_at: '2024-08-01T10:01:00Z' },
-  { chat_id: 3, sender_id: 3, team_id: 2, content: 'Team Beta here!', created_at: '2024-08-01T10:02:00Z' },
-]);
+const messages = ref([]);
+
+// const messages = ref([
+//   { chat_id: 1, sender_id: 1, team_id: 1, content: 'Hello, Team Alpha!', created_at: '2024-08-01T10:00:00Z' },
+//   { chat_id: 2, sender_id: 2, team_id: 1, content: 'Hi Alice!', created_at: '2024-08-01T10:01:00Z' },
+//   { chat_id: 3, sender_id: 3, team_id: 2, content: 'Team Beta here!', created_at: '2024-08-01T10:02:00Z' },
+// ]);
 // 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
 // db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
 
