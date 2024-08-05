@@ -98,7 +98,7 @@ const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
 }
 
-const showError = computed(() => errorStore.showError)
+const showError = computed(() => errorStore.showErrorModal)
 const errorMessage = computed(() => errorStore.errorMessage)
 const closeError = () => {
   errorStore.hideError()

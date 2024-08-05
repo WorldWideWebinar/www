@@ -8,6 +8,7 @@ export const useSessionStore = defineStore('session', {
     streams: [],
     inConference: false,
     token: null, // 토큰을 저장할 변수 추가
+    meetingId: null,
   }),
   actions: {
     setSession(session) {
@@ -24,6 +25,7 @@ export const useSessionStore = defineStore('session', {
         const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { customSessionId });
 
         this.sessionId = response.data.result;
+        this.meetingId = meetingId
         console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
 
         this.inConference = true;
@@ -48,6 +50,24 @@ export const useSessionStore = defineStore('session', {
         console.error('Failed to join conference:', error);
         throw error;
       }
-    }
+    },
+    async endSession(meetingId) {
+      try {
+        const response = await axiosInstance.post(`/api/sessions/${meetingId}`);
+        if (response.data.success) {
+          console.log('Session ended successfully');
+          this.sessionId = null;
+          this.inConference = false;
+          this.token = null;
+          this.streams = [];
+        } else {
+          console.error('Failed to end session:', response.data.message);
+        }
+        return response.data.success;
+      } catch (error) {
+        console.error('Failed to end session:', error);
+        throw error;
+      }
+    },
   }
 });

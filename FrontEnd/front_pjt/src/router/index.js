@@ -67,10 +67,19 @@ const router = createRouter({
       component: ConferenceView,
       props: true
     }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { left: 0, top: 0 };
+    }
+  }
 })
 
 export default router
+
+
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();

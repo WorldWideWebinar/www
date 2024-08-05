@@ -7,184 +7,26 @@
     </header>
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
-      <div class="top-section">
-        <div class="notice-and-intro">
-          <section class="notice-section">
-            <div class="notice-header">
-              <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
-            </div>
-            <div class="notice-content">
-              <div v-if="todayMeeting" class="notice-item">
-                <div class="notice-left">
-                  <p class="bold">{{ todayMeeting.name }}</p>
-                </div>
-                <div class="notice-middle">
-                  <p>{{ todayMeeting.start_at }} - {{ todayMeeting.end_at }}</p>
-                  <p class="before-dropdown" @click="toggleTodayMembersList">
-                    <!-- {{ todayMeeting.members.length }} members will join! -->
-                  </p>
-                  <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-                    <li v-for="member in todayMeetingMembers" :key="member.name" class="member">
-                      <img :src="member.avatar" :alt="member.name" />{{ member.name }}
-                    </li>
-                  </ul>
-                </div>
-                <div class="notice-right">
-                  <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-                  <button @click="handleJoinConference('test')" class="join-button">
-                    <img class="play-button" src="../assets/img/playbutton.png" alt="play">
-                  </button>
-                </div>
-              </div>
-              <div v-else class="notice-item">
-                <p class="no-meeting">There's no meeting today :)</p>
-              </div>
-            </div>
-          </section>
-          <section class="intro-section">
-            <div class="total-meeting-hours">
-              <p>We have meetings for {{ totalMeetingHours }} hours</p>
-              <div class="meeting-hours-bar">
-                <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }"
-                  v-if="prevMeetingHours > 0"></div>
-                <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }"
-                  v-if="todayMeetingHours > 0"></div>
-                <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }"
-                  v-if="nextMeetingHours > 0"></div>
-              </div>
-              <div class="meeting-hours-legend">
-                <div class="legend-item">
-                  <span class="legend-color prev-meetings"></span>
-                  <span class="legend-label">Previous {{ prevMeetingHours }}</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color today-meetings"></span>
-                  <span class="legend-label">Today {{ todayMeetingHours }}</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color next-meetings"></span>
-                  <span class="legend-label">Next {{ nextMeetingHours }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="department-info">
-              <table class="department-table">
-                <tbody>
-                  <tr>
-                    <td><strong>Name</strong></td>
-                    <td>{{ departmentName }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Members</strong></td>
-                    <td>
-                      <div class="members-row" @click="toggleMemberListDropdown">
-                        <!-- {{ members.length }} members -->
-                        <button class="add-member-btn">+</button>
-                      </div>
-                      <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
-                        <li v-for="member in members" :key="member.name" class="member">
-                          <img :src="member.avatar" :alt="member.name" />{{ member.name }}
-                        </li>
-                      </ul>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Created Date</strong></td>
-                    <td>{{ departmentCreationDate }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </div>
+      <TeamNotice 
+        :departmentName="departmentName" 
+        :departmentCreationDate="departmentCreationDate"
+      />
       <main class="main-section">
         <section class="meeting-list-section">
           <div class="meeting-header">
             <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
             <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
           </div>
-          <ul class="nav nav-tabs">
-            <li class="nav-item" @click="activeTab = 'PREV'">
-              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
-            </li>
-            <li class="nav-item" @click="activeTab = 'TODAY'">
-              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
-            </li>
-            <li class="nav-item" @click="activeTab = 'NEXT'">
-              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
-            </li>
-          </ul>
-
-          <table class="meeting-list">
-            <thead>
-              <tr>
-                <th>DATE</th>
-                <th>TIME</th>
-                <th>AGENDA</th>
-                <th>JOIN</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template v-if="activeTab === 'PREV'">
-                <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.meeting_id">
-                  <td>{{ meeting.start_at.split('T')[0] }}</td>
-                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
-                  <td :class="{
-                    agenda: true,
-                    'bold-agenda':
-                      selectedMeeting &&
-                      selectedMeeting.meeting_id === meeting.meeting_id
-                  }" @click="selectMeeting(meeting)">
-                    {{ meeting.name }}
-                  </td>
-                  <td>
-                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">
-                      {{ buttonText('PREV', meeting.status) }}
-                    </button>
-                  </td>
-                </tr>
-              </template>
-              <template v-if="activeTab === 'TODAY'">
-                <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.meeting_id">
-                  <td>{{ meeting.start_at.split('T')[0] }}</td>
-                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
-                  <td :class="{
-                    agenda: true,
-                    'bold-agenda':
-                      selectedMeeting &&
-                      selectedMeeting.meeting_id === meeting.meeting_id
-                  }" @click="selectMeeting(meeting)">
-                    {{ meeting.name }}
-                  </td>
-                  <td>
-                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">
-                      {{ buttonText('TODAY', meeting.status) }}
-                    </button>
-                  </td>
-                </tr>
-              </template>
-              <template v-if="activeTab === 'NEXT'">
-                <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.meeting_id">
-                  <td>{{ meeting.start_at.split('T')[0] }}</td>
-                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
-                  <td :class="{
-                    agenda: true,
-                    'bold-agenda':
-                      selectedMeeting &&
-                      selectedMeeting.meeting_id === meeting.meeting_id
-                  }" @click="selectMeeting(meeting)">
-                    {{ meeting.name }}
-                  </td>
-                  <td>
-                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">
-                      {{ buttonText('NEXT', meeting.status) }}
-                    </button>
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+          <MeetingList
+            :activeTab="activeTab"
+            :groupedMeetings="groupedMeetings"
+            :selectedMeeting="selectedMeeting"
+            :toggleStatus="toggleStatus"
+            :buttonClass="buttonClass"
+            :buttonText="buttonText"
+            :selectMeeting="selectMeeting"
+            @update:activeTab="tab => activeTab = tab"
+          />
         </section>
 
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
@@ -218,7 +60,8 @@
                     <!-- {{ selectedMeeting?.members.length }} members joined! -->
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
                       <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
-                        <img :src="member.avatar" :alt="member.name" />{{ member.name }}
+                        <!-- <img :src="member.avatar" :alt="member.name" /> -->
+                        {{ member.name }}
                       </li>
                     </ul>
                   </td>
@@ -268,28 +111,26 @@
   <router-view v-else></router-view>
   <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" :propedTeamId="propTeamId"/>
 </template>
-
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
+import MeetingList from '@/components/ReadyView/MeetingList.vue';
+import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
 
-const inConference = sessionStore.inConference
+const inConference = ref(false);
 const selectedMeeting = ref(null);
 const detailType = ref('');
 const showMembersList = ref(false);
-const showTodayMembersList = ref(false);
 const showFilesList = ref(false);
 const showMemberListDropdown = ref(false);
 const showOverlay = ref(false);
@@ -299,18 +140,9 @@ const activeTab = ref('TODAY');
 const departmentCreationDate = ref('2022-01-01');
 const meetingCreateModal = ref(false);
 const propTeamId = ref('');
+const previewUrl = ref(null);
 
-const members = ref([
-  // { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
-  // { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
-  // { name: 'Tom', avatar: 'https://via.placeholder.com/32' },
-  // { name: 'Mike', avatar: 'https://via.placeholder.com/32' },
-  // { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
-  // { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
-]);
-
-
-
+const members = computed(() => teamStore.teamUserInfo);
 const meetings = computed(() => meetingStore.meetings);
 
 const departmentName = computed(() => {
@@ -331,11 +163,10 @@ const todayMeeting = computed(() => {
 });
 
 const groupedMeetings = computed(() => {
-  const groups = {
-    PREV: [],
-    TODAY: [],
-    NEXT: []
-  };
+  if (!meetings.value) {
+    return { PREV: [], TODAY: [], NEXT: [] };
+  }
+  const groups = { PREV: [], TODAY: [], NEXT: [] };
   const now = new Date();
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
   sortedMeetings.forEach((meeting) => {
@@ -349,10 +180,11 @@ const groupedMeetings = computed(() => {
       groups.NEXT.push(meeting);
     }
   });
-  return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
+  return groups;
 });
 
 const totalMeetingHours = computed(() => {
+  if (!meetings.value) return 0;
   return meetings.value.reduce((total, meeting) => {
     const start = new Date(meeting.start_at);
     const end = new Date(meeting.end_at);
@@ -384,19 +216,20 @@ const nextMeetingHours = computed(() => {
   }, 0);
 });
 
-const prevMeetingHoursPercentage = computed(() => {
-  return (prevMeetingHours.value / totalMeetingHours.value) * 100;
+const prevMeetingHoursPercentage = computed(() => (prevMeetingHours.value / totalMeetingHours.value) * 100);
+const todayMeetingHoursPercentage = computed(() => (todayMeetingHours.value / totalMeetingHours.value) * 100);
+const nextMeetingHoursPercentage = computed(() => (nextMeetingHours.value / totalMeetingHours.value) * 100);
+
+onMounted(async () => {
+  const teamId = parseInt(route.params.id, 10);
+  try {
+    await teamStore.fetchTeamById(teamId);
+    await Promise.all([teamStore.fetchTeamUsers(), meetingStore.fetchMeetingsByIds(teamStore.teamInfo.meetingList)]);
+    selectLatestTodayMeeting();
+  } catch (error) {
+    console.error('Failed to load initial data:', error);
+  }
 });
-
-const todayMeetingHoursPercentage = computed(() => {
-  return (todayMeetingHours.value / totalMeetingHours.value) * 100;
-});
-
-const nextMeetingHoursPercentage = computed(() => {
-  return (nextMeetingHours.value / totalMeetingHours.value) * 100;
-});
-
-
 
 const selectMeeting = (meeting) => {
   selectedMeeting.value = meeting;
@@ -421,44 +254,34 @@ const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
 
-const toggleDetailStatus = (meeting) => {
-  meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
-};
-
 const buttonClass = (type, status) => {
-  if (type === 'NEXT') {
-    return status === 'IN' ? 'btn-green' : 'btn-red';
-  } else if (type === 'PREV') {
-    return 'btn-gray';
-  } else if (type === 'TODAY') {
-    return status === 'IN' ? 'btn-green' : 'btn-red';
-  }
+  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
+  if (type === 'PREV') return 'btn-gray';
+  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
   return '';
 };
 
-const buttonText = (type, status) => {
-  return status;
-};
+const buttonText = (type, status) => status;
 
 const computeDetailType = (start_at) => {
   const today = new Date().toISOString().split('T')[0];
   if (start_at.split('T')[0] === today) return 'TODAY';
-  else if (start_at.split('T')[0] > today) return 'NEXT';
-  else return 'PREV';
+  if (start_at.split('T')[0] > today) return 'NEXT';
+  return 'PREV';
 };
 
-const toggleMemberListDropdown = () => {
-  showMemberListDropdown.value = !showMemberListDropdown.value;
-  showOverlay.value = showMemberListDropdown.value;
-};
+// const toggleMemberListDropdown = () => {
+//   showMemberListDropdown.value = !showMemberListDropdown.value;
+//   showOverlay.value = showMemberListDropdown.value;
+// };
 
-const toggleTodayMembersList = () => {
-  showTodayMembersList.value = !showTodayMembersList.value;
-  if (todayMeeting.value) {
-    todayMeetingMembers.value = members.value.slice(0, todayMeeting.value.members);
-  }
-  showOverlay.value = showTodayMembersList.value;
-};
+// const toggleTodayMembersList = () => {
+//   showTodayMembersList.value = !showTodayMembersList.value;
+//   if (todayMeeting.value) {
+//     todayMeetingMembers.value = members.value.slice(0, todayMeeting.value.members);
+//   }
+//   showOverlay.value = showTodayMembersList.value;
+// };
 
 const selectLatestTodayMeeting = () => {
   const todayMeetings = groupedMeetings.value.TODAY;
@@ -489,20 +312,11 @@ const closeDropdowns = () => {
   showOverlay.value = false;
 };
 
-onMounted(async () => {
-  const teamId = parseInt(route.params.id, 10);
+watch(() => route.params.id, async (newId) => {
+  const teamId = parseInt(newId, 10);
+  propTeamId.value = teamId;
   await teamStore.fetchTeamById(teamId);
-  selectLatestTodayMeeting();
 });
-
-watch(
-  () => route.params.id,
-  async (newId) => {
-    const teamId = parseInt(newId, 10);
-    propTeamId.value = teamId;
-    await teamStore.fetchTeamById(teamId);
-  }
-);
 
 watch(activeTab, (newTab) => {
   if (newTab === 'TODAY') {
@@ -510,45 +324,10 @@ watch(activeTab, (newTab) => {
   }
 });
 
-watch(meetings, (newMeetings) => {
-  console.log("Updated meetings:", newMeetings); // meetings 값이 변경될 때마다 출력
-});
-
 const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
-
-const handleStartConference = async (meetingId, sessionName) => {
-  console.log(meetingId);
-  const userId = userStore.userId; 
-  try {
-    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
-
-    if (!sessionId) {
-      // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, 'Test1234');
-    }
-
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token } });
-    inConference.value = true;
-  } catch (error) {
-    console.error('Failed to start conference:', error);
-  }
-};
-
-const handleJoinConference = async (sessionId) => {
-  console.log(sessionId);
-  try {
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token } });
-    inConference.value = true;
-  } catch (error) {
-    console.error('handleJoinConference', error);
-  }
-};
 </script>
-
 
 
 <style scoped>
@@ -577,274 +356,6 @@ const handleJoinConference = async (sessionId) => {
   margin: 0 auto;
 }
 
-.top-section {
-  display: flex;
-  justify-content: space-between;
-  height: auto;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-/* notice-and-intro */
-.notice-and-intro {
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
-  width: 100%;
-  border-radius: 8px 8px 0 0;
-}
-
-.notice-section {
-  flex: 4;
-  background-color: #ffffff;
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-.intro-section {
-  flex: 1.5;
-  background-color: #ffffff;
-  padding: 1.5rem 1rem;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  border: 2px dashed rgb(232, 231, 234);
-  font-size: small;
-}
-
-.notice-header,
-.meeting-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.notice-header h5 .icon {
-  margin-right: 5px;
-}
-
-.notice-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px 0;
-  background-color: #f9f9f9;
-}
-
-.notice-item {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-right: 1rem;
-}
-
-.no-meeting {
-  margin: auto;
-}
-
-.notice-left,
-.notice-middle,
-.notice-right {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  margin: 5px;
-}
-
-.notice-middle {
-  flex: 2;
-}
-
-.notice-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.notice-left::after,
-.notice-middle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  border-right: 1px dashed #ccc;
-  transform: translateX(50%);
-}
-
-.notice-right::after {
-  display: none;
-}
-
-.notice-right button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  padding: 0.5rem;
-  cursor: pointer;
-  font-size: 1rem;
-  border-radius: 100px;
-  background-color: none;
-}
-
-.notice-right {
-  font-size: 1.2rem;
-  padding: 5px;
-}
-
-.play-button {
-  width: 50px;
-}
-
-/* department-info */
-.department-table {
-  width: 100%;
-  border-collapse: collapse;
-  /* margin-bottom: 1rem; */
-}
-
-.department-table td {
-  padding: 0.3rem 0.5rem;
-}
-
-/* total-meeting-hours */
-.total-meeting-hours {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-weight: bold;
-}
-
-.total-meeting-hours p {
-  margin-bottom: 15px;
-}
-
-.meeting-hours-bar {
-  display: flex;
-  height: 20px;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  overflow: hidden;
-  /* margin-top: 10px; */
-}
-
-.meeting-hours-segment {
-  height: 100%;
-}
-
-.prev-meetings {
-  background-color: #e0dfdf;
-}
-
-.today-meetings {
-  background-color: #d6b3f7;
-}
-
-.next-meetings {
-  background-color: #f7b3d5;
-}
-
-/* label */
-.meeting-hours-legend {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 15px;
-}
-
-.legend-item:last-child {
-  margin-right: 0;
-}
-
-.legend-color {
-  width: 10px;
-  height: 10px;
-  border-radius: 10px;
-  margin-right: 5px;
-}
-
-.legend-color.prev-meetings {
-  background-color: #e0dfdf;
-}
-
-.legend-color.today-meetings {
-  background-color: #d6b3f7;
-}
-
-.legend-color.next-meetings {
-  background-color: #f7b3d5;
-}
-
-.legend-label {
-  /* font-size: xx-small; */
-  font-size: 9px;
-  font-weight: bpld;
-}
-
-
-/* member */
-.members {
-  max-height: 100px;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-  padding-right: 10px;
-  text-align: left;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-}
-
-.member {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: left;
-  margin-bottom: 0.5rem;
-  padding-left: 0.5rem;
-  width: 100%;
-}
-
-.member img {
-  border-radius: 50%;
-  margin-right: 0.5rem;
-}
-
-.member p {
-  margin: 0;
-  padding-left: 5px;
-}
-
-.members-row {
-  display: flex;
-  align-items: center;
-}
-
-.add-member-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #808080;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  margin: 0 0 0 15px;
-}
-
-/* main-section */
 .main-section {
   display: flex;
   padding: 1rem;
@@ -874,7 +385,6 @@ const handleJoinConference = async (sessionId) => {
   height: auto;
 }
 
-/* meeting-list */
 .meeting-header {
   display: flex;
   justify-content: space-between;
@@ -991,36 +501,23 @@ button {
   color: black;
 }
 
-.btn-play {
-  background-color: rgba(225, 190, 231, 1);
-  padding: 5px;
-  border-radius: 50%;
-  border: 2px dashed black;
-}
-
 .meeting-list tbody {
   display: block;
   max-height: 140px;
-  /* 원하는 최대 높이 설정 */
   overflow-y: scroll;
 }
 
 .meeting-list tbody::-webkit-scrollbar {
   width: 0;
-  /* 스크롤바의 너비를 0으로 설정 */
   background: transparent;
-  /* 스크롤바 배경을 투명하게 설정 */
 }
 
 .meeting-list tr {
   display: table;
   width: calc(100% - 1rem);
-  /* 테이블 너비를 100%에서 약간 줄임 */
   table-layout: fixed;
 }
 
-
-/* detail */
 .meeting-detail-header {
   display: flex;
   justify-content: space-between;
@@ -1050,16 +547,6 @@ button {
   padding: 0.3rem 0.5rem;
   font-size: medium;
 }
-
-/* .files-section p {
-  font-weight: bold;
-  text-align: center;
-  text-decoration-line: underline;  
-  text-decoration-style: wavy;
-  text-decoration-color: rgb(154, 130, 253);
-  text-decoration-thickness: auto;
-  margin-bottom: 5px;
-} */
 
 .files-table {
   width: 100%;
@@ -1094,7 +581,6 @@ button {
   border-radius: 4px;
 }
 
-/* dropdown 공통 스타일 */
 .before-dropdown {
   text-decoration: underline;
   font-size: medium;
@@ -1134,11 +620,6 @@ button {
   width: 150px;
 }
 
-.dropdown-hidden {
-  display: none;
-}
-
-/* 배경 클릭 시 dropdown 닫기 */
 .background-overlay {
   position: fixed;
   top: 0;
@@ -1167,7 +648,6 @@ button {
 }
 
 @media (max-width: 992px) {
-
   .intro-section,
   .chat-section,
   .meeting-detail-section {

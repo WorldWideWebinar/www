@@ -7,34 +7,61 @@ import axiosInstance from '@/axios';
 export const useTeamStore = defineStore('team', {
   state: () => ({
     teams: [],
+    teamInfo : null,
     isOwner: false,
     teamUserList: [],
+    teamUserInfo: [],
   }),
   actions: {
     clearTeams() {
-      this.teams = [];
+      this.teamUserList = [];
+      this.teamUserInfo = [];
     },
     async fetchTeamById(teamId) {
+      this.clearTeams()
       const meetingStore = useMeetingStore(); // Access the meeting store
       const errorStore = useErrorStore(); // Access the error store
       try {
         // 초기화 로직
         meetingStore.clearMeetings();
-
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
+        this.teamInfo = teamData
+        this.teamUserList = teamData.userList
         const teamExists = this.teams.some(team => team.id === teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드
             ...teamData
           });
-          await meetingStore.fetchMeetingsByIds(teamData.meetingList);
+          
           return teamData;
         }
       } catch (error) {
         errorStore.showError(`Failed to fetch team ${teamId}: ${error.message}`);
         return null;
+      }
+    },
+
+    async fetchTeamUsers() {
+      const errorStore = useErrorStore();
+      console.log('팀원', this.teamUserList)
+      try {
+        // this.clearTeamUsers();
+        
+        const users = await Promise.all(this.teamUserList.map(async (userId) => {
+          try {
+            const response = await axiosInstance.get(`api/users/${userId}`);
+            console.log(response.data.result)
+            return response.data.result;
+          } catch (error) {
+            errorStore.showError(`Failed to fetch user info for user ${userId}`);
+            return null;
+          }
+        }));
+        this.teamUserInfo = users.filter(user => user !== null);
+      } catch (error) {
+        errorStore.showError('Failed to fetch team users');
       }
     },
     checkIfUserIsOwner(userId, teamName) {
