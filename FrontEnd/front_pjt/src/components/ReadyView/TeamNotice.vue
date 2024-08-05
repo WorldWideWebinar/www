@@ -11,7 +11,7 @@
               <p class="bold">{{ todayMeeting.name }}</p>
             </div>
             <div class="notice-middle">
-              <p>{{ todayMeeting.start_at }} - {{ todayMeeting.end_at }}</p>
+              <p>{{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}</p>
               <p class="before-dropdown" @click="toggleTodayMembersList">
                 <!-- {{ todayMeeting.members.length }} members will join! -->
               </p>
@@ -23,8 +23,8 @@
               </ul>
             </div>
             <div class="notice-right">
-              <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-              <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
+              <button v-if="isOwner && !sessionId" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
+              <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
                 <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
               </button>
             </div>
@@ -100,16 +100,20 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   departmentName: String,
-  departmentCreationDate: String
+  departmentCreationDate: String,
+  isOwner: Boolean,
+  sessionId: String,
 });
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
+const router = useRouter();
 
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
@@ -165,6 +169,20 @@ const nextMeetingHoursPercentage = computed(() => {
   return (nextMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}-${day}`;
+};
+
+const formatTime = (dateString) => {
+  const date = new Date(dateString);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 const toggleTodayMembersList = () => {
   showTodayMembersList.value = !showTodayMembersList.value;
   showOverlay.value = showTodayMembersList.value;
@@ -183,7 +201,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, 'Test1234');
+      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
     }
 
     const token = await sessionStore.joinConference(sessionId);
@@ -193,16 +211,17 @@ const handleStartConference = async (meetingId, sessionName) => {
   }
 };
 
-const handleJoinConference = async (sessionId) => {
-  console.log(sessionId);
+const handleJoinConference = async (sessionName) => {
+  console.log(sessionName);
   try {
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token } });
+    const token = await sessionStore.joinConference(sessionName);
+    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
   } catch (error) {
-    console.error('handleJoinConference', error);
+    console.error('Failed to join conference:', error);
   }
 };
 </script>
+
 
 <style scoped>
 .top-section {

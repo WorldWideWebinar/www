@@ -10,6 +10,8 @@
       <TeamNotice 
         :departmentName="departmentName" 
         :departmentCreationDate="departmentCreationDate"
+        :isOwner="isOwner"
+        :sessionId="sessionStore.sessionId"
       />
       <main class="main-section">
         <section class="meeting-list-section">
@@ -117,6 +119,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 import MeetingList from '@/components/ReadyView/MeetingList.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
@@ -126,7 +129,7 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-
+const sessionStore = useSessionStore();
 const inConference = ref(false);
 const selectedMeeting = ref(null);
 const detailType = ref('');
@@ -183,42 +186,42 @@ const groupedMeetings = computed(() => {
   return groups;
 });
 
-const totalMeetingHours = computed(() => {
-  if (!meetings.value) return 0;
-  return meetings.value.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+// const totalMeetingHours = computed(() => {
+//   if (!meetings.value) return 0;
+//   return meetings.value.reduce((total, meeting) => {
+//     const start = new Date(meeting.start_at);
+//     const end = new Date(meeting.end_at);
+//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+//   }, 0);
+// });
 
-const prevMeetingHours = computed(() => {
-  return groupedMeetings.value.PREV.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+// const prevMeetingHours = computed(() => {
+//   return groupedMeetings.value.PREV.reduce((total, meeting) => {
+//     const start = new Date(meeting.start_at);
+//     const end = new Date(meeting.end_at);
+//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+//   }, 0);
+// });
 
-const todayMeetingHours = computed(() => {
-  return groupedMeetings.value.TODAY.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+// const todayMeetingHours = computed(() => {
+//   return groupedMeetings.value.TODAY.reduce((total, meeting) => {
+//     const start = new Date(meeting.start_at);
+//     const end = new Date(meeting.end_at);
+//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+//   }, 0);
+// });
 
-const nextMeetingHours = computed(() => {
-  return groupedMeetings.value.NEXT.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+// const nextMeetingHours = computed(() => {
+//   return groupedMeetings.value.NEXT.reduce((total, meeting) => {
+//     const start = new Date(meeting.start_at);
+//     const end = new Date(meeting.end_at);
+//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+//   }, 0);
+// });
 
-const prevMeetingHoursPercentage = computed(() => (prevMeetingHours.value / totalMeetingHours.value) * 100);
-const todayMeetingHoursPercentage = computed(() => (todayMeetingHours.value / totalMeetingHours.value) * 100);
-const nextMeetingHoursPercentage = computed(() => (nextMeetingHours.value / totalMeetingHours.value) * 100);
+// const prevMeetingHoursPercentage = computed(() => (prevMeetingHours.value / totalMeetingHours.value) * 100);
+// const todayMeetingHoursPercentage = computed(() => (todayMeetingHours.value / totalMeetingHours.value) * 100);
+// const nextMeetingHoursPercentage = computed(() => (nextMeetingHours.value / totalMeetingHours.value) * 100);
 
 onMounted(async () => {
   const teamId = parseInt(route.params.id, 10);
@@ -306,7 +309,6 @@ const previewFile = (file) => {
 
 const closeDropdowns = () => {
   showMemberListDropdown.value = false;
-  showTodayMembersList.value = false;
   showFilesList.value = false;
   showMembersList.value = false;
   showOverlay.value = false;
@@ -328,7 +330,6 @@ const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
 </script>
-
 
 <style scoped>
 .ready-page-container {

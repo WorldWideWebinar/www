@@ -14,6 +14,7 @@ export const useTeamStore = defineStore('team', {
   }),
   actions: {
     clearTeams() {
+      this.teams = [];
       this.teamUserList = [];
       this.teamUserInfo = [];
     },

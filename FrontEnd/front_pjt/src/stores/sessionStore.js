@@ -37,12 +37,12 @@ export const useSessionStore = defineStore('session', {
       }
     },
     async joinConference(sessionId) {
-      console.log('join conference sessionid', sessionId)
+      console.log('참가하려는 세션', sessionId)
       try {
         const response = await axiosInstance.post(`/api/sessions/${sessionId}/connections`);
 
         this.token = response.data; // 서버로부터 받은 토큰을 저장
-        console.log('Joining conference with token:', this.token);
+        console.log('openvidu 발급 토큰', this.token);
 
         this.inConference = true;
         return this.token; // 토큰 반환
