@@ -12,5 +12,8 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  define: {
+    'global': {}, // global 변수를 정의하여 브라우저 환경에서의 참조 오류를 해결합니다.
   }
 })

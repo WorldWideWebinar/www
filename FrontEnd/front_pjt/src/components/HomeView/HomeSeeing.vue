@@ -185,7 +185,6 @@ const groupMeetings = () => {
     TODAY: [],
     NEXT: [],
     PREV: [],
-    // TODO:[]
   }
   const today = new Date().toISOString().split('T')[0]
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -223,12 +222,10 @@ onMounted(async () => {
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
   if (userStore.userId != 0) {
-    console.log('소속 팀 목록' , userStore.userInfo.teamList)
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)
-  }
-
+    }
   }
 })
 </script>

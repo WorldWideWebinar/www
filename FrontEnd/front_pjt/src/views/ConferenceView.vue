@@ -5,9 +5,9 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <div class="participant" v-for="participant in participants" :key="participant.name">
-          <div class="participant-video">
-            <img :src="participant.avatar" alt="participant avatar" />
+        <div class="participant" v-for="participant in participants" :key="participant.id">
+          <div class="participant-video" :id="'participant-video-' + participant.id">
+            <!-- 참가자의 화상이 여기 표시됩니다 -->
           </div>
           <div class="participant-info">
             <span>{{ participant.name }}</span>
@@ -21,9 +21,8 @@
           </div>
           <div class="right-side">
             <div class="participant">
-              <div class="participant-video">
-                <!-- <img src="https://via.placeholder.com/150x110" alt="Your avatar" /> -->
-                <div id="video-container"></div>
+              <div class="participant-video" id="my-video-container">
+                <!-- 본인의 화상이 여기 표시됩니다 -->
               </div>
               <div class="participant-info">
                 <span>나</span>
@@ -35,45 +34,13 @@
           <div class="translation-section original">
             <h5>Original Version</h5>
             <div class="translation-content">
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>Robert</strong>
-                  <div class="language"><span>🌐 영어</span></div>
-                </div>
-                <div class="message">
-                  <span>Please brief me on this month’s inventory status.</span>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>Lisa</strong>
-                  <div class="language"><span>🌐 중국어</span></div>
-                </div>
-                <div class="message">
-                  <span>包括预计明天到益山港的400吨在内，共有5600吨。这个季度的生产没有问题。</span>
-                </div>
-              </div>
+              <!-- Original messages -->
             </div>
           </div>
           <div class="translation-section">
             <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
             <div class="translation-content">
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>로버트</strong>
-                </div>
-                <div class="message">
-                  <span>이번달 재고 현황에 대해 브리핑 부탁해.</span>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>리사</strong>
-                </div>
-                <div class="message">
-                  <span>내일 부산항에 도착 예정인 400톤을 포함하면 총 5600톤이야. 이번 분기 생산에는 문제 없을 것으로 예상돼.</span>
-                </div>
-              </div>
+              <!-- Translated messages -->
             </div>
           </div>
         </div>
@@ -84,7 +51,7 @@
           </div>
           <div class="footer-center">
             <span style="font-weight: bold;">Attendance</span>
-            <span>4 / 6</span>
+            <span>{{ participants.length }} / 6</span>
           </div>
           <div class="footer-right">
             <span>Invite Alex, Joy</span>
@@ -100,24 +67,20 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
+import { useTeamStore } from '@/stores/teamStore';
+import { useUserStore } from '@/stores/userStore';
 
 const route = useRoute();
 const router = useRouter();
-
+const teamStore = useTeamStore();
+const userStore = useUserStore();
 const sessionId = route.params.sessionId;
 const token = route.params.token;
-
-const participants = ref([
-  { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
-  { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
-  { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
-]);
 
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
@@ -126,7 +89,9 @@ const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
-const userId = `user_${Math.floor(Math.random() * 10000)}`;
+const userId = userStore.userId; // 현재 사용자의 ID 가져오기
+
+const participants = ref([]); // 참가자 리스트
 
 const joinSession = async () => {
   const OV = new OpenVidu();
@@ -134,14 +99,21 @@ const joinSession = async () => {
   sessionStore.setSession(currentSession);
 
   currentSession.on('streamCreated', (event) => {
-    const subscriber = currentSession.subscribe(event.stream, 'video-container');
+    const subscriber = currentSession.subscribe(event.stream, undefined);
     sessionStore.addStream(subscriber.stream);
+    if (subscriber.stream.connection.connectionId !== currentSession.connection.connectionId) {
+      const participantId = subscriber.stream.connection.data; // 참가자의 ID 가져오기
+      const videoContainer = document.getElementById(`participant-video-${participantId}`);
+      if (videoContainer) {
+        subscriber.addVideoElement(videoContainer);
+      }
+    }
   });
 
   try {
-    await currentSession.connect(token, { clientData: 'Participant' });
+    await currentSession.connect(token, { clientData: userId });
 
-    publisher.value = OV.initPublisher('video-container', {
+    publisher.value = OV.initPublisher('my-video-container', {
       videoSource: undefined,
       audioSource: undefined,
       publishVideo: true,
@@ -153,6 +125,12 @@ const joinSession = async () => {
 
     currentSession.publish(publisher.value);
     session.value = currentSession;
+
+    // 참가자 리스트 업데이트
+    const team = teamStore.teams.find(team => team.name === route.params.name);
+    if (team) {
+      participants.value = team.userList.filter(user => user.id !== userId); // 본인 제외
+    }
   } catch (error) {
     console.error('Error connecting to session:', error);
   }
@@ -188,6 +166,7 @@ onBeforeRouteLeave((to, from, next) => {
   next();
 });
 </script>
+
 
 <style scoped>
 .conference-container {

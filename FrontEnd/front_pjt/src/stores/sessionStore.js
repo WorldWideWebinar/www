@@ -9,6 +9,7 @@ export const useSessionStore = defineStore('session', {
     inConference: false,
     token: null, // 토큰을 저장할 변수 추가
     meetingId: null,
+    participants: 0,
   }),
   actions: {
     setSession(session) {

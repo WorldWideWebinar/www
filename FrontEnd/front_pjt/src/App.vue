@@ -48,7 +48,7 @@
       <RouterView />
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId"/>
     <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
@@ -69,6 +69,7 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
+const selectedTeamId = ref(null);
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -103,7 +104,13 @@ const errorMessage = computed(() => errorStore.errorMessage)
 const closeError = () => {
   errorStore.hideError()
 }
+
+const selectTeam = (teamId) => {
+  selectedTeamId.value = teamId;
+};
 </script>
+
+
 <style scoped>
 #app {
   display: flex;
