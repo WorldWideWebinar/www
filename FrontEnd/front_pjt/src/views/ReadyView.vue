@@ -8,7 +8,6 @@
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <div class="top-section">
-        <button @click="startConference" class="join-button">Start</button>
         <div class="notice-and-intro">
           <section class="notice-section">
             <div class="notice-header">
@@ -22,7 +21,7 @@
                 <div class="notice-middle">
                   <p>{{ todayMeeting.start_at }} - {{ todayMeeting.end_at }}</p>
                   <p class="before-dropdown" @click="toggleTodayMembersList">
-                    {{ todayMeeting.members.length }} members will join!
+                    <!-- {{ todayMeeting.members.length }} members will join! -->
                   </p>
                   <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
                     <li v-for="member in todayMeetingMembers" :key="member.name" class="member">
@@ -31,8 +30,8 @@
                   </ul>
                 </div>
                 <div class="notice-right">
-                  <button v-if="isOwner" @click="startConference" class="join-button">Start</button>
-                  <button v-else @click="joinConference" class="join-button">
+                  <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
+                  <button @click="handleJoinConference('test')" class="join-button">
                     <img class="play-button" src="../assets/img/playbutton.png" alt="play">
                   </button>
                 </div>
@@ -79,7 +78,7 @@
                     <td><strong>Members</strong></td>
                     <td>
                       <div class="members-row" @click="toggleMemberListDropdown">
-                        {{ members.length }} members
+                        <!-- {{ members.length }} members -->
                         <button class="add-member-btn">+</button>
                       </div>
                       <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
@@ -216,7 +215,7 @@
                 <tr>
                   <td><strong>Members</strong></td>
                   <td class="show-member before-dropdown" @click="toggleMembersList">
-                    {{ selectedMeeting?.members.length }} members joined!
+                    <!-- {{ selectedMeeting?.members.length }} members joined! -->
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
                       <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
                         <img :src="member.avatar" :alt="member.name" />{{ member.name }}
@@ -227,7 +226,7 @@
                 <tr>
                   <td><strong>Files</strong></td>
                   <td class="before-dropdown" @click="toggleFilesList">
-                    {{ selectedMeeting?.files.length }} files uploaded
+                    <!-- {{ selectedMeeting?.files.length }} files uploaded -->
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
                         <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
@@ -277,11 +276,16 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
-import axios from 'axios';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 
-const inConference = ref(false);
-const sessionId = ref(null);
+const route = useRoute();
+const router = useRouter();
+const teamStore = useTeamStore();
+const userStore = useUserStore();
+const meetingStore = useMeetingStore();
+const sessionStore = useSessionStore();
+
+const inConference = sessionStore.inConference
 const selectedMeeting = ref(null);
 const detailType = ref('');
 const showMembersList = ref(false);
@@ -297,20 +301,15 @@ const meetingCreateModal = ref(false);
 const propTeamId = ref('');
 
 const members = ref([
-  { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
-  { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
-  { name: 'Tom', avatar: 'https://via.placeholder.com/32' },
-  { name: 'Mike', avatar: 'https://via.placeholder.com/32' },
-  { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
-  { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
+  // { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
+  // { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
+  // { name: 'Tom', avatar: 'https://via.placeholder.com/32' },
+  // { name: 'Mike', avatar: 'https://via.placeholder.com/32' },
+  // { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
+  // { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
 ]);
 
-const route = useRoute();
-const router = useRouter();
-const teamStore = useTeamStore();
-const userStore = useUserStore();
-const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
+
 
 const meetings = computed(() => meetingStore.meetings);
 
@@ -397,23 +396,7 @@ const nextMeetingHoursPercentage = computed(() => {
   return (nextMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
-const joinConference = async () => {
-  try {
-    const response = await axios.get('http://localhost:5000/api/sessions');
-    sessionId.value = response.data.sessionId;
 
-    router
-      .push({ name: 'ConferenceView', params: { sessionId: sessionId.value } })
-      .then(() => {
-        inConference.value = true;
-      })
-      .catch((err) => {
-        console.error('Error navigating to ConferenceView:', err);
-      });
-  } catch (error) {
-    console.error('Failed to join conference:', error);
-  }
-};
 
 const selectMeeting = (meeting) => {
   selectedMeeting.value = meeting;
@@ -527,14 +510,42 @@ watch(activeTab, (newTab) => {
   }
 });
 
+watch(meetings, (newMeetings) => {
+  console.log("Updated meetings:", newMeetings); // meetings 값이 변경될 때마다 출력
+});
+
 const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
 
-const startConference = async () => {
-  const meetingId = selectedMeeting.value.meeting_id; 
+const handleStartConference = async (meetingId, sessionName) => {
+  console.log(meetingId);
   const userId = userStore.userId; 
-  await sessionStore.startConference(meetingId, userId);
+  try {
+    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
+
+    if (!sessionId) {
+      // sessionId가 없는 경우 새로운 세션 시작
+      sessionId = await sessionStore.startConference(meetingId, userId, 'Test1234');
+    }
+
+    const token = await sessionStore.joinConference(sessionId);
+    router.push({ name: 'ConferenceView', params: { sessionId, token } });
+    inConference.value = true;
+  } catch (error) {
+    console.error('Failed to start conference:', error);
+  }
+};
+
+const handleJoinConference = async (sessionId) => {
+  console.log(sessionId);
+  try {
+    const token = await sessionStore.joinConference(sessionId);
+    router.push({ name: 'ConferenceView', params: { sessionId, token } });
+    inConference.value = true;
+  } catch (error) {
+    console.error('handleJoinConference', error);
+  }
 };
 </script>
 

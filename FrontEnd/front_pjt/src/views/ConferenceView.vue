@@ -99,14 +99,14 @@
     </div>
   </div>
 </template>
+
 <script>
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
-import axios from 'axios';
 
 export default {
   name: 'ConferenceView',
-  props: ['sessionId'],
+  props: ['sessionId', 'token'],
   data() {
     return {
       participants: [
@@ -139,11 +139,8 @@ export default {
       });
 
       try {
-        // 백엔드 서버로 요청을 보내어 OpenVidu 세션에 연결하기 위한 토큰 생성
-        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${this.sessionId}/connection`);
-        const token = tokenResponse.data.token;
-
-        await session.connect(token, { clientData: 'Participant' });
+        // token을 사용하여 OpenVidu 세션에 연결
+        await session.connect(this.token, { clientData: 'Participant' });
 
         this.publisher = OV.initPublisher('video-container', {
           videoSource: undefined,
@@ -187,6 +184,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .conference-container {

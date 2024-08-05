@@ -145,6 +145,57 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         throw new Error('ID already exists.')
       }
+    },
+    async deleteUser(userId) {
+      const errorStore = useErrorStore();
+      try {
+        const response = await axiosInstance.delete(`api/users/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        });
+
+        if (response.data.success) {
+          // 사용자 정보를 초기화
+          this.userId = 0;
+          this.userInfo = {};
+          this.accessToken = null;
+          this.refreshToken = null;
+          meetingStore.clearMeetings();
+          teamStore.clearTeams();
+          router.push({ name: 'HomeView' });
+          return { success: true, message: response.data.message };
+        } else {
+          errorStore.showError(response.data.message);
+          return { success: false, message: response.data.message };
+        }
+      } catch (error) {
+        errorStore.showError('Failed to delete user');
+        return { success: false, message: error.message };
+      }
+    },
+
+    async changeUserInfo(userId, newUserInfo) {
+      const errorStore = useErrorStore();
+      try {
+        const response = await axiosInstance.put(`api/users/${userId}`, newUserInfo, {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        });
+
+        if (response.data.success) {
+          // 사용자 정보를 업데이트
+          this.userInfo = { ...this.userInfo, ...newUserInfo };
+          return { success: true, message: response.data.message };
+        } else {
+          errorStore.showError(response.data.message);
+          return { success: false, message: response.data.message };
+        }
+      } catch (error) {
+        errorStore.showError('Failed to update user info');
+        return { success: false, message: error.message };
+      }
     }
   },
   persist: {

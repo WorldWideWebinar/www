@@ -13,10 +13,10 @@
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
-          <button @click="router.push({ name: 'SignView' })" style="margin-right: 50px">
-            Sign in
+          <button @click="navigateToSignVeiw('signin')" style="margin-right: 50px">
+            SIGN IN
           </button>
-          <button @click="router.push({ name: 'SignView' })">Sign up</button>
+          <button @click="navigateToSignVeiw('signup')">SIGN UP</button>
         </div>
         <div v-else>
           <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
@@ -142,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
@@ -215,6 +215,10 @@ const slideClass = (group) => {
     default:
       return ''
   }
+}
+
+const navigateToSignVeiw = (mode) => {
+  router.push({ name: 'SignView', query: { mode } })
 }
 
 onMounted(async () => {
@@ -361,7 +365,7 @@ button {
   background-color: #6a1b9a;
   font-size: 12px;
   font-weight: bold;
-  padding: 12px 40px;
+  padding: 12px 35px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;

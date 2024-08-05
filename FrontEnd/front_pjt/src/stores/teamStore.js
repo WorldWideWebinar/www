@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useUserStore } from './userStore';
 import { useMeetingStore } from './meetingStore';
+import { useErrorStore } from './errorStore'; // Import the errorStore
 import axiosInstance from '@/axios';
 
 export const useTeamStore = defineStore('team', {
@@ -15,6 +16,7 @@ export const useTeamStore = defineStore('team', {
     },
     async fetchTeamById(teamId) {
       const meetingStore = useMeetingStore(); // Access the meeting store
+      const errorStore = useErrorStore(); // Access the error store
       try {
         // 초기화 로직
         meetingStore.clearMeetings();
@@ -29,11 +31,9 @@ export const useTeamStore = defineStore('team', {
           });
           await meetingStore.fetchMeetingsByIds(teamData.meetingList);
           return teamData;
-        } else {
-          console.log(`Team with id ${teamId} already exists`);
         }
       } catch (error) {
-        console.error(`Failed to fetch team ${teamId}:`, error);
+        errorStore.showError(`Failed to fetch team ${teamId}: ${error.message}`);
         return null;
       }
     },
@@ -46,41 +46,42 @@ export const useTeamStore = defineStore('team', {
     },
     
     async createTeam(teamName, ownerId, emoji, userList) {
-      const userStore = useUserStore()
+      const userStore = useUserStore();
+      const errorStore = useErrorStore(); // Access the error store
       const currentUserId = userStore.id;
       userList.push(currentUserId);
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
-        if (response.data.success) {
-          console.log("TeamStore" ,this.teams)
-        } else {
-          console.error('Failed to create team:', response.data.message);
+        if (!response.data.success) {
+          errorStore.showError(`Failed to create team: ${response.data.message}`);
         }
       } catch (error) {
-        console.error('Error creating team:', error);
+        errorStore.showError(`Error creating team: ${error.message}`);
       }
     },
 
     async deleteTeam(teamId) {
+      const errorStore = useErrorStore(); // Access the error store
       try {
         const response = await axiosInstance.delete(`api/teams/${teamId}`);
         if (response.data.isSuccess) {
           this.teams = this.teams.filter(team => team.id !== teamId);
         } else {
-          console.error('Failed to delete team:', response.data.message);
+          errorStore.showError(`Failed to delete team: ${response.data.message}`);
         }
         return response.data;
       } catch (error) {
-        console.error(`Failed to delete team ${teamId}:`, error);
+        errorStore.showError(`Failed to delete team ${teamId}: ${error.message}`);
         return { isSuccess: false, message: error.message };
       }
     },
 
     async leaveTeam(teamId) {
-      try {
-        const userStore = useUserStore();
-        const userId = userStore.userId;
+      const userStore = useUserStore();
+      const errorStore = useErrorStore(); // Access the error store
+      const userId = userStore.userId;
 
+      try {
         const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
         if (response.data.isSuccess) {
           const team = this.teams.find(team => team.id === teamId);
@@ -88,11 +89,11 @@ export const useTeamStore = defineStore('team', {
             team.userList = team.userList.filter(user => user !== userId);
           }
         } else {
-          console.error('Failed to remove user from team:', response.data.message);
+          errorStore.showError(`Failed to remove user from team: ${response.data.message}`);
         }
         return response.data;
       } catch (error) {
-        console.error(`Failed to remove user ${userId} from team ${teamId}:`, error);
+        errorStore.showError(`Failed to remove user ${userId} from team ${teamId}: ${error.message}`);
         return { isSuccess: false, message: error.message };
       }
     },
@@ -102,12 +103,10 @@ export const useTeamStore = defineStore('team', {
       if (team) {
         if (!team.userList.includes(userId)) { 
           team.userList.push(userId);
-          console.log(`팀 ${teamId}의 userList:`, JSON.stringify(team.userList)); //
-        } else {
-          console.log(`User ${userId} is already a member of team ${teamId}`);
         }
       } else {
-        console.error(`Team ${teamId} not found`);
+        const errorStore = useErrorStore(); // Access the error store
+        errorStore.showError(`Team ${teamId} not found`);
       }
     }
   },
