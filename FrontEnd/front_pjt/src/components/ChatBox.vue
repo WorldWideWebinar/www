@@ -28,13 +28,8 @@
           </div>
         </div>
         <div class="chat-input">
-          <input
-            id="chat-input"
-            type="text"
-            v-model="userInput"
-            placeholder="Type a message..."
-            @keyup.enter="sendMessage"
-          />
+          <input id="chat-input" type="text" v-model="userInput" placeholder="Type a message..."
+            @keyup.enter="sendMessage" />
           <button @click="sendMessage">Send</button>
         </div>
       </div>
@@ -44,12 +39,18 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
+// import SockJS from 'sockjs-client';
+// import Stomp from 'stompjs';
 
 const props = defineProps({
   selectedTeamId: Number,
 });
 
 const emit = defineEmits(['toggleChat', 'selectTeam']);
+
+let stompClient = null;
+const userInput = ref('');
+const usedTeamId = ref('');
 
 const teams = ref([
   { team_id: 1, team_name: 'Team Alpha' },
@@ -68,30 +69,67 @@ const messages = ref([
   { chat_id: 2, sender_id: 2, team_id: 1, content: 'Hi Alice!', created_at: '2024-08-01T10:01:00Z' },
   { chat_id: 3, sender_id: 3, team_id: 2, content: 'Team Beta here!', created_at: '2024-08-01T10:02:00Z' },
 ]);
+// 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
+// db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
 
-const userInput = ref('');
 
 const handleSelectTeam = (teamId) => {
+  // 팀 입장 시점
   emit('selectTeam', teamId);
+
+  usedTeamId.value = teamId;
+  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/stt");
+  stompClient = Stomp.over(socket);
+  stompClient.connect(
+    {},
+    function (frame) {
+      stompClient.subscribe(
+        `/exchange/meetingSTT.exchange/meetingSTT.key${teamId}`,
+        function (message) {
+          console.log('성공')
+          console.log("Received message:", message);
+          const messageBody = JSON.parse(message.body);
+          // console.log(messageBody);
+          showMessage(messageBody);
+        }
+      );
+    },
+    function (error) {
+      console.error("Connection error: " + error);
+    }
+  );
 };
+
+function sendMessage() {
+  const content = userInput.value;
+  const meetingId = usedTeamId.value;
+
+  if (stompClient && stompClient.connected && !(content.length==0)) {
+    const message = JSON.stringify({ content, meetingId });
+    stompClient.send(`/pub/meetingSTT.${meetingId}`, {}, message);
+    userInput.value = '';
+  }
+}
+
+function showMessage(content) {
+  console.log('수신 확인 ');
+
+
+  const newMessage = {
+    chat_id: messages.value.length + 1,
+    sender_id: 1,
+    team_id: content.meetingId,
+    content: content.content,
+    created_at: content.timestamp, 
+  };
+
+  messages.value.push(newMessage);
+}
 
 const backToTeamList = () => {
   emit('selectTeam', null);
 };
 
-const sendMessage = () => {
-  if (userInput.value.trim()) {
-    const newMessage = {
-      chat_id: messages.value.length + 1,
-      sender_id: 1, // 현재 사용자 ID를 사용
-      team_id: props.selectedTeamId,
-      content: userInput.value,
-      created_at: new Date().toISOString(),
-    };
-    messages.value.push(newMessage);
-    userInput.value = '';
-  }
-};
 
 const filteredMessages = computed(() =>
   messages.value.filter((message) => message.team_id === props.selectedTeamId)
@@ -132,8 +170,9 @@ watch(filteredMessages, () => {
 });
 </script>
 
-<style scoped>
 
+
+<style scoped>
 .team-chat {
   position: fixed;
   bottom: 20px;
@@ -285,6 +324,4 @@ watch(filteredMessages, () => {
   word-wrap: break-word;
   word-break: break-word;
 }
-
-
 </style>
