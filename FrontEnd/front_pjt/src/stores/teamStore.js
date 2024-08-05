@@ -15,13 +15,17 @@ export const useTeamStore = defineStore('team', {
   actions: {
     clearTeams() {
       this.teams = [];
+    }
+    ,
+    clearTeamUsers() {
       this.teamUserList = [];
       this.teamUserInfo = [];
     },
     async fetchTeamById(teamId) {
-      this.clearTeams()
+      this.clearTeamUsers()
       const meetingStore = useMeetingStore(); // Access the meeting store
       const errorStore = useErrorStore(); // Access the error store
+      console.log(teamId)
       try {
         // 초기화 로직
         meetingStore.clearMeetings();

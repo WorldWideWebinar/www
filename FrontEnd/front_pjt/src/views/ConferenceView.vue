@@ -100,91 +100,94 @@
   </div>
 </template>
 
-<script>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 
-export default {
-  name: 'ConferenceView',
-  props: ['sessionId', 'token'],
-  data() {
-    return {
-      participants: [
-        { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
-        { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
-        { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
-      ],
-      session: null,
-      publisher: null,
-      isAudioEnabled: true,
-      isVideoEnabled: true,
-      userId: 'user_' + Math.floor(Math.random() * 10000)
-    };
-  },
-  computed: {
-    departmentName() {
-      return this.$route.params.name;
-    }
-  },
-  methods: {
-    async joinSession() {
-      const sessionStore = useSessionStore();
-      const OV = new OpenVidu();
-      const session = OV.initSession();
-      sessionStore.setSession(session);
+const route = useRoute();
+const router = useRouter();
 
-      session.on('streamCreated', (event) => {
-        const subscriber = session.subscribe(event.stream, 'video-container');
-        sessionStore.addStream(subscriber.stream);
-      });
+const sessionId = route.params.sessionId;
+const token = route.params.token;
 
-      try {
-        // token을 사용하여 OpenVidu 세션에 연결
-        await session.connect(this.token, { clientData: 'Participant' });
+const participants = ref([
+  { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
+  { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
+  { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
+]);
 
-        this.publisher = OV.initPublisher('video-container', {
-          videoSource: undefined,
-          audioSource: undefined,
-          publishVideo: true,
-          publishAudio: true,
-          resolution: '240x135',
-          frameRate: 30,
-          insertMode: 'APPEND'
-        });
-        session.publish(this.publisher);
-      } catch (error) {
-        console.error('Error connecting to session:', error);
-      }
-    },
-    leaveSession() {
-      if (this.session) {
-        this.session.disconnect();
-        this.session = null;
-      }
-    },
-    toggleAudio() {
-      if (this.publisher) {
-        this.isAudioEnabled = !this.isAudioEnabled;
-        this.publisher.publishAudio(this.isAudioEnabled);
-      }
-    },
-    toggleVideo() {
-      if (this.publisher) {
-        this.isVideoEnabled = !this.isVideoEnabled;
-        this.publisher.publishVideo(this.isVideoEnabled);
-      }
-    }
-  },
-  mounted() {
-    this.joinSession();
-  },
-  beforeRouteLeave(to, from, next) {
-    this.leaveSession();
-    next();
+const sessionStore = useSessionStore();
+const departmentName = computed(() => route.params.name);
+
+const session = ref(null);
+const publisher = ref(null);
+const isAudioEnabled = ref(true);
+const isVideoEnabled = ref(true);
+const userId = `user_${Math.floor(Math.random() * 10000)}`;
+
+const joinSession = async () => {
+  const OV = new OpenVidu();
+  const currentSession = OV.initSession();
+  sessionStore.setSession(currentSession);
+
+  currentSession.on('streamCreated', (event) => {
+    const subscriber = currentSession.subscribe(event.stream, 'video-container');
+    sessionStore.addStream(subscriber.stream);
+  });
+
+  try {
+    await currentSession.connect(token, { clientData: 'Participant' });
+
+    publisher.value = OV.initPublisher('video-container', {
+      videoSource: undefined,
+      audioSource: undefined,
+      publishVideo: true,
+      publishAudio: true,
+      resolution: '240x135',
+      frameRate: 30,
+      insertMode: 'APPEND'
+    });
+
+    currentSession.publish(publisher.value);
+    session.value = currentSession;
+  } catch (error) {
+    console.error('Error connecting to session:', error);
   }
 };
-</script>
 
+const leaveSession = () => {
+  if (session.value) {
+    session.value.disconnect();
+    session.value = null;
+  }
+};
+
+const toggleAudio = () => {
+  if (publisher.value) {
+    isAudioEnabled.value = !isAudioEnabled.value;
+    publisher.value.publishAudio(isAudioEnabled.value);
+  }
+};
+
+const toggleVideo = () => {
+  if (publisher.value) {
+    isVideoEnabled.value = !isVideoEnabled.value;
+    publisher.value.publishVideo(isVideoEnabled.value);
+  }
+};
+
+onMounted(() => {
+  joinSession();
+});
+
+onBeforeRouteLeave((to, from, next) => {
+  leaveSession();
+  next();
+});
+</script>
 
 <style scoped>
 .conference-container {

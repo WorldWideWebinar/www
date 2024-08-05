@@ -158,10 +158,7 @@ const teams = computed(() => teamStore.teams)
 const handleSignOut = async () => {
   const result = await userStore.signOut()
   if (result.success) {
-    alert('Successfully logged out')
     router.push({ name: 'HomeView' })
-  } else {
-    alert(`Logout failed: ${result.message}`)
   }
 }
 
@@ -231,7 +228,7 @@ onMounted(async () => {
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)
   }
-  console.log('Teams:', teams.value)
+
   }
 })
 </script>

@@ -11,7 +11,7 @@ export const useUserStore = defineStore('user', {
     userInfo: {},
     accessToken: null,
     refreshToken: null,
-    userList: []
+    userList: [],
   }),
   getters: {
     isLogin: (state) => state.userId != 0
@@ -126,6 +126,7 @@ export const useUserStore = defineStore('user', {
           this.refreshToken = null
           meetingStore.clearMeetings()
           teamStore.clearTeams()
+          teamStore.clearTeamUsers()
           router.push({ name: 'HomeView' })
           return { success: true, message: response.data.message }
         } else {
@@ -148,6 +149,8 @@ export const useUserStore = defineStore('user', {
     },
     async deleteUser(userId) {
       const errorStore = useErrorStore();
+      const teamStore = useTeamStore();
+      const meetingStore = useMeetingStore();
       try {
         const response = await axiosInstance.delete(`api/users/${userId}`, {
           headers: {

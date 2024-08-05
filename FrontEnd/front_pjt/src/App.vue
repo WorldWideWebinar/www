@@ -74,21 +74,21 @@ const goingHome = () => {
   router.push({ name: 'HomeView' })
 }
 
-const fetchUserTeams = async () => {
-  if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
-    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-      console.log('Teams:', teamStore.teams)
-    }
-    hasFetchedUserInfo.value = true
-  }
-}
+// const fetchUserTeams = async () => {
+//   if (isLogin.value && !hasFetchedUserInfo.value) {
+//     await userStore.fetchUserInfo(userStore.userId)
+//     const userInfo = userStore.userInfo
+//     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+//       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
+//       console.log('Teams:', teamStore.teams)
+//     }
+//     hasFetchedUserInfo.value = true
+//   }
+// }
 
-onMounted(async () => {
-  await fetchUserTeams()
-})
+// onMounted(async () => {
+//   await fetchUserTeams()
+// })
 
 const teams = computed(() => teamStore.teams)
 

@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useUserStore } from './stores/userStore';
+import { useRouter } from 'vue-router'
 
+const router = useRouter();
 const axiosInstance = axios.create({
   baseURL: 'https://i11a501.p.ssafy.io/', // baseURL이 올바르게 설정되어 있는지 확인
 });
@@ -47,6 +49,10 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        userStore.userId = 0;
+        userStore.accessToken = null;
+        userStore.refreshToken = null;
+        router.push({ name: 'HomeView' });
         return Promise.reject(refreshError);
       }
     }
