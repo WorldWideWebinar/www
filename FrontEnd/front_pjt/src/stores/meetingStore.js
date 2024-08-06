@@ -45,7 +45,7 @@ export const useMeetingStore = defineStore('meeting', {
       }
     },
 
-    async fetchMeetings(teamId, prev = false, next = false) {
+    async fetchMeetings(teamId, prev = 0, next = 0) {
       try {
         const today = new Date().toISOString(); // 현재 날짜와 시간을 ISO 형식으로 변환
 
@@ -57,14 +57,13 @@ export const useMeetingStore = defineStore('meeting', {
         };
 
         const response = await axiosInstance.get('/api/meetings', { params });
-        const meetings = response.data.result;
+        const newMeetings = response.data.result;
 
-        meetings.forEach((meeting) => {
-          if (!this.meetings.find((m) => m.id === meeting.id)) {
-            console.log("Meeting fetched", meeting);
-            this.meetings.push(meeting);
-          }
-        });
+        // 중복되지 않은 새로운 meetings를 추가
+        const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
+        const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
+
+        this.meetings.push(...filteredMeetings);
 
       } catch (error) {
         console.error('Failed to fetch meetings:', error);

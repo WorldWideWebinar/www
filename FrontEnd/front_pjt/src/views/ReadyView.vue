@@ -140,7 +140,10 @@ const propTeamId = ref('');
 const previewUrl = ref(null);
 
 const members = computed(() => teamStore.teamUserInfo);
-const meetings = computed(() => meetingStore.meetings);
+const meetings = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+  return meetingStore.meetings.filter(meeting => meeting.team_id === teamId);
+});
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
