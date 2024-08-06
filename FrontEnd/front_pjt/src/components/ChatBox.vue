@@ -111,6 +111,7 @@ const handleSelectTeam = (teamId) => {
 
 
   usedTeamId.value = teamId;
+  console.log(teamId)
   const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -247,6 +248,24 @@ watch(filteredMessages, () => {
 .team-list ul {
   list-style: none;
   padding: 0;
+  max-height: 325px; /* 원하는 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 추가 */
+  margin: 0;
+  border-radius: 8px;
+}
+
+.team-list ul::-webkit-scrollbar {
+  width: 8px; /* 스크롤바 너비 설정 */
+}
+
+.team-list ul::-webkit-scrollbar-thumb {
+  background-color: #6200ea; /* 스크롤바 색상 */
+  border-radius: 4px; /* 스크롤바 둥근 모서리 */
+}
+
+.team-list ul::-webkit-scrollbar-track {
+  background-color: #f0f0f0; /* 스크롤바 트랙 색상 */
+  border-radius: 4px;
 }
 
 .team-list li {
@@ -360,4 +379,6 @@ watch(filteredMessages, () => {
   word-wrap: break-word;
   word-break: break-word;
 }
+
+
 </style>
