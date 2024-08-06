@@ -4,8 +4,8 @@
       <div v-if="!selectedTeamId" class="team-list">
         <div class="team-list-header">Team List</div>
         <ul>
-          <li v-for="team in teams" :key="team.team_id" @click="handleSelectTeam(team.team_id)">
-            {{ team.team_name }}
+          <li v-for="team in teams" :key="team.id" @click="handleSelectTeam(team.id)">
+            {{ team.teamName }}
           </li>
         </ul>
       </div>
@@ -172,18 +172,18 @@ const filteredMessages = computed(() =>
 );
 
 const getUserProfileImage = (userId) => {
-  const user = users.value.find((u) => u.user_id === userId);
+  const user = users.value.find((u) => u.userId === userId);
   return user ? user.profile_image : '';
 };
 
 const getUserName = (userId) => {
-  const user = users.value.find((u) => u.user_id === userId);
+  const user = users.value.find((u) => u.userId === userId);
   return user ? user.name : '';
 };
 
 const getTeamName = (teamId) => {
-  const team = teams.value.find((t) => t.team_id === teamId);
-  return team ? team.team_name : '';
+  const team = teams.value.find((t) => t.id === teamId);
+  return team ? team.teamName : '';
 };
 
 const formatDate = (dateString) => {

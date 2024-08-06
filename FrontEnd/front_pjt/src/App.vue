@@ -90,8 +90,6 @@ const fetchUserTeams = async () => {
 
 onMounted(async () => {
   await fetchUserTeams()
-  if (isLogin.value && !hasFetchedUserInfo.value) {
-  }
 })
 
 const teams = computed(() => teamStore.teams)
