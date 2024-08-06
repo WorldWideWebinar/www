@@ -39,6 +39,9 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
+import axiosInstance from '@/axios';
+import { useUserStore } from '@/stores/userStore';
+
 // import SockJS from 'sockjs-client';
 // import Stomp from 'stompjs';
 
@@ -48,9 +51,13 @@ const props = defineProps({
 
 const emit = defineEmits(['toggleChat', 'selectTeam']);
 
+
+
 let stompClient = null;
 const userInput = ref('');
 const usedTeamId = ref('');
+const userStore = useUserStore();
+const token = userStore.accessToken;
 
 const teams = ref([
   { team_id: 1, team_name: 'Team Alpha' },
@@ -79,11 +86,15 @@ const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
   emit('selectTeam', teamId);
 
+
+
   usedTeamId.value = teamId;
   const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/stt");
   stompClient = Stomp.over(socket);
   stompClient.connect(
-    {},
+    {
+      Authorization: `Bearer ${token}` 
+    },
     function (frame) {
       stompClient.subscribe(
         `/exchange/meetingSTT.exchange/meetingSTT.key${teamId}`,
