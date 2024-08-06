@@ -18,7 +18,7 @@
             :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
             >
-            <span class="icon">{{ team.icon }}</span>
+            <span class="icon">{{ team.emoji }}</span>
             <span class="link-text">{{ team.teamName }}</span>
           </RouterLink>
         </li>
@@ -48,7 +48,7 @@
       <RouterView />
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId"/>
     <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
@@ -69,26 +69,27 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
+const selectedTeamId = ref(null);
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
 }
 
-const fetchUserTeams = async () => {
-  if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
-    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-      console.log('Teams:', teamStore.teams)
-    }
-    hasFetchedUserInfo.value = true
-  }
-}
+// const fetchUserTeams = async () => {
+//   if (isLogin.value && !hasFetchedUserInfo.value) {
+//     await userStore.fetchUserInfo(userStore.userId)
+//     const userInfo = userStore.userInfo
+//     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+//       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
+//       console.log('Teams:', teamStore.teams)
+//     }
+//     hasFetchedUserInfo.value = true
+//   }
+// }
 
-onMounted(async () => {
-  await fetchUserTeams()
-})
+// onMounted(async () => {
+//   await fetchUserTeams()
+// })
 
 const teams = computed(() => teamStore.teams)
 
@@ -98,12 +99,18 @@ const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
 }
 
-const showError = computed(() => errorStore.showError)
+const showError = computed(() => errorStore.showErrorModal)
 const errorMessage = computed(() => errorStore.errorMessage)
 const closeError = () => {
   errorStore.hideError()
 }
+
+const selectTeam = (teamId) => {
+  selectedTeamId.value = teamId;
+};
 </script>
+
+
 <style scoped>
 #app {
   display: flex;

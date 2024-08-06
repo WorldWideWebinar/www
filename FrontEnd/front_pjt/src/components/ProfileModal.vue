@@ -4,7 +4,7 @@
         <h2>{{ user.username }}</h2>
         <p>{{ user.email }}</p>
         <p>Other profile information...</p>
-        <button @click="addMember(user)" class="btn btn-primary">추가버튼</button>
+        <!-- <button @click="addMember(user)" class="btn btn-primary">추가버튼</button> -->
         <button @click="close" class="btn btn-secondary">Close</button>
       </div>
     </div>
@@ -30,7 +30,6 @@
 
   const addMember=(user)=>{
     const teamId= 1;
-    console.log(user.id)
     teamStore.addMembertoTeam(user.id,teamId);
     close();
   }

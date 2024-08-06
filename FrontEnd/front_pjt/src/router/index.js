@@ -7,6 +7,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import SignView from '@/views/SignView.vue'
 import TeamCreateView from '@/views/TeamCreateView.vue'
 import MeetingCreateView from '@/views/MeetingCreateView.vue'
+import UserEditView from '@/views/UserEditView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,12 @@ const router = createRouter({
           component: ProfileView,
           props: true
         },
+        {
+          path: ':userID',
+          name: 'UserEditView',
+          component: UserEditView,
+          props: true
+        }
       ]
     },
     { 
@@ -55,15 +62,24 @@ const router = createRouter({
       ]
     },
     {
-      path: '/conference/:sessionId',
+      path: '/conference/:sessionId/:token',
       name: 'ConferenceView',
       component: ConferenceView,
       props: true
     }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { left: 0, top: 0 };
+    }
+  }
 })
 
 export default router
+
+
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
