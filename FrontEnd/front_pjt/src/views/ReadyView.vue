@@ -20,13 +20,6 @@
             <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
           </div>
           <MeetingList
-            :activeTab="activeTab"
-            :groupedMeetings="groupedMeetings"
-            :selectedMeeting="selectedMeeting"
-            :toggleStatus="toggleStatus"
-            :buttonClass="buttonClass"
-            :buttonText="buttonText"
-            :selectMeeting="selectMeeting"
             @update:activeTab="tab => activeTab = tab"
           />
         </section>
@@ -113,6 +106,7 @@
   <router-view v-else></router-view>
   <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" :propedTeamId="propTeamId"/>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -165,70 +159,45 @@ const todayMeeting = computed(() => {
   return meetings.value.find((meeting) => meeting.start_at.split('T')[0] === today);
 });
 
-const groupedMeetings = computed(() => {
-  if (!meetings.value) {
-    return { PREV: [], TODAY: [], NEXT: [] };
-  }
-  const groups = { PREV: [], TODAY: [], NEXT: [] };
-  const now = new Date();
-  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
-  sortedMeetings.forEach((meeting) => {
-    const startDateTime = new Date(meeting.start_at);
-    const endDateTime = new Date(meeting.end_at);
-    if (endDateTime < now) {
-      groups.PREV.push(meeting);
-    } else if (startDateTime <= now && endDateTime >= now) {
-      groups.TODAY.push(meeting);
-    } else if (startDateTime > now) {
-      groups.NEXT.push(meeting);
-    }
-  });
-  return groups;
-});
+const toggleStatus = (meeting) => {
+  meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
+};
 
-// const totalMeetingHours = computed(() => {
-//   if (!meetings.value) return 0;
-//   return meetings.value.reduce((total, meeting) => {
-//     const start = new Date(meeting.start_at);
-//     const end = new Date(meeting.end_at);
-//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-//   }, 0);
-// });
+const buttonClass = (type, status) => {
+  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
+  if (type === 'PREV') return 'btn-gray';
+  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
+  return '';
+};
 
-// const prevMeetingHours = computed(() => {
-//   return groupedMeetings.value.PREV.reduce((total, meeting) => {
-//     const start = new Date(meeting.start_at);
-//     const end = new Date(meeting.end_at);
-//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-//   }, 0);
-// });
+const buttonText = (type, status) => status;
 
-// const todayMeetingHours = computed(() => {
-//   return groupedMeetings.value.TODAY.reduce((total, meeting) => {
-//     const start = new Date(meeting.start_at);
-//     const end = new Date(meeting.end_at);
-//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-//   }, 0);
-// });
+const toggleFilesList = () => {
+  showFilesList.value = !showFilesList.value;
+  showOverlay.value = showFilesList.value;
+};
 
-// const nextMeetingHours = computed(() => {
-//   return groupedMeetings.value.NEXT.reduce((total, meeting) => {
-//     const start = new Date(meeting.start_at);
-//     const end = new Date(meeting.end_at);
-//     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-//   }, 0);
-// });
+const toggleMembersList = () => {
+  showMembersList.value = !showMembersList.value;
+  showOverlay.value = showMembersList.value;
+};
 
-// const prevMeetingHoursPercentage = computed(() => (prevMeetingHours.value / totalMeetingHours.value) * 100);
-// const todayMeetingHoursPercentage = computed(() => (todayMeetingHours.value / totalMeetingHours.value) * 100);
-// const nextMeetingHoursPercentage = computed(() => (nextMeetingHours.value / totalMeetingHours.value) * 100);
+const previewFile = (file) => {
+  previewUrl.value = file.link;
+};
+
+const closeDropdowns = () => {
+  showMemberListDropdown.value = false;
+  showFilesList.value = false;
+  showMembersList.value = false;
+  showOverlay.value = false;
+};
 
 onMounted(async () => {
   const teamId = parseInt(route.params.id, 10);
   try {
     await teamStore.fetchTeamById(teamId);
     await Promise.all([teamStore.fetchTeamUsers(), meetingStore.fetchMeetingsByIds(teamStore.teamInfo.meetingList)]);
-    selectLatestTodayMeeting();
   } catch (error) {
     console.error('Failed to load initial data:', error);
   }
@@ -253,65 +222,11 @@ const closeMeetingDetails = () => {
   showOverlay.value = false;
 };
 
-const toggleStatus = (meeting) => {
-  meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
-};
-
-const buttonClass = (type, status) => {
-  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
-  if (type === 'PREV') return 'btn-gray';
-  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
-  return '';
-};
-
-const buttonText = (type, status) => status;
-
 const computeDetailType = (start_at) => {
   const today = new Date().toISOString().split('T')[0];
   if (start_at.split('T')[0] === today) return 'TODAY';
   if (start_at.split('T')[0] > today) return 'NEXT';
   return 'PREV';
-};
-
-// const toggleMemberListDropdown = () => {
-//   showMemberListDropdown.value = !showMemberListDropdown.value;
-//   showOverlay.value = showMemberListDropdown.value;
-// };
-
-// const toggleTodayMembersList = () => {
-//   showTodayMembersList.value = !showTodayMembersList.value;
-//   if (todayMeeting.value) {
-//     todayMeetingMembers.value = members.value.slice(0, todayMeeting.value.members);
-//   }
-//   showOverlay.value = showTodayMembersList.value;
-// };
-
-const selectLatestTodayMeeting = () => {
-  const todayMeetings = groupedMeetings.value.TODAY;
-  if (todayMeetings.length > 0) {
-    selectMeeting(todayMeetings[0]);
-  }
-};
-
-const toggleFilesList = () => {
-  showFilesList.value = !showFilesList.value;
-  showOverlay.value = showFilesList.value;
-};
-
-const toggleMembersList = () => {
-  showMembersList.value = !showMembersList.value;
-  showOverlay.value = showMembersList.value;
-};
-
-const previewFile = (file) => {
-  previewUrl.value = file.link;
-};
-
-const closeDropdowns = () => {
-  showMemberListDropdown.value = false;
-  showFilesList.value = false;
-  showMembersList.value = false;
-  showOverlay.value = false;
 };
 
 watch(() => route.params.id, async (newId) => {
@@ -322,7 +237,7 @@ watch(() => route.params.id, async (newId) => {
 
 watch(activeTab, (newTab) => {
   if (newTab === 'TODAY') {
-    selectLatestTodayMeeting();
+    // 여기에 추가 작업이 필요할 경우 작성
   }
 });
 

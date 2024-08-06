@@ -66,7 +66,7 @@ export const useUserStore = defineStore('user', {
           // 사용자 정보 가져오기
           const userInfo = await this.fetchUserInfo(userId)
           if (userInfo) {
-
+            errorStore.showError('Log In Successful')
             // 로그인 성공 후 HomeView로 리디렉션
             router.push({ name: 'HomeView' })
 
@@ -127,6 +127,7 @@ export const useUserStore = defineStore('user', {
           meetingStore.clearMeetings()
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
+          errorStore.showError('Log Out Successful')
           router.push({ name: 'HomeView' })
           return { success: true, message: response.data.message }
         } else {
