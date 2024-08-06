@@ -112,7 +112,8 @@ const handleSelectTeam = (teamId) => {
 
   usedTeamId.value = teamId;
   console.log(teamId)
-  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  // const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
     {
