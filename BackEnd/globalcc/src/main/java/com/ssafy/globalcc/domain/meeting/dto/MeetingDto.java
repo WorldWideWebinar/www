@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
+@Setter
 public class MeetingDto {
     private int team_id;
     private String name;
