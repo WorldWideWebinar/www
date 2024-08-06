@@ -85,44 +85,63 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { useMeetingStore } from '@/stores/meetingStore';
 
-const props = defineProps({
-  activeTab: {
-    type: String,
-    default: 'TODAY'
-  },
-  groupedMeetings: {
-    type: Object,
-    required: true
-  },
-  selectedMeeting: {
-    type: Object,
-    default: null
-  },
-  toggleStatus: {
-    type: Function,
-    required: true
-  },
-  buttonClass: {
-    type: Function,
-    required: true
-  },
-  buttonText: {
-    type: Function,
-    required: true
-  },
-  selectMeeting: {
-    type: Function,
-    required: true
+const meetingStore = useMeetingStore();
+const activeTab = ref('TODAY');
+
+const groupedMeetings = computed(() => {
+  if (!meetingStore.meetings.length) {
+    return { PREV: [], TODAY: [], NEXT: [] };
   }
+  const groups = { PREV: [], TODAY: [], NEXT: [] };
+  const now = new Date();
+  const sortedMeetings = [...meetingStore.meetings].sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
+  sortedMeetings.forEach((meeting) => {
+    const startDateTime = new Date(meeting.start_at);
+    const endDateTime = new Date(meeting.end_at);
+    if (endDateTime < now) {
+      groups.PREV.push(meeting);
+    } else if (startDateTime <= now && endDateTime >= now) {
+      groups.TODAY.push(meeting);
+    } else if (startDateTime > now) {
+      groups.NEXT.push(meeting);
+    }
+  });
+  return groups;
 });
 
-const emit = defineEmits(['update:activeTab']);
+const selectedMeeting = ref(null);
+const showOverlay = ref(false);
 
-const selectTab = (tab) => {
-  emit('update:activeTab', tab);
+const selectTab = async (tab) => {
+  activeTab.value = tab;
+  const teamId = 10; // 실제 팀 ID를 설정해야 함
+  await meetingStore.fetchMeetings(teamId, tab === 'PREV', tab === 'NEXT');
 };
+
+const selectMeeting = (meeting) => {
+  selectedMeeting.value = meeting;
+  showOverlay.value = true;
+};
+
+const toggleStatus = (meeting) => {
+  meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
+};
+
+const buttonClass = (type, status) => {
+  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
+  if (type === 'PREV') return 'btn-gray';
+  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
+  return '';
+};
+
+const buttonText = (type, status) => status;
+
+onMounted(() => {
+  selectTab('TODAY'); // 기본 탭을 TODAY로 설정하고 미팅을 불러옴
+});
 </script>
 
 <style scoped>

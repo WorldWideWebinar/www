@@ -34,6 +34,7 @@ export const useMeetingStore = defineStore('meeting', {
         console.error(`Failed to fetch meeting ${meetingId}:`, error)
       }
     },
+
     async fetchMeetingsByIds(meetingList) {
       try {
         for (const meetingId of meetingList) {
@@ -41,6 +42,32 @@ export const useMeetingStore = defineStore('meeting', {
         }
       } catch (error) {
         console.error('Failed to fetch meetings:', error)
+      }
+    },
+
+    async fetchMeetings(teamId, prev = false, next = false) {
+      try {
+        const today = new Date().toISOString(); // 현재 날짜와 시간을 ISO 형식으로 변환
+
+        const params = {
+          today: today,
+          prev: prev,
+          next: next,
+          teamId: teamId
+        };
+
+        const response = await axiosInstance.get('/api/meetings', { params });
+        const meetings = response.data.result;
+
+        meetings.forEach((meeting) => {
+          if (!this.meetings.find((m) => m.id === meeting.id)) {
+            console.log("Meeting fetched", meeting);
+            this.meetings.push(meeting);
+          }
+        });
+
+      } catch (error) {
+        console.error('Failed to fetch meetings:', error);
       }
     }
   },
