@@ -8,7 +8,14 @@ import { useMeetingStore } from './meetingStore'
 export const useUserStore = defineStore('user', {
   state: () => ({
     userId: 1,
-    userInfo: {},
+    userInfo: {
+      "userId": "jooo0",
+      "name": "주연수",
+      "email": "jooys130@naver.com",
+      "profileImageUrl": "http://asdasdad.com/rads.png",
+      "totalMeetingTime": 135,
+      "teamList": [1, 3]
+    },
     accessToken: null,
     refreshToken: null,
     userList: [],

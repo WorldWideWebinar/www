@@ -6,23 +6,26 @@
           <img src="../src/assets/img/chat.png" alt="logo">
         </button>
       </div>
-      <div class="seperator"></div>
-      <ul class="nav flex-column">
-        <li 
-        class="nav-item" 
-        v-for="team in teams" 
-        :key="team.id"
-        >
-          <RouterLink 
-            class="nav-link" 
-            :to="{ name: 'ReadyView', params: { id: team.id } }" 
-            active-class="active"
-            >
-            <span class="btn-icon">{{ team.emoji }}</span>
-            <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
-          </RouterLink>
-        </li>
-      </ul>
+      <!-- <div class="seperator"></div> -->
+      <div class="nav-container flex-grow-1">
+        <ul class="nav flex-column">
+          <li 
+          class="nav-item" 
+          v-for="team in teams" 
+          :key="team.id"
+          >
+            <RouterLink 
+              class="nav-link" 
+              :to="{ name: 'ReadyView', params: { id: team.id } }" 
+              active-class="active"
+              >
+              <span class="btn-icon">{{ team.emoji }}</span>
+              <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+     
       <div class="add-team">
         <button class="btn btn-add">
           <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView' }">
@@ -44,7 +47,7 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch, nextTick } from 'vue'
 import { useUserStore } from './stores/userStore'
 import { useTeamStore } from './stores/teamStore'
 import router from './router'
@@ -58,27 +61,12 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
-const selectedTeamId = ref(null);
+const selectedTeamId = ref(null)
+const showScrollIndicator = ref(false)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
 }
-
-// const fetchUserTeams = async () => {
-//   if (isLogin.value && !hasFetchedUserInfo.value) {
-//     await userStore.fetchUserInfo(userStore.userId)
-//     const userInfo = userStore.userInfo
-//     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-//       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-//       console.log('Teams:', teamStore.teams)
-//     }
-//     hasFetchedUserInfo.value = true
-//   }
-// }
-
-// onMounted(async () => {
-//   await fetchUserTeams()
-// })
 
 const teams = computed(() => teamStore.teams)
 
@@ -95,8 +83,24 @@ const closeError = () => {
 }
 
 const selectTeam = (teamId) => {
-  selectedTeamId.value = teamId;
-};
+  selectedTeamId.value = teamId
+}
+
+onMounted(() => {
+  const navContainer = ref(null)
+  const checkScroll = () => {
+    nextTick(() => {
+      if (navContainer.value && navContainer.value.scrollHeight > navContainer.value.clientHeight) {
+        showScrollIndicator.value = true
+      } else {
+        showScrollIndicator.value = false
+      }
+    })
+  }
+
+  watch(teams, checkScroll, { immediate: true })
+  window.addEventListener('resize', checkScroll)
+})
 </script>
 
 
@@ -105,11 +109,6 @@ const selectTeam = (teamId) => {
   display: flex;
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.no-decoration {
-  text-decoration: none;
-  color: inherit;
 }
 
 .sidebar {
@@ -138,35 +137,47 @@ const selectTeam = (teamId) => {
 }
 
 .sidebar .home {
-  width: 70px;
+  width: 80px;
   margin: 0 auto;
+  background-color: #f1d5f7;
 }
 
 .sidebar .btn-home {
-  margin: 0 auto;
+  margin: 0px auto;
   padding: 0px 5px; /* 간격 조정 */
 }
 
 .sidebar .btn-home img {
   width: 60px; /* 크기 조정 */
-  margin: 10px auto;
+  margin: 5px auto;
 }
 
 /* 구분선 */
 .sidebar .seperator {
   padding: 0px;
-  margin: 0 10px;
+  margin: 0px;
   border-bottom: 3px dashed #000000;
 }
 
 /* 팀 목록 */
+.nav-container {
+  flex-grow: 1;
+  overflow-y: auto; /* 세로 스크롤 가능 */
+  position: relative;
+}
+
+.nav-container::-webkit-scrollbar {
+  display: none;
+}
+
 ul.nav {
-  margin-top: 10px;
+  /* margin-top: 10px; */
   width: 100%;
 }
 
 li.nav-item {
   width: 100%;
+  border-bottom: 1px dashed rgb(220, 193, 246);
 }
 
 .sidebar .nav-link {
@@ -216,17 +227,24 @@ li.nav-item {
 }
 
 /* 팀 추가 */
+.add-team {
+  margin: 0px auto;
+  padding: 20px 22px 0px 22px;
+  background-color: #f1d5f7;
+}
+
 .sidebar .btn-add {
   background-color: #f8bbd0;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   margin: 0 auto 1rem auto;
   font-size: 1.5rem;
 }
 
-.add-team {
-  margin-top: 20px;
+.no-decoration {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* 하단 부분과의 구분 */
