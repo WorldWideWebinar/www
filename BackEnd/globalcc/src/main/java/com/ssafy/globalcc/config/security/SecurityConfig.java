@@ -26,7 +26,8 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/api/users/login",
                         "/api/users",
-                        "/api/users/duplication/*"
+                        "/api/users/duplication/*",
+                        "/api/stomp/*"
                         ).permitAll()
                 .anyRequest().authenticated()
         );
