@@ -38,12 +38,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
-import axiosInstance from '@/axios';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-
-// import SockJS from 'sockjs-client';
-// import Stomp from 'stompjs';
+import { useTeamStore } from '@/stores/teamStore';
 
 const props = defineProps({
   selectedTeamId: Number,
@@ -51,36 +48,53 @@ const props = defineProps({
 
 const emit = defineEmits(['toggleChat', 'selectTeam']);
 
-
-
 let stompClient = null;
 const userInput = ref('');
 const usedTeamId = ref('');
 const userStore = useUserStore();
+const teamStore = useTeamStore();
 const token = userStore.accessToken;
 
-const teams = ref([
-  { team_id: 1, team_name: 'Team Alpha' },
-  { team_id: 2, team_name: 'Team Beta' },
-  { team_id: 3, team_name: 'Team Gamma' },
-]);
 
-const users = ref([
-  { user_id: 1, name: 'Alice', profile_image: 'https://via.placeholder.com/40' },
-  { user_id: 2, name: 'Bob', profile_image: 'https://via.placeholder.com/40' },
-  { user_id: 3, name: 'Charlie', profile_image: 'https://via.placeholder.com/40' },
-]);
+const teams = ref([]);
+const users = ref([]);
 
-const messages = ref([]);
+const fetchTeams = async () => {
+  if (userStore.userInfo.teamList) {
+    for (const teamId of userStore.userInfo.teamList) {
+      await teamStore.fetchTeamById(teamId);
+      const team = teamStore.teams.find(t => t.team_id === teamId);
+      if (team) {
+        teams.value.push(team);
+      }
+      
+      await teamStore.fetchTeamUsers(teamId);
+      const userIds = teamStore.teamUserList;
+      for (const userId of userIds) {
+        await userStore.fetchUserInfo(userId);
+        const user = userStore.userInfo[userId];
+        if (user && !users.value.some(u => u.user_id === userId)) {
+          users.value.push(user);
+        }
+      }
+    }
+  }
+};
 
-// const messages = ref([
+ // 받은 팀 아이디를 기반으로 유저 아이디를 받고 유저 아이디를 기반으로 유저 정보를 받는다
+// { user_id: 1, name: 'Alice', profile_image: 'https://via.placeholder.com/40' },
+
+const messages = ref([]); // 애는 그냥 받는다.
+
+
 //   { chat_id: 1, sender_id: 1, team_id: 1, content: 'Hello, Team Alpha!', created_at: '2024-08-01T10:00:00Z' },
-//   { chat_id: 2, sender_id: 2, team_id: 1, content: 'Hi Alice!', created_at: '2024-08-01T10:01:00Z' },
-//   { chat_id: 3, sender_id: 3, team_id: 2, content: 'Team Beta here!', created_at: '2024-08-01T10:02:00Z' },
-// ]);
+
 // 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
 // db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
 
+onMounted(() => {
+  fetchTeams();
+});
 
 const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
@@ -89,15 +103,15 @@ const handleSelectTeam = (teamId) => {
 
 
   usedTeamId.value = teamId;
-  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/stt");
+  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
   stompClient = Stomp.over(socket);
   stompClient.connect(
     {
-      Authorization: `Bearer ${token}` 
+      Authorization: `Bearer ${token}`
     },
     function (frame) {
       stompClient.subscribe(
-        `/exchange/meetingSTT.exchange/meetingSTT.key${teamId}`,
+        `/exchange/chat.exchange/chat.key${teamId}`,
         function (message) {
           console.log('성공')
           console.log("Received message:", message);
@@ -115,11 +129,12 @@ const handleSelectTeam = (teamId) => {
 
 function sendMessage() {
   const content = userInput.value;
-  const meetingId = usedTeamId.value;
+  const teamId = usedTeamId.value;
+  const sender_id = userStore.userId;
 
-  if (stompClient && stompClient.connected && !(content.length==0)) {
-    const message = JSON.stringify({ content, meetingId });
-    stompClient.send(`/pub/meetingSTT.${meetingId}`, {}, message);
+  if (stompClient && stompClient.connected && !(content.length == 0)) {
+    const message = JSON.stringify({ content, teamId, sender_id }); // 
+    stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
 }
@@ -130,10 +145,10 @@ function showMessage(content) {
 
   const newMessage = {
     chat_id: messages.value.length + 1,
-    sender_id: 1,
-    team_id: content.meetingId,
+    sender_id: content.sender_id,
+    team_id: content.teamId,
     content: content.content,
-    created_at: content.timestamp, 
+    created_at: content.timestamp,
   };
 
   messages.value.push(newMessage);
