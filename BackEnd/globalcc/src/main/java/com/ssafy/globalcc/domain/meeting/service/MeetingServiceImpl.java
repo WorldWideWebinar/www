@@ -2,6 +2,7 @@ package com.ssafy.globalcc.domain.meeting.service;
 
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDetailsDto;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDto;
+import com.ssafy.globalcc.domain.meeting.dto.MeetingListDto;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.exception.NoSuchMeetingException;
 import com.ssafy.globalcc.domain.meeting.repository.MeetingRepository;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +99,7 @@ public class MeetingServiceImpl implements MeetingService{
 
         Team team = teamService.getTeamByIdAndOwnerUid(meeting.getTeam_id(),username);
 
-        log.debug("creating team for userId : {}",username);
+        log.debug("creating meeting for userId : {}",username);
         log.debug("creating meeting : {}", meeting);
 
         Meeting newMeeting = Meeting.builder()
@@ -108,7 +110,7 @@ public class MeetingServiceImpl implements MeetingService{
                 .detail(meeting.getDetail())
                 .build();
 
-        log.debug("creating new meeting : {}", newMeeting);
+//        log.debug("creating new meeting : {}", newMeeting);
         Meeting savedMeeting = meetingRepository.save(newMeeting);
         List<User> userList = userTeamRepository.findUserByTeam(team);
         List<UserMeeting> userMeetingList = userList.stream().map((user) ->
@@ -172,5 +174,30 @@ public class MeetingServiceImpl implements MeetingService{
     public void delete(int meetingId) {
         meetingRepository.deleteById(meetingId);
         return;
+    }
+
+    @Override
+    public List<MeetingDetailsDto> findMEetingListByDto(MeetingListDto dto) {
+        LocalDate today = dto.getToday().toLocalDate();
+        List<Meeting> list = null;
+        if(dto.isNext()) list = meetingRepository.findMeetingsByTeamIdAndStartAtAfter(dto.getTeamId(),today);
+        else if(dto.isPrev()) list =  meetingRepository.findMeetingsByTeamIdAndStartAtBefore(dto.getTeamId(),today);
+        else  list = meetingRepository.findMeetingsByTeamIdAndStartAt(dto.getTeamId(),today);
+
+        if(list.isEmpty()) throw new NoSuchMeetingException("No meeting found for team id " + dto.getTeamId());
+        return list.stream()
+                .map((meeting -> MeetingDetailsDto.builder()
+                        .meeting_id(meeting.getMeetingId())
+                        .team_id(meeting.getTeam().getTeamId())
+                        .name(meeting.getName())
+                        .start_at(meeting.getStartAt())
+                        .end_at(meeting.getEndAt())
+                        .details(meeting.getDetail())
+                        .content(meeting.getContent())
+                        .created_at(meeting.getCreatedAt())
+                        .updated_at(meeting.getUpdatedAt())
+                        .session_id(meeting.getSessionId())
+                        .build()))
+                .toList();
     }
 }
