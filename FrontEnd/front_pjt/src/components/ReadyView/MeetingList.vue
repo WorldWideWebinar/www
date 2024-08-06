@@ -23,14 +23,14 @@
       </thead>
       <tbody>
         <template v-if="activeTab === 'PREV'">
-          <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.meeting_id">
+          <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.id">
             <td>{{ meeting.start_at.split('T')[0] }}</td>
             <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
             <td :class="{
               agenda: true,
               'bold-agenda':
                 selectedMeeting &&
-                selectedMeeting.meeting_id === meeting.meeting_id
+                selectedMeeting.id === meeting.id
             }" @click="selectMeeting(meeting)">
               {{ meeting.name }}
             </td>
@@ -42,14 +42,14 @@
           </tr>
         </template>
         <template v-if="activeTab === 'TODAY'">
-          <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.meeting_id">
+          <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.id">
             <td>{{ meeting.start_at.split('T')[0] }}</td>
             <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
             <td :class="{
               agenda: true,
               'bold-agenda':
                 selectedMeeting &&
-                selectedMeeting.meeting_id === meeting.meeting_id
+                selectedMeeting.id === meeting.id
             }" @click="selectMeeting(meeting)">
               {{ meeting.name }}
             </td>
@@ -61,14 +61,14 @@
           </tr>
         </template>
         <template v-if="activeTab === 'NEXT'">
-          <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.meeting_id">
+          <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.id">
             <td>{{ meeting.start_at.split('T')[0] }}</td>
             <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
             <td :class="{
               agenda: true,
               'bold-agenda':
                 selectedMeeting &&
-                selectedMeeting.meeting_id === meeting.meeting_id
+                selectedMeeting.id === meeting.id
             }" @click="selectMeeting(meeting)">
               {{ meeting.name }}
             </td>
@@ -85,10 +85,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useMeetingStore } from '@/stores/meetingStore';
 
 const meetingStore = useMeetingStore();
+const route = useRoute();
 const activeTab = ref('TODAY');
 
 const groupedMeetings = computed(() => {
@@ -117,8 +119,10 @@ const showOverlay = ref(false);
 
 const selectTab = async (tab) => {
   activeTab.value = tab;
-  const teamId = 10; // 실제 팀 ID를 설정해야 함
-  await meetingStore.fetchMeetings(teamId, tab === 'PREV', tab === 'NEXT');
+  const teamId = parseInt(route.params.id, 10);
+  const prev = tab === 'PREV' ? 1 : 0;
+  const next = tab === 'NEXT' ? 1 : 0;
+  await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
 const selectMeeting = (meeting) => {
@@ -143,6 +147,7 @@ onMounted(() => {
   selectTab('TODAY'); // 기본 탭을 TODAY로 설정하고 미팅을 불러옴
 });
 </script>
+
 
 <style scoped>
 ul.nav-tabs .nav-item .nav-link {

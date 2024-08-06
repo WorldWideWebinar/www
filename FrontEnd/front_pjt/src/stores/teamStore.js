@@ -28,7 +28,6 @@ export const useTeamStore = defineStore('team', {
       console.log(teamId)
       try {
         // 초기화 로직
-        meetingStore.clearMeetings();
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
         this.teamInfo = teamData
