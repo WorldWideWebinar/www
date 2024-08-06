@@ -64,6 +64,7 @@ const fetchTeams = async () => {
     for (const teamId of userStore.userInfo.teamList) {
       await teamStore.fetchTeamById(teamId);
       const team = teamStore.teams.find(t => t.team_id === teamId);
+      console(team)
       if (team) {
         teams.value.push(team);
       }
@@ -73,6 +74,7 @@ const fetchTeams = async () => {
       for (const userId of userIds) {
         await userStore.fetchUserInfo(userId);
         const user = userStore.userInfo[userId];
+        console.log(user)
         if (user && !users.value.some(u => u.user_id === userId)) {
           users.value.push(user);
         }
