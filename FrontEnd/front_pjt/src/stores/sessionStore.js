@@ -26,7 +26,7 @@ export const useSessionStore = defineStore('session', {
         const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { customSessionId });
 
         this.sessionId = response.data.result;
-        this.meetingId = meetingId
+        this.meetingId = meetingId;
         console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
 
         this.inConference = true;

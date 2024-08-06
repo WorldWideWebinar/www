@@ -63,6 +63,7 @@
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
       <button class="btn-icon" @click="leaveSession">🔄</button>
+      <button class="btn-icon" @click="endConference">❌</button>
     </div>
   </div>
 </template>
@@ -99,15 +100,41 @@ const joinSession = async () => {
   sessionStore.setSession(currentSession);
 
   currentSession.on('streamCreated', (event) => {
+    console.log('스트림 생성됨:', event.stream);
+
     const subscriber = currentSession.subscribe(event.stream, undefined);
-    sessionStore.addStream(subscriber.stream);
-    if (subscriber.stream.connection.connectionId !== currentSession.connection.connectionId) {
-      const participantId = subscriber.stream.connection.data; // 참가자의 ID 가져오기
-      const videoContainer = document.getElementById(`participant-video-${participantId}`);
-      if (videoContainer) {
-        subscriber.addVideoElement(videoContainer);
-      }
+    const participantId = JSON.parse(event.stream.connection.data).clientData; // 참가자의 ID 가져오기
+
+    console.log('구독된 스트림의 참가자 ID:', participantId);
+
+    // 팀 유저 정보에서 해당 참가자의 정보 가져오기
+    const participantInfo = teamStore.teamUserInfo.find(user => user.id === participantId);
+    if (participantInfo) {
+      participants.value.push({
+        id: participantId,
+        name: participantInfo.name // 여기에서 참가자의 이름을 설정
+      });
     }
+
+    sessionStore.addStream(subscriber.stream);
+
+    subscriber.on('videoElementCreated', (event) => {
+      const videoContainer = document.getElementById(`participant-video-${participantId}`);
+      console.log('비디오 요소가 생성됨:', videoContainer);
+
+      if (videoContainer) {
+        videoContainer.appendChild(event.element);
+        console.log('비디오 요소가 추가됨:', event.element);
+      } else {
+        console.error('비디오 컨테이너를 찾을 수 없음:', `participant-video-${participantId}`);
+      }
+    });
+  });
+
+  currentSession.on('streamDestroyed', (event) => {
+    const participantId = JSON.parse(event.stream.connection.data).clientData;
+    participants.value = participants.value.filter(p => p.id !== participantId);
+    console.log('스트림이 파괴됨, 참가자 ID:', participantId);
   });
 
   try {
@@ -118,13 +145,17 @@ const joinSession = async () => {
       audioSource: undefined,
       publishVideo: true,
       publishAudio: true,
-      resolution: '240x135',
+      resolution: '640x480',
       frameRate: 30,
       insertMode: 'APPEND'
     });
 
     currentSession.publish(publisher.value);
     session.value = currentSession;
+
+    // 세션 및 연결 객체 콘솔 출력
+    console.log('OpenVidu 세션 객체:', currentSession);
+    console.log('OpenVidu 연결 객체:', currentSession.connection);
 
     // 참가자 리스트 업데이트
     const team = teamStore.teams.find(team => team.name === route.params.name);
@@ -136,10 +167,20 @@ const joinSession = async () => {
   }
 };
 
-const leaveSession = () => {
+const leaveSession = async () => {
   if (session.value) {
+    await sessionStore.endSession(sessionStore.meetingId);
     session.value.disconnect();
     session.value = null;
+  }
+};
+
+const endConference = async () => {
+  if (session.value) {
+    await sessionStore.endSession(sessionStore.meetingId);
+    session.value.disconnect();
+    session.value = null;
+    router.push({ name: 'ReadyView' }); // ReadyView로 이동
   }
 };
 
@@ -161,12 +202,11 @@ onMounted(() => {
   joinSession();
 });
 
-onBeforeRouteLeave((to, from, next) => {
-  leaveSession();
+onBeforeRouteLeave(async (to, from, next) => {
+  await leaveSession();
   next();
 });
 </script>
-
 
 <style scoped>
 .conference-container {
@@ -179,7 +219,7 @@ onBeforeRouteLeave((to, from, next) => {
 .header {
   text-align: center;
   padding: 1rem;
-  background-color: #ffffff;;
+  background-color: #ffffff;
 }
 
 .highlight {
