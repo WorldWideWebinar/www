@@ -28,6 +28,16 @@ services:
     restart: unless-stopped
     image:
       a501/backend
+    env_file:
+      - spring.env
+    environment:
+      - DEEPL_API=${DEEPL_API}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATASOURCE_USERNAME=${DATASOURCE_USERNAME}
+      - DATASOURCE_PASSWORD=${DATASOURCE_PASSWORD}
+      - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+      - RABBIT_USERNAME=${RABBIT_USERNAME}
+      - RABBIT_PASSWORD=${RABBIT_PASSWORD}
     build:
       context: .
       dockerfile: Dockerfile
