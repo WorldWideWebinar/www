@@ -200,7 +200,7 @@ onMounted(async () => {
   const teamId = parseInt(route.params.id, 10);
   try {
     await teamStore.fetchTeamById(teamId);
-    await Promise.all([teamStore.fetchTeamUsers(), meetingStore.fetchMeetingsByIds(teamStore.teamInfo.meetingList)]);
+    await teamStore.fetchTeamUsers();
   } catch (error) {
     console.error('Failed to load initial data:', error);
   }
