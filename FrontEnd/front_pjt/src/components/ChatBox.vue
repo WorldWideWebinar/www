@@ -56,32 +56,38 @@ const teamStore = useTeamStore();
 const token = userStore.accessToken;
 
 
-const teams = ref([]);
-const users = ref([]);
+const teams = computed(() => teamStore.teams);
+const users = computed(() => userStore.userList);
 
-const fetchTeams = async () => {
-  if (userStore.userInfo.teamList) {
-    for (const teamId of userStore.userInfo.teamList) {
-      await teamStore.fetchTeamById(teamId);
-      const team = teamStore.teams.find(t => t.team_id === teamId);
-      console(team)
-      if (team) {
-        teams.value.push(team);
-      }
+
+// 이미 로그인을 하면 유저가 속한 팀정보는 teamstore에 teams에 다 들어있다.
+// teams에 userlist는 들어있다. 아이디로
+// teams에 반복문을 돌려서 하나하나 userlist에 접근해서 user를 찾아야 한다.
+// 일단 전체유저 불러오는 걸로 프로필 사진 없이 진행ㅇ를 한다. 
+// userStore에 userlist, 그냥 id가 id
+// const fetchTeams = async () => {
+//   if (userStore.userInfo.teamList) {
+//     for (const teamId of userStore.userInfo.teamList) {
+//       await teamStore.fetchTeamById(teamId);
+//       const team = teamStore.teams.find(t => t.team_id === teamId);
+//       console.log(team)
+//       if (team) {
+//         teams.value.push(team);
+//       }
       
-      await teamStore.fetchTeamUsers(teamId);
-      const userIds = teamStore.teamUserList;
-      for (const userId of userIds) {
-        await userStore.fetchUserInfo(userId);
-        const user = userStore.userInfo[userId];
-        console.log(user)
-        if (user && !users.value.some(u => u.user_id === userId)) {
-          users.value.push(user);
-        }
-      }
-    }
-  }
-};
+//       await teamStore.fetchTeamUsers(teamId);
+//       const userIds = teamStore.teamUserList;
+//       for (const userId of userIds) {
+//         await userStore.fetchUserInfo(userId);
+//         const user = userStore.userInfo[userId];
+//         console.log(user)
+//         if (user && !users.value.some(u => u.user_id === userId)) {
+//           users.value.push(user);
+//         }
+//       }
+//     }
+//   }
+// };
 
  // 받은 팀 아이디를 기반으로 유저 아이디를 받고 유저 아이디를 기반으로 유저 정보를 받는다
 // { user_id: 1, name: 'Alice', profile_image: 'https://via.placeholder.com/40' },
@@ -94,9 +100,9 @@ const messages = ref([]); // 애는 그냥 받는다.
 // 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
 // db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
 
-onMounted(() => {
-  fetchTeams();
-});
+// onMounted(() => {
+//   fetchTeams();
+// });
 
 const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
