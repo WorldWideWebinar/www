@@ -18,8 +18,8 @@
             :to="{ name: 'ReadyView', params: { id: team.id } }" 
             active-class="active"
             >
-            <span class="icon">{{ team.emoji }}</span>
-            <span class="link-text">{{ team.teamName }}</span>
+            <span class="btn-icon">{{ team.emoji }}</span>
+            <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
           </RouterLink>
         </li>
       </ul>
@@ -31,18 +31,7 @@
         </button>
       </div>
       <div class="spacer"></div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <button class="btn btn-icon">
-            <!-- <span class="icon">📢</span> -->
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="btn btn-icon">
-            <!-- <span class="icon">❔</span> -->
-          </button>
-        </li>
-      </ul>
+      
     </aside>
     <main class="flex-grow-1">
       <RouterView />
@@ -124,8 +113,7 @@ const selectTeam = (teamId) => {
 }
 
 .sidebar {
-  
-  width: 70px;
+  width: 80px;
   height: 100vh;
   background-color: #f3e5f5;
   padding: 0;
@@ -174,6 +162,11 @@ const selectTeam = (teamId) => {
 /* 팀 목록 */
 ul.nav {
   margin-top: 10px;
+  width: 100%;
+}
+
+li.nav-item {
+  width: 100%;
 }
 
 .sidebar .nav-link {
@@ -185,6 +178,8 @@ ul.nav {
   color: black;
   font-weight: bold;
   background-color: #f3e5f5;
+  width: 100%;
+  text-align: center;
 }
 
 .sidebar .nav-link.active,
@@ -193,13 +188,25 @@ ul.nav {
   color: #6a1b9a;
 }
 
-.sidebar .icon {
+.sidebar .btn-icon {
   font-size: 1.5rem;
+  margin: 5px;
 }
 
 .sidebar .link-text {
   margin-top: 0.2rem;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  word-wrap: break-word; /* 길면 줄바꿈 */
+  overflow: hidden; /* 넘치는 부분 숨기기 */
+  text-overflow: ellipsis; /* 넘치는 부분을 생략(...)으로 표시 */
+  max-width: 85%; /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
+  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 표시할 최대 줄 수 */
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  box-orient: vertical;
+  white-space: normal; /* 두 줄로 표시 */
 }
 
 .btn-icon {
@@ -230,7 +237,7 @@ ul.nav {
 main {
   flex-grow: 1;
   background-color: #fff;
-  margin-left: 70px;
+  margin-left: 80px;
 }
 
 .error-modal .error-content {
