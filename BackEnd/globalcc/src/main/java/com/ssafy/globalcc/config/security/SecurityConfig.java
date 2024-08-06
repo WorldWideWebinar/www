@@ -27,7 +27,7 @@ public class SecurityConfig {
                         "/api/users/login",
                         "/api/users",
                         "/api/users/duplication/*",
-                        "/api/stomp/*"
+                        "/api/stomp/**"
                         ).permitAll()
                 .anyRequest().authenticated()
         );
