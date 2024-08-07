@@ -4,8 +4,8 @@
       <div v-if="!selectedTeamId" class="team-list">
         <div class="team-list-header">Team List</div>
         <ul>
-          <li v-for="team in teams" :key="team.team_id" @click="handleSelectTeam(team.team_id)">
-            {{ team.team_name }}
+          <li v-for="team in teams" :key="team.id" @click="handleSelectTeam(team.id)">
+            {{ team.teamName }}
           </li>
         </ul>
       </div>
@@ -56,32 +56,38 @@ const teamStore = useTeamStore();
 const token = userStore.accessToken;
 
 
-const teams = ref([]);
-const users = ref([]);
+const teams = computed(() => teamStore.teams);
+const users = computed(() => userStore.userList);
 
-const fetchTeams = async () => {
-  if (userStore.userInfo.teamList) {
-    for (const teamId of userStore.userInfo.teamList) {
-      await teamStore.fetchTeamById(teamId);
-      const team = teamStore.teams.find(t => t.team_id === teamId);
-      console(team)
-      if (team) {
-        teams.value.push(team);
-      }
+
+// 이미 로그인을 하면 유저가 속한 팀정보는 teamstore에 teams에 다 들어있다.
+// teams에 userlist는 들어있다. 아이디로
+// teams에 반복문을 돌려서 하나하나 userlist에 접근해서 user를 찾아야 한다.
+// 일단 전체유저 불러오는 걸로 프로필 사진 없이 진행ㅇ를 한다. 
+// userStore에 userlist, 그냥 id가 id
+// const fetchTeams = async () => {
+//   if (userStore.userInfo.teamList) {
+//     for (const teamId of userStore.userInfo.teamList) {
+//       await teamStore.fetchTeamById(teamId);
+//       const team = teamStore.teams.find(t => t.team_id === teamId);
+//       console.log(team)
+//       if (team) {
+//         teams.value.push(team);
+//       }
       
-      await teamStore.fetchTeamUsers(teamId);
-      const userIds = teamStore.teamUserList;
-      for (const userId of userIds) {
-        await userStore.fetchUserInfo(userId);
-        const user = userStore.userInfo[userId];
-        console.log(user)
-        if (user && !users.value.some(u => u.user_id === userId)) {
-          users.value.push(user);
-        }
-      }
-    }
-  }
-};
+//       await teamStore.fetchTeamUsers(teamId);
+//       const userIds = teamStore.teamUserList;
+//       for (const userId of userIds) {
+//         await userStore.fetchUserInfo(userId);
+//         const user = userStore.userInfo[userId];
+//         console.log(user)
+//         if (user && !users.value.some(u => u.user_id === userId)) {
+//           users.value.push(user);
+//         }
+//       }
+//     }
+//   }
+// };
 
  // 받은 팀 아이디를 기반으로 유저 아이디를 받고 유저 아이디를 기반으로 유저 정보를 받는다
 // { user_id: 1, name: 'Alice', profile_image: 'https://via.placeholder.com/40' },
@@ -94,9 +100,9 @@ const messages = ref([]); // 애는 그냥 받는다.
 // 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
 // db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
 
-onMounted(() => {
-  fetchTeams();
-});
+// onMounted(() => {
+//   fetchTeams();
+// });
 
 const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
@@ -105,7 +111,9 @@ const handleSelectTeam = (teamId) => {
 
 
   usedTeamId.value = teamId;
-  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  console.log(teamId)
+  // const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
     {
@@ -166,18 +174,18 @@ const filteredMessages = computed(() =>
 );
 
 const getUserProfileImage = (userId) => {
-  const user = users.value.find((u) => u.user_id === userId);
+  const user = users.value.find((u) => u.userId === userId);
   return user ? user.profile_image : '';
 };
 
 const getUserName = (userId) => {
-  const user = users.value.find((u) => u.user_id === userId);
+  const user = users.value.find((u) => u.userId === userId);
   return user ? user.name : '';
 };
 
 const getTeamName = (teamId) => {
-  const team = teams.value.find((t) => t.team_id === teamId);
-  return team ? team.team_name : '';
+  const team = teams.value.find((t) => t.id === teamId);
+  return team ? team.teamName : '';
 };
 
 const formatDate = (dateString) => {
@@ -241,6 +249,24 @@ watch(filteredMessages, () => {
 .team-list ul {
   list-style: none;
   padding: 0;
+  max-height: 325px; /* 원하는 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 추가 */
+  margin: 0;
+  border-radius: 8px;
+}
+
+.team-list ul::-webkit-scrollbar {
+  width: 8px; /* 스크롤바 너비 설정 */
+}
+
+.team-list ul::-webkit-scrollbar-thumb {
+  background-color: #6200ea; /* 스크롤바 색상 */
+  border-radius: 4px; /* 스크롤바 둥근 모서리 */
+}
+
+.team-list ul::-webkit-scrollbar-track {
+  background-color: #f0f0f0; /* 스크롤바 트랙 색상 */
+  border-radius: 4px;
 }
 
 .team-list li {
@@ -354,4 +380,6 @@ watch(filteredMessages, () => {
   word-wrap: break-word;
   word-break: break-word;
 }
+
+
 </style>
