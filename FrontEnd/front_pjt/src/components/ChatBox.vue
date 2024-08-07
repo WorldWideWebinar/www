@@ -170,6 +170,11 @@ const formatDate = (dateString) => {
 
 const closeChat = () => {
   console.log("Closing chat...");
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect();
+  }
+  userInput.value = '';
+  usedTeamId.value = null;
   emit('toggleChat');
 };
 
