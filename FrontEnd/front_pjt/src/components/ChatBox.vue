@@ -17,7 +17,7 @@
         </div>
         <div ref="chatContent" class="chat-content">
           <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <img :src="getUserProfileImage(message.sender_id)" class="profile-image" />
+            <img :src="message.sender_profile" class="profile-image" />
             <div class="message-content">
               <div class="message-header">
                 <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
@@ -140,10 +140,13 @@ const handleSelectTeam = (teamId) => {
 function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
-  const sender_id = userStore.userId;
+  const senderId = userStore.userId;
+  const contentType = 'text'
+  const senderProfile = userStore.userInfo.profileImageUrl;
+  console.log(senderProfile)
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, sender_id }); // 
+    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile}); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -155,10 +158,11 @@ function showMessage(content) {
 
   const newMessage = {
     chat_id: messages.value.length + 1,
-    sender_id: content.sender_id,
+    sender_id: content.senderId,
     team_id: content.teamId,
     content: content.content,
-    created_at: content.timestamp,
+    created_at: content.createdAt,
+    sender_profile: content.senderProfile
   };
 
   messages.value.push(newMessage);
@@ -180,7 +184,7 @@ const getUserProfileImage = (userId) => {
 
 const getUserName = (userId) => {
   const user = users.value.find((u) => u.userId === userId);
-  return user ? user.name : '';
+  return user ? user.id : 'default';
 };
 
 const getTeamName = (teamId) => {
