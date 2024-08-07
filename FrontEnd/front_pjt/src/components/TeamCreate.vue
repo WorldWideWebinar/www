@@ -121,17 +121,6 @@ const closeError = () => {
 }
 
 onMounted(async () => {
-  
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
-  selectedUsers.value.push('man')
 })
 
 const filteredUsers = computed(() =>
