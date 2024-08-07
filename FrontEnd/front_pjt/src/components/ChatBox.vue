@@ -17,7 +17,7 @@
         </div>
         <div ref="chatContent" class="chat-content">
           <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <img :src="getUserProfileImage(message.sender_id)" class="profile-image" />
+            <img :src="message.sender_profile" class="profile-image" />
             <div class="message-content">
               <div class="message-header">
                 <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
@@ -142,9 +142,11 @@ function sendMessage() {
   const teamId = usedTeamId.value;
   const senderId = userStore.userId;
   const contentType = 'text'
+  const senderProfile = userStore.userInfo.profileImageUrl;
+  console.log(senderProfile)
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, senderId, contentType}); // 
+    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile}); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -160,6 +162,7 @@ function showMessage(content) {
     team_id: content.teamId,
     content: content.content,
     created_at: content.createdAt,
+    sender_profile: content.senderProfile
   };
 
   messages.value.push(newMessage);
