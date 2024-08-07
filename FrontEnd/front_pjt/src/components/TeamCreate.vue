@@ -121,7 +121,7 @@ const closeError = () => {
 }
 
 onMounted(async () => {
-  await userStore.fetchAllUsers()
+  
   selectedUsers.value.push('man')
   selectedUsers.value.push('man')
   selectedUsers.value.push('man')

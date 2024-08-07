@@ -120,8 +120,8 @@ const showOverlay = ref(false);
 const selectTab = async (tab) => {
   activeTab.value = tab;
   const teamId = parseInt(route.params.id, 10);
-  const prev = tab === 'PREV' ? 1 : 0;
-  const next = tab === 'NEXT' ? 1 : 0;
+  const prev = tab === 'PREV';
+  const next = tab === 'NEXT';
   await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
@@ -147,7 +147,6 @@ onMounted(() => {
   selectTab('TODAY'); // 기본 탭을 TODAY로 설정하고 미팅을 불러옴
 });
 </script>
-
 
 <style scoped>
 ul.nav-tabs .nav-item .nav-link {

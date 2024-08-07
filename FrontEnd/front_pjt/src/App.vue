@@ -89,6 +89,7 @@ const fetchUserTeams = async () => {
 
 onMounted(async () => {
   await fetchUserTeams()
+  await userStore.fetchAllUsers()
 })
 
 const teams = computed(() => teamStore.teams)
