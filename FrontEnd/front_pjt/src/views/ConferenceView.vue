@@ -71,8 +71,7 @@ const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
 
 const sessionId = route.params.sessionId;
-const token = route.params.token;
-const isHost = computed(() => route.params.isHost === 'true');
+const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
@@ -86,6 +85,7 @@ const joinSession = async () => {
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
+  // 스트림 생성 이벤트 핸들러
   currentSession.on('streamCreated', (event) => {
     console.log('스트림 생성됨:', event.stream);
 
@@ -94,7 +94,7 @@ const joinSession = async () => {
 
     console.log('구독된 스트림의 참가자 ID:', participantId);
 
-    const participantInfo = teamStore.teamUserInfo.find(user => user.id === participantId);
+    const participantInfo = userStore.userInfo;
     console.log('참가자 정보:', participantInfo);
 
     if (participantInfo) {
@@ -108,6 +108,7 @@ const joinSession = async () => {
     sessionStore.addStream(subscriber.stream);
   });
 
+  // 스트림 파괴 이벤트 핸들러
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
@@ -117,27 +118,45 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
-    if (isHost.value) {
-      publisher.value = OV.initPublisher(undefined, {
-        videoSource: undefined,
-        audioSource: undefined,
-        publishVideo: true,
-        publishAudio: true,
-        resolution: '320x240',
-        frameRate: 30,
-        insertMode: 'APPEND'
-      });
+    // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
+    publisher.value = OV.initPublisher(undefined, {
+      videoSource: undefined,
+      audioSource: undefined,
+      publishVideo: true,
+      publishAudio: true,
+      resolution: '320x240',
+      frameRate: 30,
+      insertMode: 'APPEND'
+    });
 
-      currentSession.publish(publisher.value);
-      myStreamManager.value = publisher.value;
-    } else {
-      myStreamManager.value = currentSession.streamManagers.find(sm => sm.stream.connection.connectionId === currentSession.connection.connectionId);
-    }
+    currentSession.publish(publisher.value);
+    myStreamManager.value = publisher.value;
 
     session.value = currentSession;
 
     console.log('OpenVidu 세션 객체:', currentSession);
     console.log('OpenVidu 연결 객체:', currentSession.connection);
+
+    // 새 참가자가 기존 스트림 구독
+    currentSession.streamManagers.forEach(stream => {
+      if (stream.connection.connectionId !== currentSession.connection.connectionId) {
+        const subscriber = currentSession.subscribe(stream, undefined);
+        const participantId = JSON.parse(stream.connection.data).clientData;
+
+        const participantInfo = userStore.userInfo;
+        console.log('참가자 정보:', participantInfo);
+
+        if (participantInfo) {
+          participants.value.push({
+            id: participantId,
+            name: participantInfo.name,
+            streamManager: subscriber,
+          });
+        }
+
+        sessionStore.addStream(subscriber.stream);
+      }
+    });
 
     const team = teamStore.teams.find(team => team.name === route.params.name);
     if (team) {
