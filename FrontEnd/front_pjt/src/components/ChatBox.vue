@@ -140,10 +140,11 @@ const handleSelectTeam = (teamId) => {
 function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
-  const sender_id = userStore.userId;
+  const senderId = userStore.userId;
+  const contentType = 'Chat'
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, sender_id }); // 
+    const message = JSON.stringify({ content, teamId, senderId, contentType}); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -155,7 +156,7 @@ function showMessage(content) {
 
   const newMessage = {
     chat_id: messages.value.length + 1,
-    sender_id: content.sender_id,
+    sender_id: content.senderId,
     team_id: content.teamId,
     content: content.content,
     created_at: content.timestamp,
