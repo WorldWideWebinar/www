@@ -12,6 +12,7 @@ services:
       -  "3306:3306"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - /home/ubuntu/docker/mysqlData:/var/lib/mysql
     command:
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
@@ -22,14 +23,22 @@ services:
     image: redis
     networks:
       - www
-
+  rabbitMQ:
+    container_name: rabbitmq
+    image: a501/rabbitmq
+    expose:
+      - 5672
+      - 15672
+      - 61613
+    restart: unless-stopped
+    networks:
+      - www
   application:
     container_name: spring-server
     restart: unless-stopped
     image:
       a501/backend
-    env_file:
-      - spring.env
+    env_file: "spring.env"
     environment:
       - DEEPL_API=${DEEPL_API}
       - JWT_SECRET=${JWT_SECRET}
@@ -38,6 +47,8 @@ services:
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
       - RABBIT_USERNAME=${RABBIT_USERNAME}
       - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+    volumes:
+      - ./resources/:/app/resources
     build:
       context: .
       dockerfile: Dockerfile
@@ -46,6 +57,7 @@ services:
     depends_on:
       - mysql
       - redis
+      - rabbitMQ
     networks:
       - www
 networks:
