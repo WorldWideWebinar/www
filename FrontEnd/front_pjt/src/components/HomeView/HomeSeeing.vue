@@ -20,9 +20,9 @@
         </div>
         <div v-else>
           <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
-            My Page
+            MY PAGE
           </button>
-          <button @click="handleSignOut">Log Out</button>
+          <button @click="handleSignOut">LOG OUT</button>
         </div>
       </div>
       <div class="scroll">
@@ -32,7 +32,7 @@
     </div>
 
     <div class="middle">
-      <div class="sub-discription carousel my-meeting">
+      <div class="sub-discription">
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team" />
@@ -499,7 +499,7 @@ button:hover {
   width: 100%;
   text-align: center;
   margin: 0px auto;
-  padding: 100px 50px;
+  padding: 100px 30px;
 }
 
 /* carousel */

@@ -8,7 +8,8 @@ import { useMeetingStore } from './meetingStore'
 export const useUserStore = defineStore('user', {
   state: () => ({
     userId: 0,
-    userInfo: {},
+    userInfo: {
+    },
     accessToken: null,
     refreshToken: null,
     userList: [],
