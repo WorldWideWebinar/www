@@ -3,6 +3,7 @@ import axiosInstance from '@/axios'; // axiosInstance import
 
 export const useSessionStore = defineStore('session', {
   state: () => ({
+    isHost: true,
     session: null,
     sessionId: null,
     streams: [],
