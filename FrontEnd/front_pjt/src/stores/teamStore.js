@@ -6,7 +6,64 @@ import axiosInstance from '@/axios';
 
 export const useTeamStore = defineStore('team', {
   state: () => ({
-    teams: [],
+    teams: [
+      // {
+      //   "id": 1,
+      //   "ownerId": 1,
+      //   "teamName": "R&D Management",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 2,
+      //   "ownerId": 1,
+      //   "teamName": "아주아주 긴 팀명 실험해보기",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 3,
+      //   "ownerId": 1,
+      //   "teamName": "Purchase",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 4,
+      //   "ownerId": 1,
+      //   "teamName": "abcdefghijklmnopqustuvwxyz",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 5,
+      //   "ownerId": 1,
+      //   "teamName": "가나다라마바사아자차카타파하",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 6,
+      //   "ownerId": 1,
+      //   "teamName": "Bonjour, Paris",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // },
+      // {
+      //   "id": 7,
+      //   "ownerId": 1,
+      //   "teamName": "Last Christmas",
+      //   "userList": [1, 3],
+      //   "emoji": "🚀",
+      //   "meetingList": [2, 5, 7],
+      // }
+    ],
     teamInfo : null,
     isOwner: false,
     teamUserList: [],

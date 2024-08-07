@@ -6,7 +6,7 @@
     <main class="main-content">
       <div class="left-side">
         <div class="participant" v-for="participant in participants" :key="participant.id">
-          <div class="participant-video" :id="'participant-video-' + participant.id">
+          <div class="participant-video" :ref="el => participantRefs[participant.id] = el">
             <!-- 참가자의 화상이 여기 표시됩니다 -->
           </div>
           <div class="participant-info">
@@ -21,7 +21,7 @@
           </div>
           <div class="right-side">
             <div class="participant">
-              <div class="participant-video" id="my-video-container">
+              <div class="participant-video" ref="myVideoContainer">
                 <!-- 본인의 화상이 여기 표시됩니다 -->
               </div>
               <div class="participant-info">
@@ -67,7 +67,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -80,19 +79,19 @@ const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
-const sessionId = route.params.sessionId;
-const token = route.params.token;
-
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
 
+const sessionId = route.params.sessionId;
+const token = route.params.token;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
-const userId = userStore.userId; // 현재 사용자의 ID 가져오기
+const userId = userStore.userId;
+const participants = ref([]);
+const participantRefs = ref({});
 
-const participants = ref([]); // 참가자 리스트
 
 const joinSession = async () => {
   const OV = new OpenVidu();
@@ -103,23 +102,22 @@ const joinSession = async () => {
     console.log('스트림 생성됨:', event.stream);
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
-    const participantId = JSON.parse(event.stream.connection.data).clientData; // 참가자의 ID 가져오기
+    const participantId = JSON.parse(event.stream.connection.data).clientData;
 
     console.log('구독된 스트림의 참가자 ID:', participantId);
 
-    // 팀 유저 정보에서 해당 참가자의 정보 가져오기
     const participantInfo = teamStore.teamUserInfo.find(user => user.id === participantId);
     if (participantInfo) {
       participants.value.push({
         id: participantId,
-        name: participantInfo.name // 여기에서 참가자의 이름을 설정
+        name: participantInfo.name
       });
     }
 
     sessionStore.addStream(subscriber.stream);
 
     subscriber.on('videoElementCreated', (event) => {
-      const videoContainer = document.getElementById(`participant-video-${participantId}`);
+      const videoContainer = participantRefs.value[participantId];
       console.log('비디오 요소가 생성됨:', videoContainer);
 
       if (videoContainer) {
@@ -140,27 +138,28 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
-    publisher.value = OV.initPublisher('my-video-container', {
-      videoSource: undefined,
-      audioSource: undefined,
-      publishVideo: true,
-      publishAudio: true,
-      resolution: '640x480',
-      frameRate: 30,
-      insertMode: 'APPEND'
-    });
+    if (sessionStore.isHost) {
+      publisher.value = OV.initPublisher('myVideoContainer', {
+        videoSource: undefined,
+        audioSource: undefined,
+        publishVideo: true,
+        publishAudio: true,
+        resolution: '320x240',
+        frameRate: 30,
+        insertMode: 'APPEND'
+      });
 
-    currentSession.publish(publisher.value);
+      currentSession.publish(publisher.value);
+    }
+
     session.value = currentSession;
 
-    // 세션 및 연결 객체 콘솔 출력
     console.log('OpenVidu 세션 객체:', currentSession);
     console.log('OpenVidu 연결 객체:', currentSession.connection);
 
-    // 참가자 리스트 업데이트
     const team = teamStore.teams.find(team => team.name === route.params.name);
     if (team) {
-      participants.value = team.userList.filter(user => user.id !== userId); // 본인 제외
+      participants.value = team.userList.filter(user => user.id !== userId);
     }
   } catch (error) {
     console.error('Error connecting to session:', error);
@@ -180,7 +179,7 @@ const endConference = async () => {
     await sessionStore.endSession(sessionStore.meetingId);
     session.value.disconnect();
     session.value = null;
-    router.push({ name: 'ReadyView' }); // ReadyView로 이동
+    router.push({ name: 'ReadyView' });
   }
 };
 
