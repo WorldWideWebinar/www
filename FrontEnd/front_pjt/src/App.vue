@@ -76,7 +76,7 @@ const fetchUserTeams = async () => {
       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
       console.log('Teams:', teamStore.teams)
     }
-    hasFetchedUserInfo.value = true
+    hasFetchedUserInfo.value = true;
     userStore.fetchAllUsers();
   }
 }
