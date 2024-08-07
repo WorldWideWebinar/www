@@ -141,7 +141,7 @@ function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
   const senderId = userStore.userId;
-  const contentType = 'Chat'
+  const contentType = 'text'
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
     const message = JSON.stringify({ content, teamId, senderId, contentType}); // 
@@ -159,7 +159,7 @@ function showMessage(content) {
     sender_id: content.senderId,
     team_id: content.teamId,
     content: content.content,
-    created_at: content.timestamp,
+    created_at: content.createdAt,
   };
 
   messages.value.push(newMessage);
@@ -181,7 +181,7 @@ const getUserProfileImage = (userId) => {
 
 const getUserName = (userId) => {
   const user = users.value.find((u) => u.userId === userId);
-  return user ? user.name : '';
+  return user ? user.id : '';
 };
 
 const getTeamName = (teamId) => {
