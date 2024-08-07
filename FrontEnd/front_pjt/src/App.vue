@@ -77,7 +77,7 @@ const fetchUserTeams = async () => {
       console.log('Teams:', teamStore.teams)
     }
     hasFetchedUserInfo.value = true
-    userStore.fetchAllUser();
+    userStore.fetchAllUsers();
   }
 }
 

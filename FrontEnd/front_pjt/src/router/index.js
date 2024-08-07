@@ -62,7 +62,7 @@ const router = createRouter({
       ]
     },
     {
-      path: '/conference/:sessionId/:token',
+      path: '/conference/:sessionId/:token/:isHost',
       name: 'ConferenceView',
       component: ConferenceView,
       props: true

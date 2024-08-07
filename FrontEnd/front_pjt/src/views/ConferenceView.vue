@@ -5,14 +5,7 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <div class="participant" v-for="participant in participants" :key="participant.id">
-          <div class="participant-video" :ref="el => participantRefs[participant.id] = el">
-            <!-- 참가자의 화상이 여기 표시됩니다 -->
-          </div>
-          <div class="participant-info">
-            <span>{{ participant.name }}</span>
-          </div>
-        </div>
+        <user-video v-for="participant in participants" :key="participant.id" :stream-manager="participant.streamManager" />
       </div>
       <div class="center">
         <div class="upper-section">
@@ -20,14 +13,7 @@
             <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
           </div>
           <div class="right-side">
-            <div class="participant">
-              <div class="participant-video" ref="myVideoContainer">
-                <!-- 본인의 화상이 여기 표시됩니다 -->
-              </div>
-              <div class="participant-info">
-                <span>나</span>
-              </div>
-            </div>
+            <user-video :stream-manager="myStreamManager" />
           </div>
         </div>
         <div class="translation-container">
@@ -67,6 +53,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -74,6 +61,7 @@ import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
+import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -84,14 +72,14 @@ const departmentName = computed(() => route.params.name);
 
 const sessionId = route.params.sessionId;
 const token = route.params.token;
+const isHost = computed(() => route.params.isHost === 'true');
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
-const participantRefs = ref({});
-
+const myStreamManager = ref(null);
 
 const joinSession = async () => {
   const OV = new OpenVidu();
@@ -107,26 +95,17 @@ const joinSession = async () => {
     console.log('구독된 스트림의 참가자 ID:', participantId);
 
     const participantInfo = teamStore.teamUserInfo.find(user => user.id === participantId);
+    console.log('참가자 정보:', participantInfo);
+
     if (participantInfo) {
       participants.value.push({
         id: participantId,
-        name: participantInfo.name
+        name: participantInfo.name,
+        streamManager: subscriber,
       });
     }
 
     sessionStore.addStream(subscriber.stream);
-
-    subscriber.on('videoElementCreated', (event) => {
-      const videoContainer = participantRefs.value[participantId];
-      console.log('비디오 요소가 생성됨:', videoContainer);
-
-      if (videoContainer) {
-        videoContainer.appendChild(event.element);
-        console.log('비디오 요소가 추가됨:', event.element);
-      } else {
-        console.error('비디오 컨테이너를 찾을 수 없음:', `participant-video-${participantId}`);
-      }
-    });
   });
 
   currentSession.on('streamDestroyed', (event) => {
@@ -138,8 +117,8 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
-    if (sessionStore.isHost) {
-      publisher.value = OV.initPublisher('myVideoContainer', {
+    if (isHost.value) {
+      publisher.value = OV.initPublisher(undefined, {
         videoSource: undefined,
         audioSource: undefined,
         publishVideo: true,
@@ -150,6 +129,9 @@ const joinSession = async () => {
       });
 
       currentSession.publish(publisher.value);
+      myStreamManager.value = publisher.value;
+    } else {
+      myStreamManager.value = currentSession.streamManagers.find(sm => sm.stream.connection.connectionId === currentSession.connection.connectionId);
     }
 
     session.value = currentSession;
