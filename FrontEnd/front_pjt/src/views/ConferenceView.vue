@@ -39,9 +39,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <div class="footer-right">
+          <!-- <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
@@ -62,6 +62,7 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
+import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
@@ -132,10 +133,9 @@ const joinSession = async () => {
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
 
-    session.value = currentSession;
-
-    console.log('OpenVidu 세션 객체:', currentSession);
-    console.log('OpenVidu 연결 객체:', currentSession.connection);
+    session.value = currentSession; 
+  // 스트림 캡처 및 백엔드로 전송
+    captureAudioStream(publisher.value.stream.getMediaStream());
 
     // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
@@ -165,6 +165,31 @@ const joinSession = async () => {
   } catch (error) {
     console.error('Error connecting to session:', error);
   }
+};
+
+const captureAudioStream = (mediaStream) => {
+  const mediaRecorder = new MediaRecorder(mediaStream);
+
+  mediaRecorder.ondataavailable = async (event) => {
+    if (event.data.size > 0) {
+      const audioBlob = event.data;
+      const formData = new FormData();
+      formData.append('audio', audioBlob);
+
+      try {
+        const response = await axios.post('http://your-flask-server/endpoint', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        console.log('Audio data sent to backend:', response.data);
+      } catch (error) {
+        console.error('Error sending audio data to backend:', error);
+      }
+    }
+  };
+
+  mediaRecorder.start(1000); // 1초마다 데이터를 캡처
 };
 
 const leaveSession = async () => {
