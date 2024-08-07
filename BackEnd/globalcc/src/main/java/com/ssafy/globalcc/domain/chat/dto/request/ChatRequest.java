@@ -12,4 +12,5 @@ public class ChatRequest {
     private int teamId;
     private String content;
     private String contentType;
+    private String senderProfile;
 }
