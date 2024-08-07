@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +25,12 @@ public class RabbitMQConfig {
     @Value("${spring.rabbitmq.host}")
     private String host;
 
-    private static final String QUEUE_NAME = "meetingSTT.queue";
-    private static final String EXCHANGE_NAME = "meetingSTT.exchange";
-    private static final String ROUTING_KEY = "meetingSTT.key";
+    private static final String MEETING_QUEUE_NAME = "meetingSTT.queue";
+    private static final String MEETING_EXCHANGE_NAME = "meetingSTT.exchange";
+    private static final String MEETING_ROUTING_KEY = "meetingSTT.key";
+    private static final String CHAT_QUEUE_NAME = "chat.queue";
+    private static final String CHAT_EXCHANGE_NAME = "chat.exchange";
+    private static final String CHAT_ROUTING_KEY = "chat.key";
 
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -38,19 +42,35 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue queue() {
-        return new Queue(QUEUE_NAME, true);
+    public Queue meetingQueue() {
+        return new Queue(MEETING_QUEUE_NAME, true);
     }
 
     @Bean
-    public DirectExchange exchange() {
-        return new DirectExchange(EXCHANGE_NAME);
+    public DirectExchange meetingExchange() {
+        return new DirectExchange(MEETING_EXCHANGE_NAME);
     }
 
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    public Binding meetingBinding(@Qualifier("meetingQueue")Queue queue, @Qualifier("meetingExchange")DirectExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(MEETING_ROUTING_KEY);
     }
+
+    @Bean
+    public Queue chatQueue() {
+        return new Queue(CHAT_QUEUE_NAME, true);
+    }
+
+    @Bean
+    public DirectExchange chatExchange() {
+        return new DirectExchange(CHAT_EXCHANGE_NAME);
+    }
+
+    @Bean
+    public Binding chatBinding(@Qualifier("chatQueue")Queue queue, @Qualifier("chatExchange")DirectExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(CHAT_ROUTING_KEY);
+    }
+
 
     @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter(ObjectMapper objectMapper) {
@@ -65,7 +85,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory, Queue queue, DirectExchange exchange, Binding binding) {
+    public RabbitAdmin rabbitMeetingAdmin(
+            ConnectionFactory connectionFactory, @Qualifier("meetingQueue") Queue queue, @Qualifier("meetingExchange") DirectExchange exchange, @Qualifier("meetingBinding") Binding binding) {
+        final RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        rabbitAdmin.declareQueue(queue);
+        rabbitAdmin.declareExchange(exchange);
+        rabbitAdmin.declareBinding(binding);
+        return rabbitAdmin;
+    }
+
+    @Bean
+    public RabbitAdmin rabbitChatAdmin(
+            ConnectionFactory connectionFactory, @Qualifier("chatQueue") Queue queue, @Qualifier("chatExchange") DirectExchange exchange, @Qualifier("chatBinding") Binding binding) {
         final RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
         rabbitAdmin.declareQueue(queue);
         rabbitAdmin.declareExchange(exchange);

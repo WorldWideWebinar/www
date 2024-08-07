@@ -1,6 +1,7 @@
 package com.ssafy.globalcc.domain.team.service;
 
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
+import com.ssafy.globalcc.domain.meeting.exception.NoSuchMeetingException;
 import com.ssafy.globalcc.domain.meeting.repository.MeetingRepository;
 import com.ssafy.globalcc.domain.team.dto.TeamDto;
 import com.ssafy.globalcc.domain.team.dto.TeamOutDto;
@@ -113,6 +114,12 @@ public class TeamServiceImpl implements TeamService{
     public void deleteTeam(int teamId, String userUid) {
         int row = teamRepository.deleteTeamByTeamIdAndOwnerUid(teamId,userUid);
         if(row == 0) throw new NotTeamOwnerException();
+    }
+
+    @Override
+    public Team findTeamById(int teamId) {
+        return teamRepository.findById(teamId)
+                .orElseThrow(() -> new NoSuchMeetingException("Team with ID " + teamId + " not found."));
     }
 
     @Override
