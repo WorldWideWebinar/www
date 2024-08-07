@@ -184,7 +184,7 @@ const getUserProfileImage = (userId) => {
 
 const getUserName = (userId) => {
   const user = users.value.find((u) => u.userId === userId);
-  return user ? user.id : '';
+  return user ? user.id : 'default';
 };
 
 const getTeamName = (teamId) => {
