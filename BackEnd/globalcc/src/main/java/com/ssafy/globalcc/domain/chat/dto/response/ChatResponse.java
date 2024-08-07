@@ -16,14 +16,16 @@ public class ChatResponse {
     private String content;
     private String contentType;
     private String createdAt;
+    private String senderProfile;
 
-    public static ChatResponse of(Integer senderId, Integer teamId, String content) {
+    public static ChatResponse of(Integer senderId, Integer teamId, String content, String senderProfile) {
         return ChatResponse.builder()
                 .senderId(senderId)
                 .teamId(teamId)
                 .content(content)
                 .contentType("text")
                 .createdAt(java.time.LocalDateTime.now().toString())
+                .senderProfile(senderProfile)
                 .build();
     }
 }

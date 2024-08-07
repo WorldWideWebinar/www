@@ -35,7 +35,7 @@ public class ChatStompController {
         String redisKey = "Chat:" + teamId;
         redisTemplate.opsForList().rightPush(redisKey, request.getContent());
 
-        ChatResponse response = ChatResponse.of(request.getSenderId(), request.getTeamId(), request.getContent());
+        ChatResponse response = ChatResponse.of(request.getSenderId(), request.getTeamId(), request.getContent(), request.getSenderProfile());
         rabbitTemplate.convertAndSend(
                 EXCHANGE_NAME, ROUTING_KEY + teamId, response
         );
