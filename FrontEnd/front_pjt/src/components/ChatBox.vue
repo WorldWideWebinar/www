@@ -120,7 +120,7 @@ const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect();
   }
-  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
     {
