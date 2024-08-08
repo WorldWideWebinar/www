@@ -16,7 +16,7 @@
           <button class="close-btn" @click="closeChat">✖</button>
         </div>
         <div ref="chatContent" class="chat-content">
-          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
+          <div v-for="message in messageStore.messages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
             <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
               <img :src="message.senderProfile" class="profile-image" />
               <div class="message-content">
@@ -79,15 +79,14 @@ const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
   emit('selectTeam', teamId);
   usedTeamId.value = teamId;
-  setupWebSocket(teamId);
   await messageStore.fetchMessagesByTeamId(teamId);
+  setupWebSocket(teamId);
 };
 
 
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected) {
-    stompClient.disconnect();
-    stompClient= null;
+    stompClient.unsubscribe();
   }
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
@@ -130,12 +129,11 @@ function showMessage(content) {
 
 
   const newMessage = {
-    chat_id: messages.value.length + 1,
-    sender_id: content.senderId,
-    team_id: content.teamId,
-    content: content.content,
-    created_at: content.createdAt,
-    sender_profile: content.senderProfile
+  senderId: content.senderId, // 수정된 필드 이름
+  teamId: content.teamId, // 수정된 필드 이름
+  content: content.content,
+  createdAt: content.createdAt, // 수정된 필드 이름
+  senderProfile: content.senderProfile // 수정된 필드 이름
   };
 
   messageStore.addMessage(newMessage);
@@ -143,21 +141,11 @@ function showMessage(content) {
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  stompClient.disconnect();
-  stompClient= null;
+  stompClient.unsubscribe();
 };
 
 
 
-const filteredMessages = computed(() =>
-  messageStore.getMessagesByTeamId(props.selectedTeamId)
-);
-
-
-const getUserProfileImage = (userId) => {
-  const user = users.value.find((u) => u.userId === userId);
-  return user ? user.profile_image : '';
-};
 
 const getUserName = (userId) => {
   const user = users.value.find((u) => u.userId === userId);
@@ -177,8 +165,7 @@ const formatDate = (dateString) => {
 const closeChat = () => {
   console.log("Closing chat...");
   if (stompClient && stompClient.connected) {
-    stompClient.disconnect();
-    stompClient= null;
+    stompClient.unsubscribe();
   }
   // userInput.value = '';
   // usedTeamId.value = null;

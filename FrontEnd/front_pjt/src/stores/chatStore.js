@@ -25,6 +25,7 @@ import axiosInstance from '@/axios';
 export const useMessageStore = defineStore('message', {
   state: () => ({
     messages: [],
+    nextChatId: 1, // 시작 ID 값
   }),
   actions: {
     async fetchMessagesByTeamId(teamId) {
@@ -36,13 +37,23 @@ export const useMessageStore = defineStore('message', {
       }
     },
     addMessage(message) {
-      this.messages.push(message);
+      const chatId = this.nextChatId++;
+      this.messages.push({ ...message, chat_id: chatId });
     },
     setMessages(newMessages) {
-      this.messages = newMessages;
+      this.messages = newMessages.map((message, index) => ({ ...message, chat_id: index + 1 }));
     },
     clearMessages() {
       this.messages = [];
+      this.nextChatId = 1; // 메시지 클리어 시 ID 초기화
+    },
+    async fetchMessagesByTeamId(teamId) {
+      try {
+        const response = await axiosInstance.get(`/api/chats/team/${teamId}`);
+        this.setMessages(response.data);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
     }
-  }
+  },
 });
