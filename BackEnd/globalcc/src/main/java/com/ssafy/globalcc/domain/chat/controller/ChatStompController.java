@@ -17,6 +17,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
@@ -27,10 +29,11 @@ public class ChatStompController {
     private final TeamService teamService;
     private final UserService userService;
     private final ChatService chatService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final String EXCHANGE_NAME = "chat.exchange";
     private static final String ROUTING_KEY = "chat.key";
-    private final RedisTemplate<String, String> redisTemplate;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @MessageMapping("chat.{teamId}")
     public void share(
@@ -38,7 +41,8 @@ public class ChatStompController {
             @Payload final ChatRequest request
     ) {
         String redisKey = "Chat:" + teamId;
-        String redisValue = request.getSenderId() + ":" + request.getContent();
+        String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        String redisValue = String.format("%s#%s#%s", request.getSenderId(), timestamp, request.getContent());
         redisTemplate.opsForList().rightPush(redisKey, redisValue);
 
         ChatResponse response = ChatResponse.of(request.getSenderId(), request.getTeamId(), request.getContent(), request.getSenderProfile());
@@ -47,7 +51,6 @@ public class ChatStompController {
         );
     }
 
-    //DB 저장 로직 추가
     @Scheduled(fixedDelay = 60000) // 60초마다 실행
     public void saveToDatabase() {
         Set<String> keys = redisTemplate.keys("Chat:*");
@@ -61,21 +64,28 @@ public class ChatStompController {
 
                     List<Chat> chatList = messageList.stream()
                             .map(message -> {
-                                String[] parts = message.split(":", 2);
+                                String[] parts = message.split("#", 3);
+                                if (parts.length < 3) {
+                                    throw new IllegalArgumentException("Invalid message format");
+                                }
                                 Integer senderId = Integer.valueOf(parts[0]);
+                                String timestampStr = parts[1];
+                                String content = parts[2];
+
+                                LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DATE_TIME_FORMATTER);
                                 User user = userService.findUserById(senderId);
-                                String content = parts[1];
 
                                 Chat chat = new Chat();
                                 chat.setTeamId(team);
                                 chat.setSenderId(user);
                                 chat.setContent(content);
-                                chat.setContentType(Chat.ContentType.valueOf("TEXT"));
+                                chat.setContentType(Chat.ContentType.TEXT);
+                                chat.setCreatedAt(timestamp);
                                 return chat;
                             })
                             .toList();
-                    chatService.saveAllChats(chatList);
 
+                    chatService.saveAllChats(chatList);
                     redisTemplate.delete(key);
                 }
             }
@@ -94,4 +104,3 @@ public class ChatStompController {
         throw new IllegalArgumentException("Invalid Redis key format");
     }
 }
-

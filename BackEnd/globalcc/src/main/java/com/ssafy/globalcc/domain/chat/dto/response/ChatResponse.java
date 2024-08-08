@@ -24,7 +24,6 @@ public class ChatResponse {
                 .teamId(teamId)
                 .content(content)
                 .contentType("TEXT")
-                .createdAt(java.time.LocalDateTime.now().toString())
                 .senderProfile(senderProfile)
                 .build();
     }
