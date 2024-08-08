@@ -6,7 +6,6 @@
           <img src="../src/assets/img/chat.png" alt="logo">
         </button>
       </div>
-      <!-- <div class="seperator"></div> -->
       <div class="nav-container flex-grow-1">
         <ul class="nav flex-column">
           <li 
@@ -25,7 +24,7 @@
           </li>
         </ul>
       </div>
-     
+      <div class="spacer"></div>
       <div class="add-team">
         <button class="btn btn-add">
           <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView' }">
@@ -33,8 +32,6 @@
           </RouterLink>
         </button>
       </div>
-      <div class="spacer"></div>
-      
     </aside>
     <main class="flex-grow-1">
       <RouterView />
@@ -76,14 +73,14 @@ const fetchUserTeams = async () => {
       await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
       console.log('Teams:', teamStore.teams)
     }
-    hasFetchedUserInfo.value = true
+    hasFetchedUserInfo.value = true;
     userStore.fetchAllUsers();
   }
 }
 
 onMounted(async () => {
   await fetchUserTeams()
-
+  await userStore.fetchAllUsers()
 })
 
 const teams = computed(() => teamStore.teams)
@@ -93,6 +90,9 @@ const teams = computed(() => teamStore.teams)
 const isChatOpen = ref(false)
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
+  if (!isChatOpen.value) {
+    selectedTeamId.value = null; // 채팅창이 닫힐 때 팀 선택 초기화
+  }
 }
 
 const showError = computed(() => errorStore.showErrorModal)
@@ -120,6 +120,7 @@ onMounted(() => {
   window.addEventListener('resize', checkScroll)
 })
 </script>
+
 <style scoped>
 #app {
   display: flex;

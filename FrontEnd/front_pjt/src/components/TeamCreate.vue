@@ -2,11 +2,7 @@
   <div class="team-create-page-container">
     <header class="header">
       <span>
-        Welcome to
-        <span class="highlight">
-          TeamCreate
-        </span>
-        Page
+        Welcome to <span class="highlight">TeamCreate</span> Page
       </span>
     </header>
     <div class="sub-container">
@@ -15,7 +11,7 @@
         <div class="teamname-and-icon">
           <section class="teamname-section">
             <div class="team-info">
-              <input type="text" v-model="teamName" placeholder="Enter Team Name" class="team-input" />
+              <input type="text" v-model="teamName" placeholder="Please enter your team name" class="team-input" />
             </div>
             <span class="centered-text" v-if="teamName.length>0">
               Team Name is <span>&nbsp;</span>
@@ -27,7 +23,9 @@
             </span>
           </section>
           <section class="icon-section">
-            <div style="text-align: center;">ICON</div>
+            <div class="icon-header">
+              ICON
+            </div>
             <div class="icon-list">
               <div
                 v-for="icon in icons"
@@ -77,12 +75,12 @@
           </div>
          </section>
       </div>
-    </div>
-      <div>
+      <div class="btn-container">
         <button @click="handleCreateTeam" class="btn btn-success"
           style="margin: auto; justify-content: center; display: flex">
           Create Team
         </button>
+      </div>
     </div>
   </div>
   <ProfileModal v-if="showProfileModal" :user="selectedUser" @close="showProfileModal = false" />
@@ -239,12 +237,18 @@ const selectIcon = (icon) => {
 .icon-section {
   flex: 1.5;
   background-color: #ffffff;
-  padding: 1.5rem 1rem;
+  padding: 0 1rem 1rem;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   border: 2px dashed rgb(232, 231, 234);
   font-size: small;
+  margin: auto;
+}
+
+.icon-header {
+  text-align: center;
+  margin: 15px auto;
 }
 
 .icon-list {
@@ -410,9 +414,24 @@ const selectIcon = (icon) => {
 }
 
 .btn-success {
-  background-color: #28a745;
-  color: #fff;
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #6a1b9a;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 35px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
 }
+
+.btn-success:hover {
+  background-color: #b380bc;
+}
+
 
 .team-name-text {
   color: blue;
