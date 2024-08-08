@@ -8,7 +8,7 @@
         <span>{{ totalMeetingTime }} hours</span>
       </div>
       <div class="profile-team">
-        <span style="font-weight: bold;">Hosted Teams</span>
+        <span style="font-weight: bold;">Teams</span>
         <ul>
           <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
         </ul>

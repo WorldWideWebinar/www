@@ -17,7 +17,6 @@
               </p>
               <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
                 <li v-for="member in members" :key="member.name" class="member">
-                  <!-- <img :src="member.profileImageUrl" :alt="member.name" /> -->
                   {{ member.name }}
                 </li>
               </ul>
@@ -76,7 +75,6 @@
                   </div>
                   <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                     <li v-for="member in members" :key="member.name" class="member">
-                      <!-- <img :src="member.profileImageUrl" :alt="member.name" /> -->
                       {{ member.name }}
                     </li>
                   </ul>
@@ -101,13 +99,6 @@ import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
-
-const props = defineProps({
-  departmentName: String,
-  departmentCreationDate: String,
-  isOwner: Boolean,
-  sessionId: String,
-});
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
@@ -169,6 +160,10 @@ const nextMeetingHoursPercentage = computed(() => {
   return (nextMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
+const departmentName = computed(() => teamStore.currentTeam?.teamName || '');
+const departmentCreationDate = computed(() => teamStore.currentTeam?.createdAt || 'Unknown');
+const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -194,7 +189,6 @@ const toggleMemberListDropdown = () => {
 };
 
 const handleStartConference = async (meetingId, sessionName) => {
-  console.log(meetingId);
   const userId = userStore.userId;
   try {
     let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
@@ -212,7 +206,6 @@ const handleStartConference = async (meetingId, sessionName) => {
 };
 
 const handleJoinConference = async (sessionName) => {
-  console.log(sessionName);
   try {
     const token = await sessionStore.joinConference(sessionName);
     router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
@@ -221,7 +214,6 @@ const handleJoinConference = async (sessionName) => {
   }
 };
 </script>
-
 
 <style scoped>
 .top-section {

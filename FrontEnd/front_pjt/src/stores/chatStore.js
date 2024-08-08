@@ -28,6 +28,14 @@ export const useMessageStore = defineStore('message', {
     nextChatId: 1, // 시작 ID 값
   }),
   actions: {
+    async fetchMessagesByTeamId(teamId) {
+      try {
+        const response = await axiosInstance.get(`/api/chats/team/${teamId}`);
+        this.setMessages(response.data);
+      } catch (error) {
+        console.error('Failed to fetch messages:', error);
+      }
+    },
     addMessage(message) {
       const chatId = this.nextChatId++;
       this.messages.push({ ...message, chat_id: chatId });

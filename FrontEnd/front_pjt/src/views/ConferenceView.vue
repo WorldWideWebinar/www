@@ -78,8 +78,8 @@ const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
-
 const sessionId = route.params.sessionId;
+const meetingId = computed(() => sessionStore.meetingId)
 const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
@@ -88,6 +88,7 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
+let socket = null;
 // 언어 목록 설정
 const languages = {
   kr: '한국어',
@@ -107,91 +108,7 @@ const updateLanguage = () => {
   // 예를 들어, 번역 API를 호출하여 번역된 텍스트를 가져올 수 있습니다.
 };
 
-// const joinSession = async () => {
-//   const OV = new OpenVidu();
-//   const currentSession = OV.initSession();
-//   sessionStore.setSession(currentSession);
 
-//   // 스트림 생성 이벤트 핸들러
-//   currentSession.on('streamCreated', (event) => {
-//     console.log('스트림 생성됨:', event.stream);
-
-//     const subscriber = currentSession.subscribe(event.stream, undefined);
-//     const participantId = JSON.parse(event.stream.connection.data).clientData;
-
-//     console.log('구독된 스트림의 참가자 ID:', participantId);
-
-//     const participantInfo = userStore.userInfo;
-//     console.log('참가자 정보:', participantInfo);
-
-//     if (participantInfo) {
-//       participants.value.push({
-//         id: participantId,
-//         name: participantInfo.name,
-//         streamManager: subscriber,
-//       });
-//     }
-
-//     sessionStore.addStream(subscriber.stream);
-//   });
-
-//   // 스트림 파괴 이벤트 핸들러
-//   currentSession.on('streamDestroyed', (event) => {
-//     const participantId = JSON.parse(event.stream.connection.data).clientData;
-//     participants.value = participants.value.filter(p => p.id !== participantId);
-//     console.log('스트림이 파괴됨, 참가자 ID:', participantId);
-//   });
-
-//   try {
-//     await currentSession.connect(token, { clientData: userId });
-
-//     // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
-//     publisher.value = OV.initPublisher(undefined, {
-//       videoSource: undefined,
-//       audioSource: undefined,
-//       publishVideo: true,
-//       publishAudio: true,
-//       resolution: '320x240',
-//       frameRate: 30,
-//       insertMode: 'APPEND'
-//     });
-
-//     currentSession.publish(publisher.value);
-//     myStreamManager.value = publisher.value;
-
-//     session.value = currentSession; 
-//   // 스트림 캡처 및 백엔드로 전송
-//     captureAudioStream(publisher.value.stream.getMediaStream());
-
-//     // 새 참가자가 기존 스트림 구독
-//     currentSession.streamManagers.forEach(stream => {
-//       if (stream.connection.connectionId !== currentSession.connection.connectionId) {
-//         const subscriber = currentSession.subscribe(stream, undefined);
-//         const participantId = JSON.parse(stream.connection.data).clientData;
-
-//         const participantInfo = userStore.userInfo;
-//         console.log('참가자 정보:', participantInfo);
-
-//         if (participantInfo) {
-//           participants.value.push({
-//             id: participantId,
-//             name: participantInfo.name,
-//             streamManager: subscriber,
-//           });
-//         }
-
-//         sessionStore.addStream(subscriber.stream);
-//       }
-//     });
-
-//     const team = teamStore.teams.find(team => team.name === route.params.name);
-//     if (team) {
-//       participants.value = team.userList.filter(user => user.id !== userId);
-//     }
-//   } catch (error) {
-//     console.error('Error connecting to session:', error);
-//   }
-// };
 
 
 const joinSession = async () => {
@@ -286,10 +203,12 @@ const joinSession = async () => {
 
 // 스트림 캡처 및 백엔드로 전송
 const captureAudioStream = (mediaStream) => {
-  socket = new WebSocket('ws://your-backend-server/audio-stream');
+  socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
     console.log('WebSocket connection opened');
+    console.log('Meeting ID:', meetingId)
+    socket.send(JSON.stringify({ meetingId: meetingId }));
   };
 
   socket.onclose = () => {
