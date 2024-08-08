@@ -16,18 +16,8 @@
           <button class="close-btn" @click="closeChat">✖</button>
         </div>
         <div ref="chatContent" class="chat-content">
-          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <div v-if="currentUserId==message.sender_id">
-              <div class="message-content-me">
-                <div class="message-header">
-                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
-                  <span class="sender-name">Me</span>
-                </div>
-                <div class="message-body">{{ message.content }}</div>
-              </div>
-              <img :src="message.sender_profile" class="profile-image" />
-            </div>
-            <div v-else>
+          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
+            <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
               <img :src="message.sender_profile" class="profile-image" />
               <div class="message-content">
                 <div class="message-header">
@@ -37,7 +27,16 @@
                 <div class="message-body">{{ message.content }}</div>
               </div>
             </div>
-            <!-- 메시지 하나-->
+            <div v-else style="flex-grow: 1;" class="message-content-wrapper">
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                  <span class="sender-name">Me</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
+              </div>
+              <img :src="message.sender_profile" class="profile-image" />
+            </div>
           </div>
         </div>
         <div class="chat-input">
@@ -69,8 +68,7 @@ const userStore = useUserStore();
 const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
-const currentUserId = userStore.userInfo.userId;
-
+const currentUserId = JSON.parse(localStorage.getItem('userData')).userId;
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
@@ -150,7 +148,7 @@ function sendMessage() {
   const senderProfile = userStore.userInfo.profileImageUrl;
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile}); // 
+    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile }); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -271,23 +269,29 @@ onMounted(() => {
 .team-list ul {
   list-style: none;
   padding: 0;
-  max-height: 325px; /* 원하는 높이 설정 */
-  overflow-y: auto; /* 세로 스크롤 추가 */
+  max-height: 325px;
+  /* 원하는 높이 설정 */
+  overflow-y: auto;
+  /* 세로 스크롤 추가 */
   margin: 0;
   border-radius: 8px;
 }
 
 .team-list ul::-webkit-scrollbar {
-  width: 8px; /* 스크롤바 너비 설정 */
+  width: 8px;
+  /* 스크롤바 너비 설정 */
 }
 
 .team-list ul::-webkit-scrollbar-thumb {
-  background-color: #6200ea; /* 스크롤바 색상 */
-  border-radius: 4px; /* 스크롤바 둥근 모서리 */
+  background-color: #6200ea;
+  /* 스크롤바 색상 */
+  border-radius: 4px;
+  /* 스크롤바 둥근 모서리 */
 }
 
 .team-list ul::-webkit-scrollbar-track {
-  background-color: #f0f0f0; /* 스크롤바 트랙 색상 */
+  background-color: #f0f0f0;
+  /* 스크롤바 트랙 색상 */
   border-radius: 4px;
 }
 
@@ -369,6 +373,12 @@ onMounted(() => {
   margin: 10px 0px;
 }
 
+.message-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
 .profile-image {
   width: 40px;
   height: 40px;
@@ -380,8 +390,13 @@ onMounted(() => {
 .message-content {
   flex-grow: 1;
 }
-.message-content-me{
-  background-color: #f9e3f8;
+
+.message-from-me {
+  background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
+}
+
+.message-from-others {
+  background-color: #e1e1e1; /* 다른 사용자가 보낸 메시지의 배경 색상 */
 }
 
 .message-header {
@@ -405,6 +420,4 @@ onMounted(() => {
   word-wrap: break-word;
   word-break: break-word;
 }
-
-
 </style>
