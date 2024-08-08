@@ -86,7 +86,7 @@ const handleSelectTeam = async (teamId) => {
 
 
 const setupWebSocket = (teamId) => {
-  if (stompClient.connected && subscription) {
+  if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 기존 구독 해제
   }
   
@@ -150,7 +150,7 @@ function showMessage(content) {
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  if (stompClient.connected && subscription) {
+  if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
@@ -176,7 +176,7 @@ const formatDate = (dateString) => {
 
 const closeChat = () => {
   console.log("Closing chat...");
-  if (stompClient.connected && subscription) {
+  if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
