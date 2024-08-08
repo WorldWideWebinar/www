@@ -16,14 +16,26 @@
           <button class="close-btn" @click="closeChat">✖</button>
         </div>
         <div ref="chatContent" class="chat-content">
-          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <img :src="message.sender_profile" class="profile-image" />
-            <div class="message-content">
-              <div class="message-header">
-                <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
-                <span class="message-time">{{ formatDate(message.created_at) }}</span>
+          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
+            <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
+              <img :src="message.sender_profile" class="profile-image" />
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
+                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
               </div>
-              <div class="message-body">{{ message.content }}</div>
+            </div>
+            <div v-else style="flex-grow: 1;" class="message-content-wrapper">
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                  <span class="sender-name">Me</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
+              </div>
+              <img :src="message.sender_profile" class="profile-image" />
             </div>
           </div>
         </div>
@@ -51,12 +63,12 @@ const emit = defineEmits(['toggleChat', 'selectTeam']);
 
 let stompClient = null;
 const userInput = ref('');
-const usedTeamId = ref('');
+const usedTeamId = ref(props.selectedTeamId);
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
-
+const currentUserId = userStore.userId;
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
@@ -73,12 +85,39 @@ const messages = ref([]); // 애는 그냥 받는다.
 const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
   emit('selectTeam', teamId);
-
-
-
   usedTeamId.value = teamId;
-  console.log(teamId)
-  // const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  setupWebSocket(teamId);
+
+  // console.log(teamId)
+  // const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
+  // stompClient = Stomp.over(socket);
+  // stompClient.connect(
+  //   {
+  //     Authorization: `Bearer ${token}`
+  //   },
+  //   function (frame) {
+  //     stompClient.subscribe(
+  //       `/exchange/chat.exchange/chat.key${teamId}`,
+  //       function (message) {
+  //         // console.log('성공')
+  //         // console.log("Received message:", message);
+  //         const messageBody = JSON.parse(message.body);
+  //         // console.log(messageBody);
+  //         showMessage(messageBody);
+  //       }
+  //     );
+  //   },
+  //   function (error) {
+  //     console.error("Connection error: " + error);
+  //   }
+  // );
+};
+
+
+const setupWebSocket = (teamId) => {
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect();
+  }
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -89,10 +128,7 @@ const handleSelectTeam = (teamId) => {
       stompClient.subscribe(
         `/exchange/chat.exchange/chat.key${teamId}`,
         function (message) {
-          // console.log('성공')
-          // console.log("Received message:", message);
           const messageBody = JSON.parse(message.body);
-          // console.log(messageBody);
           showMessage(messageBody);
         }
       );
@@ -103,6 +139,7 @@ const handleSelectTeam = (teamId) => {
   );
 };
 
+
 function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
@@ -111,7 +148,7 @@ function sendMessage() {
   const senderProfile = userStore.userInfo.profileImageUrl;
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile}); // 
+    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile }); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -130,7 +167,6 @@ function showMessage(content) {
     sender_profile: content.senderProfile
   };
 
-  // messages.value.push(newMessage);
   messageStore.addMessage(newMessage);
 }
 
@@ -140,9 +176,7 @@ const backToTeamList = () => {
 };
 
 
-// const filteredMessages = computed(() =>
-//   messages.value.filter((message) => message.team_id === props.selectedTeamId)
-// );
+
 const filteredMessages = computed(() =>
   messageStore.getMessagesByTeamId(props.selectedTeamId)
 );
@@ -173,8 +207,8 @@ const closeChat = () => {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect();
   }
-  userInput.value = '';
-  usedTeamId.value = null;
+  // userInput.value = '';
+  // usedTeamId.value = null;
   emit('toggleChat');
 };
 
@@ -185,6 +219,12 @@ watch(filteredMessages, () => {
       chatContent.value.scrollTop = chatContent.value.scrollHeight;
     }
   });
+});
+
+onMounted(() => {
+  if (props.selectedTeamId) {
+    handleSelectTeam(props.selectedTeamId);
+  }
 });
 </script>
 
@@ -229,23 +269,29 @@ watch(filteredMessages, () => {
 .team-list ul {
   list-style: none;
   padding: 0;
-  max-height: 325px; /* 원하는 높이 설정 */
-  overflow-y: auto; /* 세로 스크롤 추가 */
+  max-height: 325px;
+  /* 원하는 높이 설정 */
+  overflow-y: auto;
+  /* 세로 스크롤 추가 */
   margin: 0;
   border-radius: 8px;
 }
 
 .team-list ul::-webkit-scrollbar {
-  width: 8px; /* 스크롤바 너비 설정 */
+  width: 8px;
+  /* 스크롤바 너비 설정 */
 }
 
 .team-list ul::-webkit-scrollbar-thumb {
-  background-color: #6200ea; /* 스크롤바 색상 */
-  border-radius: 4px; /* 스크롤바 둥근 모서리 */
+  background-color: #6200ea;
+  /* 스크롤바 색상 */
+  border-radius: 4px;
+  /* 스크롤바 둥근 모서리 */
 }
 
 .team-list ul::-webkit-scrollbar-track {
-  background-color: #f0f0f0; /* 스크롤바 트랙 색상 */
+  background-color: #f0f0f0;
+  /* 스크롤바 트랙 색상 */
   border-radius: 4px;
 }
 
@@ -327,6 +373,12 @@ watch(filteredMessages, () => {
   margin: 10px 0px;
 }
 
+.message-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
 .profile-image {
   width: 40px;
   height: 40px;
@@ -337,6 +389,14 @@ watch(filteredMessages, () => {
 
 .message-content {
   flex-grow: 1;
+}
+
+.message-from-me {
+  background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
+}
+
+.message-from-others {
+  background-color: #e1e1e1; /* 다른 사용자가 보낸 메시지의 배경 색상 */
 }
 
 .message-header {
@@ -360,6 +420,4 @@ watch(filteredMessages, () => {
   word-wrap: break-word;
   word-break: break-word;
 }
-
-
 </style>
