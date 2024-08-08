@@ -9,6 +9,7 @@ import com.ssafy.globalcc.domain.team.service.TeamService;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -19,9 +20,11 @@ import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatStompController {
@@ -51,7 +54,7 @@ public class ChatStompController {
         );
     }
 
-    @Scheduled(fixedDelay = 60000) // 60초마다 실행
+    @Scheduled(fixedDelay = 5000) // 60초마다 실행
     public void saveToDatabase() {
         Set<String> keys = redisTemplate.keys("Chat:*");
 //        redisTemplate.delete(keys);
@@ -65,6 +68,11 @@ public class ChatStompController {
                     List<Chat> chatList = messageList.stream()
                             .map(message -> {
                                 String[] parts = message.split("#", 3);
+                                log.debug("-------Redis Test-------");
+                                log.debug(parts[0]);
+                                log.debug(parts[1]);
+                                log.debug(parts[2]);
+                                log.debug("------------------------");
                                 if (parts.length < 3) {
                                     throw new IllegalArgumentException("Invalid message format");
                                 }
