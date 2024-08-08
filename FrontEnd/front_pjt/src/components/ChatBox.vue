@@ -62,6 +62,7 @@ const props = defineProps({
 const emit = defineEmits(['toggleChat', 'selectTeam']);
 
 let stompClient = null;
+let subscription = null;
 const userInput = ref('');
 const usedTeamId = ref(props.selectedTeamId);
 const userStore = useUserStore();
@@ -77,16 +78,16 @@ const messages = ref([]); // 애는 그냥 받는다.
 
 const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
+  await messageStore.fetchMessagesByTeamId(teamId);
   emit('selectTeam', teamId);
   usedTeamId.value = teamId;
-  await messageStore.fetchMessagesByTeamId(teamId);
   setupWebSocket(teamId);
 };
 
 
 const setupWebSocket = (teamId) => {
-  if (stompClient && stompClient.connected) {
-    stompClient.unsubscribe();
+  if (stompClient && stompClient.connected && subscription) {
+    subscription.unsubscribe(); // 기존 구독 해제
   }
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
@@ -95,7 +96,7 @@ const setupWebSocket = (teamId) => {
       Authorization: `Bearer ${token}`
     },
     function (frame) {
-      stompClient.subscribe(
+      subscription = stompClient.subscribe(
         `/exchange/chat.exchange/chat.key${teamId}`,
         function (message) {
           const messageBody = JSON.parse(message.body);
@@ -141,7 +142,10 @@ function showMessage(content) {
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  stompClient.unsubscribe();
+  if (subscription) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
+  }
 };
 
 
@@ -164,11 +168,10 @@ const formatDate = (dateString) => {
 
 const closeChat = () => {
   console.log("Closing chat...");
-  if (stompClient && stompClient.connected) {
-    stompClient.unsubscribe();
+  if (stompClient && stompClient.connected && subscription) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
   }
-  // userInput.value = '';
-  // usedTeamId.value = null;
   emit('toggleChat');
 };
 
@@ -182,6 +185,7 @@ watch(() => messageStore.messages, () => {
 });
 
 onMounted(() => {
+  console.log('열림')
   if (props.selectedTeamId) {
     handleSelectTeam(props.selectedTeamId);
   }
