@@ -6,9 +6,6 @@ export const useMeetingStore = defineStore('meeting', {
     meetings: []
   }),
   actions: {
-    clearMeetings() {
-      this.meetings = [];
-    },
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('api/meetings', meeting)
