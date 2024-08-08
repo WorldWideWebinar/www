@@ -49,6 +49,7 @@ export const useMessageStore = defineStore('message', {
     },
     async fetchMessagesByTeamId(teamId) {
       try {
+        console.log('스토어 진입')
         const response = await axiosInstance.get(`/api/chats/team/${teamId}`);
         this.setMessages(response.data);
       } catch (error) {
