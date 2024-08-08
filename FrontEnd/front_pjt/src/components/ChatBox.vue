@@ -189,7 +189,7 @@ watch(() => messageStore.messages, () => {
 
 onMounted(() => {
   console.log('열림')
-  if (stompClient && stompClient.connected && subscription) {
+  if (stompClient && stompClient.connected) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
