@@ -25,5 +25,5 @@ public interface MeetingService {
 
     void delete(int meetingId);
 
-    List<MeetingDetailsDto> findMEetingListByDto(MeetingListDto dto);
+    List<MeetingDetailsDto> findMeetingListByDto(MeetingListDto dto);
 }
