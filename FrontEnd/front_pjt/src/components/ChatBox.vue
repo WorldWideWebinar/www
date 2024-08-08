@@ -17,14 +17,27 @@
         </div>
         <div ref="chatContent" class="chat-content">
           <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <img :src="message.sender_profile" class="profile-image" />
-            <div class="message-content">
-              <div class="message-header">
-                <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
-                <span class="message-time">{{ formatDate(message.created_at) }}</span>
+            <div v-if="currentUserId==message.sender_id">
+              <div class="message-content-me">
+                <div class="message-header">
+                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                  <span class="sender-name">Me</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
               </div>
-              <div class="message-body">{{ message.content }}</div>
+              <img :src="message.sender_profile" class="profile-image" />
             </div>
+            <div v-else>
+              <img :src="message.sender_profile" class="profile-image" />
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
+                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
+              </div>
+            </div>
+            <!-- 메시지 하나-->
           </div>
         </div>
         <div class="chat-input">
@@ -51,11 +64,12 @@ const emit = defineEmits(['toggleChat', 'selectTeam']);
 
 let stompClient = null;
 const userInput = ref('');
-const usedTeamId = ref('');
+const usedTeamId = ref(props.selectedTeamId);
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
+const currentUserId = userStore.userInfo.userId;
 
 
 const teams = computed(() => teamStore.teams);
@@ -73,13 +87,40 @@ const messages = ref([]); // 애는 그냥 받는다.
 const handleSelectTeam = (teamId) => {
   // 팀 입장 시점
   emit('selectTeam', teamId);
-
-
-
   usedTeamId.value = teamId;
-  console.log(teamId)
-  // const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
-  const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
+  setupWebSocket(teamId);
+
+  // console.log(teamId)
+  // const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
+  // stompClient = Stomp.over(socket);
+  // stompClient.connect(
+  //   {
+  //     Authorization: `Bearer ${token}`
+  //   },
+  //   function (frame) {
+  //     stompClient.subscribe(
+  //       `/exchange/chat.exchange/chat.key${teamId}`,
+  //       function (message) {
+  //         // console.log('성공')
+  //         // console.log("Received message:", message);
+  //         const messageBody = JSON.parse(message.body);
+  //         // console.log(messageBody);
+  //         showMessage(messageBody);
+  //       }
+  //     );
+  //   },
+  //   function (error) {
+  //     console.error("Connection error: " + error);
+  //   }
+  // );
+};
+
+
+const setupWebSocket = (teamId) => {
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect();
+  }
+  const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
   stompClient = Stomp.over(socket);
   stompClient.connect(
     {
@@ -89,10 +130,7 @@ const handleSelectTeam = (teamId) => {
       stompClient.subscribe(
         `/exchange/chat.exchange/chat.key${teamId}`,
         function (message) {
-          // console.log('성공')
-          // console.log("Received message:", message);
           const messageBody = JSON.parse(message.body);
-          // console.log(messageBody);
           showMessage(messageBody);
         }
       );
@@ -102,6 +140,7 @@ const handleSelectTeam = (teamId) => {
     }
   );
 };
+
 
 function sendMessage() {
   const content = userInput.value;
@@ -130,7 +169,6 @@ function showMessage(content) {
     sender_profile: content.senderProfile
   };
 
-  // messages.value.push(newMessage);
   messageStore.addMessage(newMessage);
 }
 
@@ -140,9 +178,7 @@ const backToTeamList = () => {
 };
 
 
-// const filteredMessages = computed(() =>
-//   messages.value.filter((message) => message.team_id === props.selectedTeamId)
-// );
+
 const filteredMessages = computed(() =>
   messageStore.getMessagesByTeamId(props.selectedTeamId)
 );
@@ -173,8 +209,8 @@ const closeChat = () => {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect();
   }
-  userInput.value = '';
-  usedTeamId.value = null;
+  // userInput.value = '';
+  // usedTeamId.value = null;
   emit('toggleChat');
 };
 
@@ -185,6 +221,12 @@ watch(filteredMessages, () => {
       chatContent.value.scrollTop = chatContent.value.scrollHeight;
     }
   });
+});
+
+onMounted(() => {
+  if (props.selectedTeamId) {
+    handleSelectTeam(props.selectedTeamId);
+  }
 });
 </script>
 
@@ -337,6 +379,9 @@ watch(filteredMessages, () => {
 
 .message-content {
   flex-grow: 1;
+}
+.message-content-me{
+  background-color: #f9e3f8;
 }
 
 .message-header {
