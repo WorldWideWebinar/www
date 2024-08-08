@@ -63,13 +63,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
-import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 import axios from 'axios';
 
 const route = useRoute();
@@ -79,8 +78,7 @@ const userStore = useUserStore();
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
 const sessionId = route.params.sessionId;
-const meetingId = computed(() => sessionStore.meetingId)
-const token = route.params.token;;
+const token = route.params.token;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
@@ -89,7 +87,9 @@ const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
 let socket = null;
-// 언어 목록 설정
+let audioContext = null;
+let processor = null;
+
 const languages = {
   kr: '한국어',
   en: 'English',
@@ -98,28 +98,19 @@ const languages = {
   ja: '日本語'
 };
 
-// 선택된 언어를 저장하는 상태 변수
 const selectedLanguage = ref('kr');
 
-// 언어가 변경될 때 호출되는 함수
 const updateLanguage = () => {
   console.log('Selected language:', selectedLanguage.value);
-  // 여기에서 선택된 언어에 따라 다른 작업을 수행할 수 있습니다.
-  // 예를 들어, 번역 API를 호출하여 번역된 텍스트를 가져올 수 있습니다.
 };
-
-
-
 
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
-  // 스트림 생성 이벤트 핸들러
   currentSession.on('streamCreated', (event) => {
     console.log('스트림 생성됨:', event.stream);
-
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
 
@@ -139,7 +130,6 @@ const joinSession = async () => {
     sessionStore.addStream(subscriber.stream);
   });
 
-  // 스트림 파괴 이벤트 핸들러
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
@@ -149,29 +139,31 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
-    // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
     publisher.value = OV.initPublisher(undefined, {
-      videoSource: undefined,
+      videoSource: false,
       audioSource: undefined,
-      publishVideo: true,
+      publishVideo: false,
       publishAudio: true,
-      resolution: '320x240',
+      resolution: '240x160',
       frameRate: 30,
       insertMode: 'APPEND'
     });
 
-    currentSession.publish(publisher.value);
-    myStreamManager.value = publisher.value;
+    if (publisher.value) {
+      currentSession.publish(publisher.value);
+      myStreamManager.value = publisher.value;
 
-    session.value = currentSession;
+      session.value = currentSession;
 
-    console.log('OpenVidu 세션 객체:', currentSession);
-    console.log('OpenVidu 연결 객체:', currentSession.connection);
+      console.log('OpenVidu 세션 객체:', currentSession);
+      console.log('OpenVidu 연결 객체:', currentSession.connection);
 
-    // 스트림 캡처 및 백엔드로 전송
-    captureAudioStream(publisher.value.stream.getMediaStream());
+      const mediaStream = publisher.value.stream.getMediaStream();
+      captureAudioStream(mediaStream);
+    } else {
+      console.error('Failed to initialize publisher');
+    }
 
-    // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
       if (stream.connection.connectionId !== currentSession.connection.connectionId) {
         const subscriber = currentSession.subscribe(stream, undefined);
@@ -201,14 +193,13 @@ const joinSession = async () => {
   }
 };
 
-// 스트림 캡처 및 백엔드로 전송
 const captureAudioStream = (mediaStream) => {
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
     console.log('WebSocket connection opened');
-    console.log('Meeting ID:', meetingId)
-    socket.send(JSON.stringify({ meetingId: meetingId }));
+    console.log('Meeting ID:', sessionStore.meetingId);
+    socket.send(JSON.stringify({ meetingId: sessionStore.meetingId }));
   };
 
   socket.onclose = () => {
@@ -219,17 +210,47 @@ const captureAudioStream = (mediaStream) => {
     console.error('WebSocket error:', error);
   };
 
-  const mediaRecorder = new MediaRecorder(mediaStream);
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioContext.createMediaStreamSource(mediaStream);
+  processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-  mediaRecorder.ondataavailable = (event) => {
-    if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
-      socket.send(event.data);
-    }
+  processor.onaudioprocess = (event) => {
+    const inputData = event.inputBuffer.getChannelData(0);
+    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
+    sendDataToBackend(resampledData);
   };
 
-  mediaRecorder.start(100); // 100ms마다 데이터를 캡처
+  source.connect(processor);
+  processor.connect(audioContext.destination);
 };
 
+const resampleTo16kHz = (audioData, originalSampleRate) => {
+  const data = new Float32Array(audioData);
+  const targetSampleRate = 16000;
+  const resampledLength = Math.round(data.length * targetSampleRate / originalSampleRate);
+  const resampledData = new Float32Array(resampledLength);
+
+  for (let i = 0; i < resampledLength; i++) {
+    const index = i * originalSampleRate / targetSampleRate;
+    const intIndex = Math.floor(index);
+    const frac = index - intIndex;
+    resampledData[i] = data[intIndex] + frac * (data[intIndex + 1] - data[intIndex]);
+  }
+
+  return resampledData;
+};
+
+const sendDataToBackend = (data) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    const audioBuffer = new Int16Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+      audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
+    }
+    socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
+  } else {
+    console.error('WebSocket is not open');
+  }
+};
 
 const leaveSession = async () => {
   if (session.value) {
@@ -266,11 +287,24 @@ onMounted(() => {
   joinSession();
 });
 
+onBeforeUnmount(() => {
+  if (audioContext) {
+    audioContext.close();
+  }
+  if (processor) {
+    processor.disconnect();
+  }
+  if (socket) {
+    socket.close();
+  }
+});
+
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
 });
 </script>
+
 
 <style scoped>
 .conference-container {
