@@ -54,7 +54,7 @@ public class ChatStompController {
         );
     }
 
-    @Scheduled(fixedDelay = 5000) // 60초마다 실행
+    @Scheduled(fixedDelay = 60000) // 60초마다 실행
     public void saveToDatabase() {
         Set<String> keys = redisTemplate.keys("Chat:*");
 //        redisTemplate.delete(keys);
@@ -69,9 +69,7 @@ public class ChatStompController {
                             .map(message -> {
                                 String[] parts = message.split("#", 3);
                                 log.debug("-------Redis Test-------");
-                                log.debug(parts[0]);
-                                log.debug(parts[1]);
-                                log.debug(parts[2]);
+                                log.debug(parts[0] + " # " + parts[1] + " # " + parts[2]);
                                 log.debug("------------------------");
                                 if (parts.length < 3) {
                                     throw new IllegalArgumentException("Invalid message format");
