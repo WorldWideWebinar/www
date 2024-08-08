@@ -93,9 +93,9 @@ const teams = computed(() => teamStore.teams)
 const isChatOpen = ref(false)
 const toggleChat = () => {
   isChatOpen.value = !isChatOpen.value
-  if (!isChatOpen.value) {
-    selectedTeamId.value = null; // 채팅창이 닫힐 때 팀 선택 초기화
-  }
+  // if (!isChatOpen.value) {
+  //   selectedTeamId.value = null;
+  // }
 }
 
 const showError = computed(() => errorStore.showErrorModal)
