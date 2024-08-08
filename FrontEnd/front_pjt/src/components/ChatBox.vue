@@ -18,11 +18,11 @@
         <div ref="chatContent" class="chat-content">
           <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
             <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
-              <img :src="message.sender_profile" class="profile-image" />
+              <img :src="message.senderProfile" class="profile-image" />
               <div class="message-content">
                 <div class="message-header">
-                  <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
-                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                  <span class="sender-name">{{ getUserName(message.senderId) }}</span>
+                  <span class="message-time">{{ formatDate(message.createdAt) }}</span>
                 </div>
                 <div class="message-body">{{ message.content }}</div>
               </div>
@@ -30,7 +30,7 @@
             <div v-else style="flex-grow: 1;" class="message-content-wrapper">
               <div class="message-content">
                 <div class="message-header">
-                  <span class="message-time">{{ formatDate(message.created_at) }}</span>
+                  <span class="message-time">{{ formatDate(message.createdAt) }}</span>
                   <span class="sender-name">Me</span>
                 </div>
                 <div class="message-body">{{ message.content }}</div>
@@ -75,48 +75,19 @@ const users = computed(() => userStore.userList);
 
 const messages = ref([]); // 애는 그냥 받는다.
 
-
-//   { chat_id: 1, sender_id: 1, team_id: 1, content: 'Hello, Team Alpha!', created_at: '2024-08-01T10:00:00Z' },
-
-// 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
-// db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
-
-
-const handleSelectTeam = (teamId) => {
+const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
   emit('selectTeam', teamId);
   usedTeamId.value = teamId;
   setupWebSocket(teamId);
-
-  // console.log(teamId)
-  // const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
-  // stompClient = Stomp.over(socket);
-  // stompClient.connect(
-  //   {
-  //     Authorization: `Bearer ${token}`
-  //   },
-  //   function (frame) {
-  //     stompClient.subscribe(
-  //       `/exchange/chat.exchange/chat.key${teamId}`,
-  //       function (message) {
-  //         // console.log('성공')
-  //         // console.log("Received message:", message);
-  //         const messageBody = JSON.parse(message.body);
-  //         // console.log(messageBody);
-  //         showMessage(messageBody);
-  //       }
-  //     );
-  //   },
-  //   function (error) {
-  //     console.error("Connection error: " + error);
-  //   }
-  // );
+  await messageStore.fetchMessagesByTeamId(teamId);
 };
 
 
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected) {
     stompClient.disconnect();
+    stompClient= null;
   }
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
@@ -144,11 +115,11 @@ function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
   const senderId = userStore.userId;
-  const contentType = 'text'
+  const contentType = 'TEXT'
   const senderProfile = userStore.userInfo.profileImageUrl;
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile }); // 
+    const message = JSON.stringify({ senderId, teamId, content, contentType, senderProfile }); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -173,6 +144,7 @@ function showMessage(content) {
 const backToTeamList = () => {
   emit('selectTeam', null);
   stompClient.disconnect();
+  stompClient= null;
 };
 
 
@@ -206,6 +178,7 @@ const closeChat = () => {
   console.log("Closing chat...");
   if (stompClient && stompClient.connected) {
     stompClient.disconnect();
+    stompClient= null;
   }
   // userInput.value = '';
   // usedTeamId.value = null;
@@ -213,7 +186,7 @@ const closeChat = () => {
 };
 
 const chatContent = ref(null);
-watch(filteredMessages, () => {
+watch(() => messageStore.messages, () => {
   nextTick(() => {
     if (chatContent.value) {
       chatContent.value.scrollTop = chatContent.value.scrollHeight;
@@ -419,5 +392,9 @@ onMounted(() => {
   font-size: 0.9rem;
   word-wrap: break-word;
   word-break: break-word;
+}
+
+.message-from-me .message-content-wrapper .message-body {
+  text-align: right;
 }
 </style>

@@ -89,6 +89,10 @@ const teams = computed(() => teamStore.teams)
 
 const isChatOpen = ref(false)
 const toggleChat = () => {
+  if(isChatOpen.value){
+    stompClient.disconnect();
+    stompClient= null;
+  }
   isChatOpen.value = !isChatOpen.value
   // if (!isChatOpen.value) {
   //   selectedTeamId.value = null;
