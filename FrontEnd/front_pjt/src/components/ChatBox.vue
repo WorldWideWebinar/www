@@ -68,7 +68,7 @@ const userStore = useUserStore();
 const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
-const currentUserId = JSON.parse(localStorage.getItem('userData')).userId;
+const currentUserId = userStore.userId;
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
