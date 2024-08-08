@@ -5,8 +5,7 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <user-video v-for="participant in participants" :key="participant.id"
-          :stream-manager="participant.streamManager" />
+        <user-video v-for="participant in participants" :key="participant.id" :stream-manager="participant.streamManager" />
       </div>
       <div class="center">
         <div class="upper-section">
@@ -25,17 +24,10 @@
             </div>
           </div>
           <div class="translation-section">
-            <h5>
-              Translated Version
-                <span class="language-icon">
-                🌐
-                <select v-model="selectedLanguage" @change="updateLanguage">
-                  <option v-for="(label, code) in languages" :key="code" :value="code">
-                    {{ label }}
-                  </option>
-                </select>
-              </span>
-            </h5>
+            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
+            <div class="translation-content">
+              <!-- Translated messages -->
+            </div>
           </div>
         </div>
         <div class="footer">
@@ -47,9 +39,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <!-- <div class="footer-right">
+          <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div> -->
+          </div>
         </div>
       </div>
     </main>
@@ -63,13 +55,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
-import axios from 'axios';
+import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -77,8 +69,9 @@ const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
+
 const sessionId = route.params.sessionId;
-const token = route.params.token;
+const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
@@ -159,7 +152,12 @@ const joinSession = async () => {
       console.log('OpenVidu 연결 객체:', currentSession.connection);
 
       const mediaStream = publisher.value.stream.getMediaStream();
-      captureAudioStream(mediaStream);
+      console.log('mediaStream:', mediaStream);
+      if (mediaStream instanceof MediaStream) {
+        captureAudioStream(mediaStream);
+      } else {
+        console.error('Invalid MediaStream:', mediaStream);
+      }
     } else {
       console.error('Failed to initialize publisher');
     }
@@ -210,18 +208,22 @@ const captureAudioStream = (mediaStream) => {
     console.error('WebSocket error:', error);
   };
 
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const source = audioContext.createMediaStreamSource(mediaStream);
-  processor = audioContext.createScriptProcessor(4096, 1, 1);
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(mediaStream);
+    processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-  processor.onaudioprocess = (event) => {
-    const inputData = event.inputBuffer.getChannelData(0);
-    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
-    sendDataToBackend(resampledData);
-  };
+    processor.onaudioprocess = (event) => {
+      const inputData = event.inputBuffer.getChannelData(0);
+      const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
+      sendDataToBackend(resampledData);
+    };
 
-  source.connect(processor);
-  processor.connect(audioContext.destination);
+    source.connect(processor);
+    processor.connect(audioContext.destination);
+  } catch (e) {
+    console.error('Failed to create MediaRecorder:', e);
+  }
 };
 
 const resampleTo16kHz = (audioData, originalSampleRate) => {
@@ -287,24 +289,11 @@ onMounted(() => {
   joinSession();
 });
 
-onBeforeUnmount(() => {
-  if (audioContext) {
-    audioContext.close();
-  }
-  if (processor) {
-    processor.disconnect();
-  }
-  if (socket) {
-    socket.close();
-  }
-});
-
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
 });
 </script>
-
 
 <style scoped>
 .conference-container {
