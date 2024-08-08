@@ -126,9 +126,7 @@ export const useUserStore = defineStore('user', {
           teamStore.clearTeamUsers()
           errorStore.showError('Log Out Successful')
           router.push({ name: 'HomeView' })
-          return { success: true, message: response.data.message }
         } else {
-          errorStore.showError(response.data.message)
           return { success: false, message: response.data.message }
         }
       } catch (error) {

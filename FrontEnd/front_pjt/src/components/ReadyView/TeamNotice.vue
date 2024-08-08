@@ -76,10 +76,6 @@
                 </ul>
               </td>
             </tr>
-            <tr>
-              <td><strong>Created Date</strong></td>
-              <td>{{ departmentCreationDate }}</td>
-            </tr>
           </tbody>
         </table>
       </div>
@@ -154,7 +150,6 @@ const nextMeetingHoursPercentage = computed(() => {
 });
 
 const departmentName = computed(() => teamStore.currentTeam?.teamName || '');
-const departmentCreationDate = computed(() => teamStore.currentTeam?.createdAt || 'Unknown');
 const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
 
 const formatDate = (dateString) => {
