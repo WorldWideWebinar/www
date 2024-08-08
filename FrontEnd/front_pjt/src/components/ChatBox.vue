@@ -87,6 +87,7 @@ const handleSelectTeam = async (teamId) => {
 
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected && subscription) {
+    console.log('해제')
     subscription.unsubscribe(); // 기존 구독 해제
     subscription = null
   }
@@ -110,13 +111,6 @@ const setupWebSocket = (teamId) => {
       console.error("Connection error: " + error);
     }
   );
-
-  setInterval(() => {
-    if (stompClient) {
-      console.log("stompClient instance:", stompClient);
-      console.log("stompClient connected:", stompClient.connected); // Should be true when connected
-    }
-  }, 5000);
 };
 
 
@@ -195,6 +189,10 @@ watch(() => messageStore.messages, () => {
 
 onMounted(() => {
   console.log('열림')
+  if (stompClient && stompClient.connected && subscription) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
+  }
   if (props.selectedTeamId) {
     handleSelectTeam(props.selectedTeamId);
   }
