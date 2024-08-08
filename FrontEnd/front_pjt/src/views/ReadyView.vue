@@ -6,7 +6,7 @@
       </span>
     </header>
     <TeamNotice />
-    <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
+
     <div class="sub-container">
       <main class="main-section">
         <section class="meeting-list-section">
@@ -25,7 +25,33 @@
               <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
-          <MeetingList :activeTab="activeTab" />
+          <div>
+            <table class="meeting-list">
+              <thead>
+                <tr>
+                  <th>DATE</th>
+                  <th>TIME</th>
+                  <th>AGENDA</th>
+                  <th>JOIN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="meeting in filteredMeetings" :key="meeting.id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
+                    @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
+                  </td>
+                  <td>
+                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
+                      {{ buttonText(meeting.status) }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
@@ -47,9 +73,8 @@
                 <tr>
                   <td><strong>Status</strong></td>
                   <td>
-                    <button :class="buttonClass(detailType, selectedMeeting?.status)"
-                      @click="toggleDetailStatus(selectedMeeting)">
-                      {{ buttonText(detailType, selectedMeeting?.status) }}
+                    <button :class="buttonClass(selectedMeeting?.status)" @click="toggleStatus(selectedMeeting)">
+                      {{ buttonText(selectedMeeting?.status) }}
                     </button>
                   </td>
                 </tr>
@@ -81,14 +106,12 @@
                   <thead>
                     <tr>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          " class="file-link">📂summary</a>
+                        <a href="#" @click.prevent="previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })"
+                          class="file-link">📂summary</a>
                       </td>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'record.pdf', link: selectedMeeting.record })
-                          " class="file-link">📁record</a>
+                        <a href="#" @click.prevent="previewFile({ name: 'record.pdf', link: selectedMeeting.record })"
+                          class="file-link">📁record</a>
                       </td>
                     </tr>
                   </thead>
@@ -104,19 +127,17 @@
       </main>
     </div>
   </div>
-  <router-view v-else></router-view>
   <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" />
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
-import MeetingList from '@/components/ReadyView/MeetingList.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
@@ -125,22 +146,16 @@ const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
-const inConference = ref(false);
 const selectedMeeting = ref(null);
-const detailType = ref('');
 const showMembersList = ref(false);
 const showFilesList = ref(false);
-const showOverlay = ref(false);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
-const meetingCreateModal = ref(false)
+const meetingCreateModal = ref(false);
+const inConference = ref(false);
 
 const members = computed(() => teamStore.teamUserInfo);
-const meetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-  return meetingStore.meetings.filter(meeting => meeting.team_id === teamId);
-});
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
@@ -154,37 +169,38 @@ const isOwner = computed(() => {
   return teamData && teamData.ownerId == userStore.userId;
 });
 
+const filteredMeetings = computed(() => {
+  const now = new Date();
+  if (activeTab.value === 'PREV') {
+    return meetingStore.meetings.filter(meeting => new Date(meeting.end_at) < now);
+  } else if (activeTab.value === 'TODAY') {
+    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) <= now && new Date(meeting.end_at) >= now);
+  } else if (activeTab.value === 'NEXT') {
+    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) > now);
+  }
+  return [];
+});
+
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
 
-const buttonClass = (type, status) => {
-  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
-  if (type === 'PREV') return 'btn-gray';
-  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
-  return '';
+const buttonClass = (status) => {
+  return status === 'IN' ? 'btn-green' : 'btn-red';
 };
 
-const buttonText = (type, status) => status;
+const buttonText = (status) => status;
 
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
-  showOverlay.value = showFilesList.value;
 };
 
 const toggleMembersList = () => {
   showMembersList.value = !showMembersList.value;
-  showOverlay.value = showMembersList.value;
 };
 
 const previewFile = (file) => {
   previewUrl.value = file.link;
-};
-
-const closeDropdowns = () => {
-  showFilesList.value = false;
-  showMembersList.value = false;
-  showOverlay.value = false;
 };
 
 const selectTab = async (tab) => {
@@ -208,12 +224,10 @@ onMounted(async () => {
 
 const selectMeeting = (meeting) => {
   selectedMeeting.value = meeting;
-  detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
   previewUrl.value = null;
-  showOverlay.value = true;
 };
 
 const closeMeetingDetails = () => {
@@ -222,14 +236,6 @@ const closeMeetingDetails = () => {
   showMembersList.value = false;
   showFilesList.value = false;
   previewUrl.value = null;
-  showOverlay.value = false;
-};
-
-const computeDetailType = (start_at) => {
-  const today = new Date().toISOString().split('T')[0];
-  if (start_at.split('T')[0] === today) return 'TODAY';
-  if (start_at.split('T')[0] > today) return 'NEXT';
-  return 'PREV';
 };
 
 const CreateMeeting = () => {
@@ -238,260 +244,177 @@ const CreateMeeting = () => {
 </script>
 
 <style scoped>
-.ready-page-container {
+
+
+.notice-right {
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  min-height: 110vh;
-  padding: 1rem;
-  box-sizing: border-box;
-  background-color: #fcf9fc;
-}
-
-.header {
-  text-align: center;
-  padding: 1rem 0 1.5rem 0;
-  font-weight: bolder;
-  font-size: xx-large;
-}
-
-.highlight {
-  color: rgb(166, 125, 247);
-}
-
-.sub-container {
-  width: 82%;
-  margin: 0 auto;
-}
-
-.main-section {
-  display: flex;
-  padding: 1rem;
-  justify-content: space-between;
-  width: 100%;
-  gap: 2rem;
-  box-sizing: border-box;
-  height: 385px;
-}
-
-.meeting-list-section {
-  flex: 4;
-  background-color: #ffffff;
-  padding: 1rem;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-
-.meeting-detail-section {
-  flex: 1.5;
-  background-color: #ffffff;
-  padding: 0 1rem;
-  border-radius: 8px;
-  box-sizing: border-box;
-  border: 2px dashed rgb(232, 231, 234);
-  width: 100%;
-  height: auto;
-}
-
-.meeting-header {
-  display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1rem;
 }
 
-ul.nav-tabs .nav-item .nav-link {
-  color: black;
+.notice-left::after,
+.notice-middle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  border-right: 1px dashed #ccc;
+  transform: translateX(50%);
 }
 
-ul.nav-tabs .nav-item .nav-link:hover,
-ul.nav-tabs .nav-item .nav-link.active {
-  font-weight: bolder;
+.notice-right::after {
+  display: none;
 }
 
-ul.nav {
-  width: 100%;
-}
-
-ul.nav li {
-  width: 33.33%;
-  text-align: center;
-}
-
-.meeting-list {
-  width: 102.5%;
-  border-collapse: collapse;
-  margin: 20px 0 0 0;
-  font-size: 95%;
-}
-
-.meeting-list th,
-.meeting-list td {
+.notice-right button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
   padding: 0.5rem;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-.meeting-list th:nth-child(1),
-.meeting-list td:nth-child(1) {
-  width: 20%;
-}
-
-.meeting-list th:nth-child(2),
-.meeting-list td:nth-child(2) {
-  width: 20%;
-}
-
-.meeting-list th:nth-child(3),
-.meeting-list td:nth-child(3) {
-  width: auto;
-}
-
-.meeting-list th:nth-child(4),
-.meeting-list td:nth-child(4) {
-  width: 20%;
-}
-
-.meeting-list td:nth-child(4):hover,
-.meeting-list td:nth-child(4):hover *,
-.meeting-list td.agenda:hover {
-  font-weight: bold;
   cursor: pointer;
+  font-size: 1rem;
+  background-color: none;
 }
 
-.meeting-list td:nth-child(3):hover,
-.meeting-list td:nth-child(3):hover *,
-.meeting-list td.agenda:hover {
-  cursor: pointer;
-  text-decoration-line: underline;
-  text-decoration-style: line;
-  text-decoration-color: rgba(154, 130, 253, 0.4);
-  text-decoration-thickness: 3px;
+.play-button {
+  width: 50px;
 }
 
-.meeting-list .bold-agenda {
-  font-weight: bolder;
-  color: rgb(154, 130, 253);
-}
-
-.meeting-list th {
-  background-color: #f5f5f5;
-  font-weight: bold;
-}
-
-td button {
-  border: none;
-  border-radius: 50px;
-  width: 60px;
-  padding: 5px;
-  cursor: pointer;
-  text-align: center;
-}
-
-button {
-  border: none;
-  cursor: pointer;
-  text-align: center;
-}
-
-.btn-green {
-  background-color: rgba(139, 195, 74, 0.5);
-  color: black;
-}
-
-.btn-red {
-  background-color: rgba(244, 67, 54, 0.5);
-  color: black;
-}
-
-.btn-gray {
-  background-color: rgba(108, 117, 125, 0.5);
-  color: black;
-}
-
-.meeting-list tbody {
-  display: block;
-  max-height: 140px;
-  overflow-y: scroll;
-}
-
-.meeting-list tbody::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
-.meeting-list tr {
-  display: table;
-  width: calc(100% - 1rem);
-  table-layout: fixed;
-}
-
-.meeting-detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-left: 25px;
-}
-
-.meeting-detail-header p {
-  text-align: center;
-  margin: 1rem auto;
-  font-size: larger;
-  font-weight: bolder;
-  text-decoration-line: underline;
-  text-decoration-style: line;
-  text-decoration-color: rgba(154, 130, 253, 0.4);
-  text-decoration-thickness: 5px;
-}
-
-.meeting-detail-table {
+.department-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1rem;
-  font-size: medium;
 }
 
-.meeting-detail-table td {
+.department-table td {
   padding: 0.3rem 0.5rem;
-  font-size: medium;
 }
 
-.files-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 5px;
-}
-
-.files-table th,
-.files-table td {
-  padding: 0.3rem;
-}
-
-.file-link {
-  display: inline-block;
-  color: black;
-  font-size: medium;
-  text-decoration: none;
-}
-
-.dash-separator {
-  border-top: 2px dashed #ccc;
-  margin: 1.5rem 0 0.7rem 0;
-}
-
-.file-preview {
-  margin-top: 10px;
+.total-meeting-hours {
   text-align: center;
+  margin-bottom: 1rem;
+  font-weight: bold;
 }
 
-.file-preview iframe {
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.total-meeting-hours p {
+  margin-bottom: 15px;
 }
 
-.before-dropdown {
-  text-decoration: underline;
-  font-size: medium;
+.meeting-hours-bar {
+  display: flex;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.meeting-hours-segment {
+  height: 100%;
+}
+
+.prev-meetings {
+  background-color: #e0dfdf;
+}
+
+.today-meetings {
+  background-color: #d6b3f7;
+}
+
+.next-meetings {
+  background-color: #f7b3d5;
+}
+
+.meeting-hours-legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.legend-item:last-child {
+  margin-right: 0;
+}
+
+.legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  margin-right: 5px;
+}
+
+.legend-color.prev-meetings {
+  background-color: #e0dfdf;
+}
+
+.legend-color.today-meetings {
+  background-color: #d6b3f7;
+}
+
+.legend-color.next-meetings {
+  background-color: #f7b3d5;
+}
+
+.legend-label {
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.members {
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding-right: 10px;
+  text-align: left;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  width: 100%;
+}
+
+.member img {
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.member p {
+  margin: 0;
+  padding-left: 5px;
+}
+
+.members-row {
+  display: flex;
+  align-items: center;
+}
+
+.add-member-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #808080;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
+  margin: 0 0 0 15px;
 }
 
 .dropdown {
@@ -527,6 +450,12 @@ button {
   width: 150px;
 }
 
+.before-dropdown {
+  text-decoration: underline;
+  font-size: medium;
+  cursor: pointer;
+}
+
 .background-overlay {
   position: fixed;
   top: 0;
@@ -535,34 +464,5 @@ button {
   height: 100%;
   background: transparent;
   z-index: 500;
-}
-
-.add-meeting-btn,
-.chat-input button {
-  background-color: #808080;
-  border: none;
-  border-radius: 8px;
-  height: 30px;
-  width: 33px;
-  padding: 0 0.5rem;
-  cursor: pointer;
-  text-align: center;
-}
-
-.bold {
-  font-weight: bold;
-  margin: 0;
-}
-
-@media (max-width: 992px) {
-  .intro-section,
-  .chat-section,
-  .meeting-detail-section {
-    display: none;
-  }
-
-  .sub-container {
-    width: 100%;
-  }
 }
 </style>

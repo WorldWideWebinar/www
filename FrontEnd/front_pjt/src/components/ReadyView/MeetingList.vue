@@ -13,10 +13,8 @@
         <tr v-for="meeting in filteredMeetings" :key="meeting.id">
           <td>{{ meeting.start_at.split('T')[0] }}</td>
           <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
-          <td :class="{
-            agenda: true,
-            'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id
-          }" @click="selectMeeting(meeting)">
+          <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
+            @click="$emit('selectMeeting', meeting)">
             {{ meeting.name }}
           </td>
           <td>
@@ -31,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useMeetingStore } from '@/stores/meetingStore';
 
 const props = defineProps({
@@ -39,7 +37,6 @@ const props = defineProps({
 });
 
 const meetingStore = useMeetingStore();
-const selectedMeeting = ref(null);
 
 const filteredMeetings = computed(() => {
   const now = new Date();
@@ -52,10 +49,6 @@ const filteredMeetings = computed(() => {
   }
   return [];
 });
-
-const selectMeeting = (meeting) => {
-  selectedMeeting.value = meeting;
-};
 
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';

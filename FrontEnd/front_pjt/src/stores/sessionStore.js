@@ -3,7 +3,6 @@ import axiosInstance from '@/axios'; // axiosInstance import
 
 export const useSessionStore = defineStore('session', {
   state: () => ({
-    isHost: true,
     session: null,
     sessionId: null,
     streams: [],
@@ -60,6 +59,7 @@ export const useSessionStore = defineStore('session', {
           console.log('Session ended successfully');
           this.sessionId = null;
           this.inConference = false;
+          this.session = null;
           this.token = null;
           this.streams = [];
         } else {
