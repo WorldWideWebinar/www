@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <section class="notice-section">
       <div class="notice-header">
         <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
@@ -21,8 +21,8 @@
             </ul>
           </div>
           <div class="notice-right">
-            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-            <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
+            <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
+            <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
               <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
             </button>
           </div>
@@ -66,7 +66,7 @@
               <td><strong>Members</strong></td>
               <td>
                 <div class="members-row" @click="toggleMemberListDropdown">
-                  <!-- {{ members.length }} members -->
+                  {{ members.length }} members
                   <button class="add-member-btn">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
@@ -207,17 +207,8 @@ const handleJoinConference = async (sessionName) => {
 };
 </script>
 
-
 <style scoped>
-.top-section {
-  display: flex;
-  justify-content: space-between;
-  height: auto;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.notice-and-intro {
+.container {
   display: flex;
   justify-content: space-between;
   gap: 2rem;
