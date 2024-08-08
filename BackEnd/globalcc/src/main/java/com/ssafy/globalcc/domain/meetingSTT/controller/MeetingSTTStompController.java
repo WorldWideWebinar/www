@@ -7,6 +7,8 @@ import com.ssafy.globalcc.domain.meetingSTT.dto.response.MeetingSTTResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.repository.MeetingSTTRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -21,6 +23,7 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
+    private static final Logger log = LoggerFactory.getLogger(MeetingSTTStompController.class);
     private final RabbitTemplate rabbitTemplate;
 
     private static final String EXCHANGE_NAME = "meetingSTT.exchange";
@@ -38,7 +41,7 @@ public class MeetingSTTStompController {
 
         String redisKey = "MeetingSTT:" + meetingId;
         redisTemplate.opsForList().rightPush(redisKey, request.getContent());
-
+        log.info("received request: {}", request);
         MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent());
         rabbitTemplate.convertAndSend(
                 EXCHANGE_NAME, ROUTING_KEY + meetingId, response
