@@ -35,7 +35,7 @@
                 </div>
                 <div class="message-body">{{ message.content }}</div>
               </div>
-              <img :src="message.sender_profile" class="profile-image" />
+              <img :src="message.senderProfile" class="profile-image" />
             </div>
           </div>
         </div>
@@ -86,9 +86,10 @@ const handleSelectTeam = async (teamId) => {
 
 
 const setupWebSocket = (teamId) => {
-  if (stompClient && stompClient.connected && subscription) {
+  if (stompClient.connected && subscription) {
     subscription.unsubscribe(); // 기존 구독 해제
   }
+  
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -108,6 +109,13 @@ const setupWebSocket = (teamId) => {
       console.error("Connection error: " + error);
     }
   );
+
+  setInterval(() => {
+    if (stompClient) {
+      console.log("stompClient instance:", stompClient);
+      console.log("stompClient connected:", stompClient.connected); // Should be true when connected
+    }
+  }, 5000);
 };
 
 
@@ -142,7 +150,7 @@ function showMessage(content) {
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  if (subscription) {
+  if (stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
@@ -168,7 +176,7 @@ const formatDate = (dateString) => {
 
 const closeChat = () => {
   console.log("Closing chat...");
-  if (stompClient && stompClient.connected && subscription) {
+  if (stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
@@ -351,9 +359,9 @@ onMounted(() => {
   margin-right: 15px;
 }
 
-.message-content {
+/* .message-content {
   flex-grow: 1;
-}
+} */
 
 .message-from-me {
   background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
