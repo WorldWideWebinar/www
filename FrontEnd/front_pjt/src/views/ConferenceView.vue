@@ -5,7 +5,8 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <user-video v-for="participant in participants" :key="participant.id" :stream-manager="participant.streamManager" />
+        <user-video v-for="participant in participants" :key="participant.id"
+          :stream-manager="participant.streamManager" />
       </div>
       <div class="center">
         <div class="upper-section">
@@ -24,10 +25,17 @@
             </div>
           </div>
           <div class="translation-section">
-            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
-            <div class="translation-content">
-              <!-- Translated messages -->
-            </div>
+            <h5>
+              Translated Version
+                <span class="language-icon">
+                🌐
+                <select v-model="selectedLanguage" @change="updateLanguage">
+                  <option v-for="(label, code) in languages" :key="code" :value="code">
+                    {{ label }}
+                  </option>
+                </select>
+              </span>
+            </h5>
           </div>
         </div>
         <div class="footer">
@@ -39,9 +47,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <div class="footer-right">
+          <!-- <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
@@ -62,6 +70,7 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
+import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
@@ -71,8 +80,7 @@ const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
 
 const sessionId = route.params.sessionId;
-const token = route.params.token;
-const isHost = computed(() => route.params.isHost === 'true');
+const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
@@ -80,12 +88,118 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
+// 언어 목록 설정
+const languages = {
+  kr: '한국어',
+  en: 'English',
+  es: 'Español',
+  zh: '中文',
+  ja: '日本語'
+};
+
+// 선택된 언어를 저장하는 상태 변수
+const selectedLanguage = ref('kr');
+
+// 언어가 변경될 때 호출되는 함수
+const updateLanguage = () => {
+  console.log('Selected language:', selectedLanguage.value);
+  // 여기에서 선택된 언어에 따라 다른 작업을 수행할 수 있습니다.
+  // 예를 들어, 번역 API를 호출하여 번역된 텍스트를 가져올 수 있습니다.
+};
+
+// const joinSession = async () => {
+//   const OV = new OpenVidu();
+//   const currentSession = OV.initSession();
+//   sessionStore.setSession(currentSession);
+
+//   // 스트림 생성 이벤트 핸들러
+//   currentSession.on('streamCreated', (event) => {
+//     console.log('스트림 생성됨:', event.stream);
+
+//     const subscriber = currentSession.subscribe(event.stream, undefined);
+//     const participantId = JSON.parse(event.stream.connection.data).clientData;
+
+//     console.log('구독된 스트림의 참가자 ID:', participantId);
+
+//     const participantInfo = userStore.userInfo;
+//     console.log('참가자 정보:', participantInfo);
+
+//     if (participantInfo) {
+//       participants.value.push({
+//         id: participantId,
+//         name: participantInfo.name,
+//         streamManager: subscriber,
+//       });
+//     }
+
+//     sessionStore.addStream(subscriber.stream);
+//   });
+
+//   // 스트림 파괴 이벤트 핸들러
+//   currentSession.on('streamDestroyed', (event) => {
+//     const participantId = JSON.parse(event.stream.connection.data).clientData;
+//     participants.value = participants.value.filter(p => p.id !== participantId);
+//     console.log('스트림이 파괴됨, 참가자 ID:', participantId);
+//   });
+
+//   try {
+//     await currentSession.connect(token, { clientData: userId });
+
+//     // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
+//     publisher.value = OV.initPublisher(undefined, {
+//       videoSource: undefined,
+//       audioSource: undefined,
+//       publishVideo: true,
+//       publishAudio: true,
+//       resolution: '320x240',
+//       frameRate: 30,
+//       insertMode: 'APPEND'
+//     });
+
+//     currentSession.publish(publisher.value);
+//     myStreamManager.value = publisher.value;
+
+//     session.value = currentSession; 
+//   // 스트림 캡처 및 백엔드로 전송
+//     captureAudioStream(publisher.value.stream.getMediaStream());
+
+//     // 새 참가자가 기존 스트림 구독
+//     currentSession.streamManagers.forEach(stream => {
+//       if (stream.connection.connectionId !== currentSession.connection.connectionId) {
+//         const subscriber = currentSession.subscribe(stream, undefined);
+//         const participantId = JSON.parse(stream.connection.data).clientData;
+
+//         const participantInfo = userStore.userInfo;
+//         console.log('참가자 정보:', participantInfo);
+
+//         if (participantInfo) {
+//           participants.value.push({
+//             id: participantId,
+//             name: participantInfo.name,
+//             streamManager: subscriber,
+//           });
+//         }
+
+//         sessionStore.addStream(subscriber.stream);
+//       }
+//     });
+
+//     const team = teamStore.teams.find(team => team.name === route.params.name);
+//     if (team) {
+//       participants.value = team.userList.filter(user => user.id !== userId);
+//     }
+//   } catch (error) {
+//     console.error('Error connecting to session:', error);
+//   }
+// };
+
 
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
+  // 스트림 생성 이벤트 핸들러
   currentSession.on('streamCreated', (event) => {
     console.log('스트림 생성됨:', event.stream);
 
@@ -94,7 +208,7 @@ const joinSession = async () => {
 
     console.log('구독된 스트림의 참가자 ID:', participantId);
 
-    const participantInfo = teamStore.teamUserInfo.find(user => user.id === participantId);
+    const participantInfo = userStore.userInfo;
     console.log('참가자 정보:', participantInfo);
 
     if (participantInfo) {
@@ -108,6 +222,7 @@ const joinSession = async () => {
     sessionStore.addStream(subscriber.stream);
   });
 
+  // 스트림 파괴 이벤트 핸들러
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
@@ -117,27 +232,48 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
-    if (isHost.value) {
-      publisher.value = OV.initPublisher(undefined, {
-        videoSource: undefined,
-        audioSource: undefined,
-        publishVideo: true,
-        publishAudio: true,
-        resolution: '320x240',
-        frameRate: 30,
-        insertMode: 'APPEND'
-      });
+    // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
+    publisher.value = OV.initPublisher(undefined, {
+      videoSource: undefined,
+      audioSource: undefined,
+      publishVideo: true,
+      publishAudio: true,
+      resolution: '320x240',
+      frameRate: 30,
+      insertMode: 'APPEND'
+    });
 
-      currentSession.publish(publisher.value);
-      myStreamManager.value = publisher.value;
-    } else {
-      myStreamManager.value = currentSession.streamManagers.find(sm => sm.stream.connection.connectionId === currentSession.connection.connectionId);
-    }
+    currentSession.publish(publisher.value);
+    myStreamManager.value = publisher.value;
 
     session.value = currentSession;
 
     console.log('OpenVidu 세션 객체:', currentSession);
     console.log('OpenVidu 연결 객체:', currentSession.connection);
+
+    // 스트림 캡처 및 백엔드로 전송
+    captureAudioStream(publisher.value.stream.getMediaStream());
+
+    // 새 참가자가 기존 스트림 구독
+    currentSession.streamManagers.forEach(stream => {
+      if (stream.connection.connectionId !== currentSession.connection.connectionId) {
+        const subscriber = currentSession.subscribe(stream, undefined);
+        const participantId = JSON.parse(stream.connection.data).clientData;
+
+        const participantInfo = userStore.userInfo;
+        console.log('참가자 정보:', participantInfo);
+
+        if (participantInfo) {
+          participants.value.push({
+            id: participantId,
+            name: participantInfo.name,
+            streamManager: subscriber,
+          });
+        }
+
+        sessionStore.addStream(subscriber.stream);
+      }
+    });
 
     const team = teamStore.teams.find(team => team.name === route.params.name);
     if (team) {
@@ -147,6 +283,34 @@ const joinSession = async () => {
     console.error('Error connecting to session:', error);
   }
 };
+
+// 스트림 캡처 및 백엔드로 전송
+const captureAudioStream = (mediaStream) => {
+  socket = new WebSocket('ws://your-backend-server/audio-stream');
+
+  socket.onopen = () => {
+    console.log('WebSocket connection opened');
+  };
+
+  socket.onclose = () => {
+    console.log('WebSocket connection closed');
+  };
+
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  const mediaRecorder = new MediaRecorder(mediaStream);
+
+  mediaRecorder.ondataavailable = (event) => {
+    if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
+      socket.send(event.data);
+    }
+  };
+
+  mediaRecorder.start(100); // 100ms마다 데이터를 캡처
+};
+
 
 const leaveSession = async () => {
   if (session.value) {

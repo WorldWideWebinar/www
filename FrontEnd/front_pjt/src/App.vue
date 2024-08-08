@@ -6,7 +6,6 @@
           <img src="../src/assets/img/chat.png" alt="logo">
         </button>
       </div>
-      <!-- <div class="seperator"></div> -->
       <div class="nav-container flex-grow-1">
         <ul class="nav flex-column">
           <li 
@@ -25,7 +24,7 @@
           </li>
         </ul>
       </div>
-     
+      <div class="spacer"></div>
       <div class="add-team">
         <button class="btn btn-add">
           <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView' }">
@@ -33,8 +32,6 @@
           </RouterLink>
         </button>
       </div>
-      <div class="spacer"></div>
-      
     </aside>
     <main class="flex-grow-1">
       <RouterView />
@@ -83,7 +80,7 @@ const fetchUserTeams = async () => {
 
 onMounted(async () => {
   await fetchUserTeams()
-
+  await userStore.fetchAllUsers()
 })
 
 const teams = computed(() => teamStore.teams)
@@ -123,6 +120,7 @@ onMounted(() => {
   window.addEventListener('resize', checkScroll)
 })
 </script>
+
 <style scoped>
 #app {
   display: flex;
