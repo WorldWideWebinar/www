@@ -205,7 +205,7 @@ const handleStartConference = async (meetingId, sessionName) => {
     }
 
     const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token, isHost:true } });
+    router.push({ name: 'ConferenceView', params: { sessionId, token} });
   } catch (error) {
     console.error('Failed to start conference:', error);
   }
@@ -215,7 +215,7 @@ const handleJoinConference = async (sessionName) => {
   console.log(sessionName);
   try {
     const token = await sessionStore.joinConference(sessionName);
-    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token, isHost:false } });
+    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
   } catch (error) {
     console.error('Failed to join conference:', error);
   }
