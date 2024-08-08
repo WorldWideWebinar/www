@@ -88,6 +88,7 @@ const handleSelectTeam = async (teamId) => {
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 기존 구독 해제
+    subscription = null
   }
   
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
