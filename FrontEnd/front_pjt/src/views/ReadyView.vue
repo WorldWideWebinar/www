@@ -39,8 +39,8 @@
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ meeting.start_at.split('T')[0] }}</td>
-                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td>{{ meeting.start.split('T')[0] }}</td>
+                  <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
                     @click="selectMeeting(meeting)">
                     {{ meeting.name }}
@@ -67,11 +67,11 @@
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[0] }}</td>
+                  <td>{{ selectedMeeting?.start.split('T')[0] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[1] }} - {{ selectedMeeting?.end_at.split('T')[1] }}</td>
+                  <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -242,15 +242,24 @@ onMounted(async () => {
 });
 
 const selectMeeting = (meeting) => {
+  console.log(meeting);
+
+  // meeting이 속한 그룹을 확인하고 detailType 설정
+  if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
+    detailType.value = 'PREV';
+  } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
+    detailType.value = 'TODAY';
+  } else if (meetingStore.groupedMeetings.NEXT.includes(meeting)) {
+    detailType.value = 'NEXT';
+  }
+
   selectedMeeting.value = meeting;
-  detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
   previewUrl.value = null;
   showOverlay.value = true;
 };
-
 const closeMeetingDetails = () => {
   selectedMeeting.value = null;
   selectedMeetingMembers.value = [];
@@ -260,21 +269,12 @@ const closeMeetingDetails = () => {
   showOverlay.value = false;
 };
 
-const computeDetailType = (start_at) => {
-  const today = new Date().toISOString().split('T')[0];
-  if (start_at.split('T')[0] === today) return 'TODAY';
-  if (start_at.split('T')[0] > today) return 'NEXT';
-  return 'PREV';
-};
-
 const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
 </script>
 
 <style scoped>
-/* 기존 스타일과 MeetingList 스타일을 함께 포함합니다 */
-
 .ready-page-container {
   display: flex;
   flex-direction: column;
@@ -413,6 +413,36 @@ ul.nav li {
 .meeting-list th {
   background-color: #f5f5f5;
   font-weight: bold;
+}
+
+td button {
+  border: none;
+  border-radius: 50px;
+  width: 60px;
+  padding: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-green {
+  background-color: rgba(139, 195, 74, 0.5);
+  color: black;
+}
+
+.btn-red {
+  background-color: rgba(244, 67, 54, 0.5);
+  color: black;
+}
+
+.btn-gray {
+  background-color: rgba(108, 117, 125, 0.5);
+  color: black;
 }
 
 .meeting-list tbody {

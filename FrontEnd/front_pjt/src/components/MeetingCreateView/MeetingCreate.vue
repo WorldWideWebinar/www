@@ -37,6 +37,7 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useErrorStore } from '@/stores/errorStore'
 
 const route = useRoute();
 const teamStore = useTeamStore();
