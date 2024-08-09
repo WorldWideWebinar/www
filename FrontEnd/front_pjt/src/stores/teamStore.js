@@ -82,6 +82,7 @@ export const useTeamStore = defineStore('team', {
       userList.push(currentUserId);
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
+        errorStore.showSuccess('Team successfully updated!');
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
         }
@@ -89,6 +90,19 @@ export const useTeamStore = defineStore('team', {
         errorStore.showError(`Error creating team: ${error.message}`);
       }
     },
+
+    async editTeam(teamId, teamName, ownerId, emoji, userList,) {
+      const errorStore = useErrorStore()
+      try {
+        const response = await axiosInstance.put(`api/teams/${teamId}`, { teamName, ownerId, emoji, userList})
+        if (!response.data.success) {
+          errorStore.showError('error')
+        }
+      } catch (error) {
+        errorStore.showError(`Error editing team info: ${error.message}`)
+      }
+    }
+    ,
 
     async deleteTeam(teamId) {
       const errorStore = useErrorStore(); // Access the error store

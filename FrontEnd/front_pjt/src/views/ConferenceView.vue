@@ -229,6 +229,7 @@ const joinSession = async () => {
 const leaveSession = async () => {
   if (session.value) {
     await sessionStore.endSession(sessionStore.meetingId);
+    console.log(meetingId)
     router.push({ name: 'HomeView' })
     session.value.disconnect();   
     session.value = null;
