@@ -5,7 +5,7 @@
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
       </span>
     </header>
-    
+
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <TeamNotice />
@@ -26,9 +26,37 @@
               <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
-          <MeetingList :activeTab="activeTab" />
+          <!-- Meeting List -->
+          <div>
+            <table class="meeting-list">
+              <thead>
+                <tr>
+                  <th>DATE</th>
+                  <th>TIME</th>
+                  <th>AGENDA</th>
+                  <th>JOIN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="meeting in filteredMeetings" :key="meeting.id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
+                    @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
+                  </td>
+                  <td>
+                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
+                      {{ buttonText(meeting.status) }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
+        <!-- Meeting Details -->
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
@@ -110,14 +138,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
-import MeetingList from '@/components/ReadyView/MeetingList.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
@@ -125,7 +151,6 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
 const inConference = ref(false);
 const selectedMeeting = ref(null);
 const detailType = ref('');
@@ -135,12 +160,21 @@ const showOverlay = ref(false);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
-const meetingCreateModal = ref(false)
+const meetingCreateModal = ref(false);
 
 const members = computed(() => teamStore.teamUserInfo);
-const meetings = computed(() => {
+
+const filteredMeetings = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  return meetingStore.meetings.filter(meeting => meeting.team_id === teamId);
+
+  if (activeTab.value === 'PREV') {
+    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'TODAY') {
+    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'NEXT') {
+    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
+  }
+  return [];
 });
 
 const departmentName = computed(() => {
@@ -239,6 +273,8 @@ const CreateMeeting = () => {
 </script>
 
 <style scoped>
+/* 기존 스타일과 MeetingList 스타일을 함께 포함합니다 */
+
 .ready-page-container {
   display: flex;
   flex-direction: column;
@@ -377,36 +413,6 @@ ul.nav li {
 .meeting-list th {
   background-color: #f5f5f5;
   font-weight: bold;
-}
-
-td button {
-  border: none;
-  border-radius: 50px;
-  width: 60px;
-  padding: 5px;
-  cursor: pointer;
-  text-align: center;
-}
-
-button {
-  border: none;
-  cursor: pointer;
-  text-align: center;
-}
-
-.btn-green {
-  background-color: rgba(139, 195, 74, 0.5);
-  color: black;
-}
-
-.btn-red {
-  background-color: rgba(244, 67, 54, 0.5);
-  color: black;
-}
-
-.btn-gray {
-  background-color: rgba(108, 117, 125, 0.5);
-  color: black;
 }
 
 .meeting-list tbody {

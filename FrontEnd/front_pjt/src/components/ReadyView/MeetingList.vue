@@ -31,6 +31,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useRoute } from 'vue-router'
+
+const route = useRoute();
 
 const props = defineProps({
   activeTab: String,
@@ -39,17 +42,17 @@ const props = defineProps({
 const meetingStore = useMeetingStore();
 
 const filteredMeetings = computed(() => {
-  const now = new Date();
+  const teamId = parseInt(route.params.id, 10);
+
   if (props.activeTab === 'PREV') {
-    return meetingStore.meetings.filter(meeting => new Date(meeting.end_at) < now);
+    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
   } else if (props.activeTab === 'TODAY') {
-    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) <= now && new Date(meeting.end_at) >= now);
+    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
   } else if (props.activeTab === 'NEXT') {
-    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) > now);
+    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
   }
   return [];
 });
-
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
