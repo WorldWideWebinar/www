@@ -16,14 +16,26 @@
           <button class="close-btn" @click="closeChat">✖</button>
         </div>
         <div ref="chatContent" class="chat-content">
-          <div v-for="message in filteredMessages" :key="message.chat_id" class="chat-message">
-            <img :src="message.sender_profile" class="profile-image" />
-            <div class="message-content">
-              <div class="message-header">
-                <span class="sender-name">{{ getUserName(message.sender_id) }}</span>
-                <span class="message-time">{{ formatDate(message.created_at) }}</span>
+          <div v-for="message in messageStore.messages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
+            <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
+              <img :src="message.senderProfile" class="profile-image" />
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="sender-name">{{ getUserName(message.senderId) }}</span>
+                  <span class="message-time">{{ formatDate(message.createdAt) }}</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
               </div>
-              <div class="message-body">{{ message.content }}</div>
+            </div>
+            <div v-else style="flex-grow: 1;" class="message-content-wrapper">
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-time">{{ formatDate(message.createdAt) }}</span>
+                  <span class="sender-name">Me</span>
+                </div>
+                <div class="message-body">{{ message.content }}</div>
+              </div>
+              <img :src="message.senderProfile" class="profile-image" />
             </div>
           </div>
         </div>
@@ -50,35 +62,36 @@ const props = defineProps({
 const emit = defineEmits(['toggleChat', 'selectTeam']);
 
 let stompClient = null;
+let subscription = null;
 const userInput = ref('');
-const usedTeamId = ref('');
+const usedTeamId = ref(props.selectedTeamId);
 const userStore = useUserStore();
 const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
-
+const currentUserId = userStore.userId;
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
 
 const messages = ref([]); // 애는 그냥 받는다.
 
-
-//   { chat_id: 1, sender_id: 1, team_id: 1, content: 'Hello, Team Alpha!', created_at: '2024-08-01T10:00:00Z' },
-
-// 백에서 보내는 정보는 message.body = {meetingId: , content: , timestamp: } 형을 가짐
-// db 상에는 chat_id, sender_id, team_id, content, created_at 이라 되어있음
-
-
-const handleSelectTeam = (teamId) => {
+const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
+  await messageStore.fetchMessagesByTeamId(teamId);
   emit('selectTeam', teamId);
-
-
-
   usedTeamId.value = teamId;
-  console.log(teamId)
-  // const socket = new SockJS("https://i11a501.p.ssafy.io/api/stomp/chat");
+  setupWebSocket(teamId);
+};
+
+
+const setupWebSocket = (teamId) => {
+  if (stompClient && stompClient.connected && subscription) {
+    console.log('해제')
+    subscription.unsubscribe(); // 기존 구독 해제
+    subscription = null
+  }
+  
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -86,13 +99,10 @@ const handleSelectTeam = (teamId) => {
       Authorization: `Bearer ${token}`
     },
     function (frame) {
-      stompClient.subscribe(
+      subscription = stompClient.subscribe(
         `/exchange/chat.exchange/chat.key${teamId}`,
         function (message) {
-          // console.log('성공')
-          // console.log("Received message:", message);
           const messageBody = JSON.parse(message.body);
-          // console.log(messageBody);
           showMessage(messageBody);
         }
       );
@@ -103,15 +113,16 @@ const handleSelectTeam = (teamId) => {
   );
 };
 
+
 function sendMessage() {
   const content = userInput.value;
   const teamId = usedTeamId.value;
   const senderId = userStore.userId;
-  const contentType = 'text'
+  const contentType = 'TEXT'
   const senderProfile = userStore.userInfo.profileImageUrl;
 
   if (stompClient && stompClient.connected && !(content.length == 0)) {
-    const message = JSON.stringify({ content, teamId, senderId, contentType, senderProfile}); // 
+    const message = JSON.stringify({ senderId, teamId, content, contentType, senderProfile }); // 
     stompClient.send(`/pub/chat.${teamId}`, {}, message);
     userInput.value = '';
   }
@@ -122,36 +133,26 @@ function showMessage(content) {
 
 
   const newMessage = {
-    chat_id: messages.value.length + 1,
-    sender_id: content.senderId,
-    team_id: content.teamId,
-    content: content.content,
-    created_at: content.createdAt,
-    sender_profile: content.senderProfile
+  senderId: content.senderId, // 수정된 필드 이름
+  teamId: content.teamId, // 수정된 필드 이름
+  content: content.content,
+  createdAt: content.createdAt, // 수정된 필드 이름
+  senderProfile: content.senderProfile // 수정된 필드 이름
   };
 
-  // messages.value.push(newMessage);
   messageStore.addMessage(newMessage);
 }
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  stompClient.disconnect();
+  if (stompClient && stompClient.connected && subscription) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
+  }
 };
 
 
-// const filteredMessages = computed(() =>
-//   messages.value.filter((message) => message.team_id === props.selectedTeamId)
-// );
-const filteredMessages = computed(() =>
-  messageStore.getMessagesByTeamId(props.selectedTeamId)
-);
 
-
-const getUserProfileImage = (userId) => {
-  const user = users.value.find((u) => u.userId === userId);
-  return user ? user.profile_image : '';
-};
 
 const getUserName = (userId) => {
   const user = users.value.find((u) => u.userId === userId);
@@ -170,21 +171,31 @@ const formatDate = (dateString) => {
 
 const closeChat = () => {
   console.log("Closing chat...");
-  if (stompClient && stompClient.connected) {
-    stompClient.disconnect();
+  if (stompClient && stompClient.connected && subscription) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
   }
-  userInput.value = '';
-  usedTeamId.value = null;
   emit('toggleChat');
 };
 
 const chatContent = ref(null);
-watch(filteredMessages, () => {
+watch(() => messageStore.messages, () => {
   nextTick(() => {
     if (chatContent.value) {
       chatContent.value.scrollTop = chatContent.value.scrollHeight;
     }
   });
+});
+
+onMounted(() => {
+  console.log('열림')
+  if (stompClient && stompClient.connected) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
+  }
+  if (props.selectedTeamId) {
+    handleSelectTeam(props.selectedTeamId);
+  }
 });
 </script>
 
@@ -229,23 +240,29 @@ watch(filteredMessages, () => {
 .team-list ul {
   list-style: none;
   padding: 0;
-  max-height: 325px; /* 원하는 높이 설정 */
-  overflow-y: auto; /* 세로 스크롤 추가 */
+  max-height: 325px;
+  /* 원하는 높이 설정 */
+  overflow-y: auto;
+  /* 세로 스크롤 추가 */
   margin: 0;
   border-radius: 8px;
 }
 
 .team-list ul::-webkit-scrollbar {
-  width: 8px; /* 스크롤바 너비 설정 */
+  width: 8px;
+  /* 스크롤바 너비 설정 */
 }
 
 .team-list ul::-webkit-scrollbar-thumb {
-  background-color: #6200ea; /* 스크롤바 색상 */
-  border-radius: 4px; /* 스크롤바 둥근 모서리 */
+  background-color: #6200ea;
+  /* 스크롤바 색상 */
+  border-radius: 4px;
+  /* 스크롤바 둥근 모서리 */
 }
 
 .team-list ul::-webkit-scrollbar-track {
-  background-color: #f0f0f0; /* 스크롤바 트랙 색상 */
+  background-color: #f0f0f0;
+  /* 스크롤바 트랙 색상 */
   border-radius: 4px;
 }
 
@@ -327,6 +344,12 @@ watch(filteredMessages, () => {
   margin: 10px 0px;
 }
 
+.message-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
 .profile-image {
   width: 40px;
   height: 40px;
@@ -335,8 +358,16 @@ watch(filteredMessages, () => {
   margin-right: 15px;
 }
 
-.message-content {
+/* .message-content {
   flex-grow: 1;
+} */
+
+.message-from-me {
+  background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
+}
+
+.message-from-others {
+  background-color: #e1e1e1; /* 다른 사용자가 보낸 메시지의 배경 색상 */
 }
 
 .message-header {
@@ -361,5 +392,7 @@ watch(filteredMessages, () => {
   word-break: break-word;
 }
 
-
+.message-from-me .message-content-wrapper .message-body {
+  text-align: right;
+}
 </style>

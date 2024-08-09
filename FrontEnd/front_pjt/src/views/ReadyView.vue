@@ -5,23 +5,28 @@
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
       </span>
     </header>
+    
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
-      <TeamNotice 
-        :departmentName="departmentName" 
-        :departmentCreationDate="departmentCreationDate"
-        :isOwner="isOwner"
-        :sessionId="sessionStore.sessionId"
-      />
+      <TeamNotice />
       <main class="main-section">
         <section class="meeting-list-section">
           <div class="meeting-header">
             <h5 style="font-weight: bolder">🖥️ Meeting List</h5>
             <button v-if="isOwner" class="add-meeting-btn" @click="CreateMeeting">+</button>
           </div>
-          <MeetingList
-            @update:activeTab="tab => activeTab = tab"
-          />
+          <ul class="nav nav-tabs">
+            <li class="nav-item" @click="selectTab('PREV')">
+              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
+            </li>
+            <li class="nav-item" @click="selectTab('TODAY')">
+              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
+            </li>
+            <li class="nav-item" @click="selectTab('NEXT')">
+              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
+            </li>
+          </ul>
+          <MeetingList :activeTab="activeTab" />
         </section>
 
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
@@ -52,10 +57,8 @@
                 <tr>
                   <td><strong>Members</strong></td>
                   <td class="show-member before-dropdown" @click="toggleMembersList">
-                    <!-- {{ selectedMeeting?.members.length }} members joined! -->
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
                       <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
-                        <!-- <img :src="member.avatar" :alt="member.name" /> -->
                         {{ member.name }}
                       </li>
                     </ul>
@@ -64,7 +67,6 @@
                 <tr>
                   <td><strong>Files</strong></td>
                   <td class="before-dropdown" @click="toggleFilesList">
-                    <!-- {{ selectedMeeting?.files.length }} files uploaded -->
                     <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
                         <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
@@ -104,7 +106,7 @@
     </div>
   </div>
   <router-view v-else></router-view>
-  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" :propedTeamId="propTeamId"/>
+  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" />
 </template>
 
 <script setup>
@@ -129,15 +131,11 @@ const selectedMeeting = ref(null);
 const detailType = ref('');
 const showMembersList = ref(false);
 const showFilesList = ref(false);
-const showMemberListDropdown = ref(false);
 const showOverlay = ref(false);
-const todayMeetingMembers = ref([]);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
-const departmentCreationDate = ref('2022-01-01');
-const meetingCreateModal = ref(false);
-const propTeamId = ref('');
 const previewUrl = ref(null);
+const meetingCreateModal = ref(false)
 
 const members = computed(() => teamStore.teamUserInfo);
 const meetings = computed(() => {
@@ -155,11 +153,6 @@ const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.teams.find((team) => team.id === teamId);
   return teamData && teamData.ownerId == userStore.userId;
-});
-
-const todayMeeting = computed(() => {
-  const today = new Date().toISOString().split('T')[0];
-  return meetings.value.find((meeting) => meeting.start_at.split('T')[0] === today);
 });
 
 const toggleStatus = (meeting) => {
@@ -190,10 +183,17 @@ const previewFile = (file) => {
 };
 
 const closeDropdowns = () => {
-  showMemberListDropdown.value = false;
   showFilesList.value = false;
   showMembersList.value = false;
   showOverlay.value = false;
+};
+
+const selectTab = async (tab) => {
+  activeTab.value = tab;
+  const teamId = parseInt(route.params.id, 10);
+  const prev = tab === 'PREV' ? 1 : 0;
+  const next = tab === 'NEXT' ? 1 : 0;
+  await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
 onMounted(async () => {
@@ -204,6 +204,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to load initial data:', error);
   }
+  selectTab('TODAY');
 });
 
 const selectMeeting = (meeting) => {
@@ -231,18 +232,6 @@ const computeDetailType = (start_at) => {
   if (start_at.split('T')[0] > today) return 'NEXT';
   return 'PREV';
 };
-
-watch(() => route.params.id, async (newId) => {
-  const teamId = parseInt(newId, 10);
-  propTeamId.value = teamId;
-  await teamStore.fetchTeamById(teamId);
-});
-
-watch(activeTab, (newTab) => {
-  if (newTab === 'TODAY') {
-    // 여기에 추가 작업이 필요할 경우 작성
-  }
-});
 
 const CreateMeeting = () => {
   meetingCreateModal.value = true;

@@ -3,17 +3,18 @@ import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
-    meetings: []
+    meetings: [],
+    groupedMeetings: {
+      PREV: [],
+      TODAY: [],
+      NEXT: []
+    },
   }),
   actions: {
-    clearMeetings() {
-      this.meetings = [];
-    },
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('api/meetings', meeting)
         if (response.data.success) {
-          
           this.meetings.push(meeting)
         } else {
           console.error('Failed to add meeting:', response.data.message)
@@ -27,7 +28,7 @@ export const useMeetingStore = defineStore('meeting', {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`)
         const meeting = response.data.result
         if (!this.meetings.find((m) => m.id === meetingId)) {
-          console.log("Meeting fetched",response.data.result)
+          console.log("Meeting fetched", response.data.result)
           this.meetings.push(meeting)
         }
       } catch (error) {
@@ -47,7 +48,7 @@ export const useMeetingStore = defineStore('meeting', {
 
     async fetchMeetings(teamId, prev = 0, next = 0) {
       try {
-        const today = new Date().toISOString(); // 현재 날짜와 시간을 ISO 형식으로 변환
+        const today = new Date().toISOString();
 
         const params = {
           today: today,
@@ -59,15 +60,22 @@ export const useMeetingStore = defineStore('meeting', {
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
 
-        // 중복되지 않은 새로운 meetings를 추가
         const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
         const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
 
         this.meetings.push(...filteredMeetings);
 
+        this.groupMeetings();
+
       } catch (error) {
         console.error('Failed to fetch meetings:', error);
       }
+    },
+    groupMeetings() {
+      const today = new Date().toISOString().split('T')[0];
+      this.groupedMeetings.PREV = this.meetings.filter(meeting => meeting.end_at.split('T')[0] < today);
+      this.groupedMeetings.TODAY = this.meetings.filter(meeting => meeting.start_at.split('T')[0] === today);
+      this.groupedMeetings.NEXT = this.meetings.filter(meeting => meeting.start_at.split('T')[0] > today);
     }
   },
   getters: {

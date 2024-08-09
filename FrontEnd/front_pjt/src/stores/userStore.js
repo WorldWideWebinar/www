@@ -103,8 +103,7 @@ export const useUserStore = defineStore('user', {
           // 사용자 정보 가져오기
           const userInfo = await this.fetchUserInfo(userId)
           if (userInfo) {
-            errorStore.showError('Log In Successful')
-            // 로그인 성공 후 HomeView로 리디렉션
+
             router.push({ name: 'HomeView' })
 
             return { success: true, message: response.data.message }
@@ -150,9 +149,6 @@ export const useUserStore = defineStore('user', {
       const teamStore = useTeamStore()
       const meetingStore = useMeetingStore()
       try {
-        const headers = {
-          Authorization: `Bearer ${this.accessToken}`
-        }
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
 
         if (response.data.success) {

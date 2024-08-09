@@ -1,114 +1,99 @@
 <template>
-  <div class="top-section">
-    <div class="notice-and-intro">
-      <section class="notice-section">
-        <div class="notice-header">
-          <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
-        </div>
-        <div class="notice-content">
-          <div v-if="todayMeeting" class="notice-item">
-            <div class="notice-left">
-              <p class="bold">{{ todayMeeting.name }}</p>
-            </div>
-            <div class="notice-middle">
-              <p>{{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}</p>
-              <p class="before-dropdown" @click="toggleTodayMembersList">
-                <!-- {{ todayMeeting.members.length }} members will join! -->
-              </p>
-              <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-                <li v-for="member in members" :key="member.name" class="member">
-                  <!-- <img :src="member.profileImageUrl" :alt="member.name" /> -->
-                  {{ member.name }}
-                </li>
-              </ul>
-            </div>
-            <div class="notice-right">
-              <button v-if="isOwner && !sessionId" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-              <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
-                <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
-              </button>
-            </div>
+  <div class="container">
+    <section class="notice-section">
+      <div class="notice-header">
+        <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
+      </div>
+      <div class="notice-content">
+        <div v-if="todayMeeting" class="notice-item">
+          <div class="notice-left">
+            <p class="bold">{{ todayMeeting.name }}</p>
           </div>
-          <div v-else class="notice-item">
-            <p class="no-meeting">There's no meeting today :)</p>
+          <div class="notice-middle">
+            <p>{{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}</p>
+            <p class="before-dropdown" @click="toggleTodayMembersList">
+              <!-- {{ todayMeeting.members.length }} members will join! -->
+            </p>
+            <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
+              <li v-for="member in members" :key="member.name" class="member">
+                {{ member.name }}
+              </li>
+            </ul>
+          </div>
+          <div class="notice-right">
+            <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
+            <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
+              <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
+            </button>
           </div>
         </div>
-      </section>
-      <section class="intro-section">
-        <div class="total-meeting-hours">
-          <p>We have meetings for {{ totalMeetingHours }} hours</p>
-          <div class="meeting-hours-bar">
-            <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }"
-              v-if="prevMeetingHours > 0"></div>
-            <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }"
-              v-if="todayMeetingHours > 0"></div>
-            <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }"
-              v-if="nextMeetingHours > 0"></div>
+        <div v-else class="notice-item">
+          <p class="no-meeting">There's no meeting today :)</p>
+        </div>
+      </div>
+    </section>
+    <section class="intro-section">
+      <div class="total-meeting-hours">
+        <p>We have meetings for {{ totalMeetingHours }} hours</p>
+        <div class="meeting-hours-bar">
+          <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
+          <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
+          <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }" v-if="nextMeetingHours > 0"></div>
+        </div>
+        <div class="meeting-hours-legend">
+          <div class="legend-item">
+            <span class="legend-color prev-meetings"></span>
+            <span class="legend-label">Previous {{ prevMeetingHours }}</span>
           </div>
-          <div class="meeting-hours-legend">
-            <div class="legend-item">
-              <span class="legend-color prev-meetings"></span>
-              <span class="legend-label">Previous {{ prevMeetingHours }}</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color today-meetings"></span>
-              <span class="legend-label">Today {{ todayMeetingHours }}</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color next-meetings"></span>
-              <span class="legend-label">Next {{ nextMeetingHours }}</span>
-            </div>
+          <div class="legend-item">
+            <span class="legend-color today-meetings"></span>
+            <span class="legend-label">Today {{ todayMeetingHours }}</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color next-meetings"></span>
+            <span class="legend-label">Next {{ nextMeetingHours }}</span>
           </div>
         </div>
-        <div class="department-info">
-          <table class="department-table">
-            <tbody>
-              <tr>
-                <td><strong>Name</strong></td>
-                <td>{{ departmentName }}</td>
-              </tr>
-              <tr>
-                <td><strong>Members</strong></td>
-                <td>
-                  <div class="members-row" @click="toggleMemberListDropdown">
-                    {{ members.length }} members
-                    <button class="add-member-btn">+</button>
-                  </div>
-                  <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
-                    <li v-for="member in members" :key="member.name" class="member">
-                      <!-- <img :src="member.profileImageUrl" :alt="member.name" /> -->
-                      {{ member.name }}
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Created Date</strong></td>
-                <td>{{ departmentCreationDate }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div class="department-info">
+        <table class="department-table">
+          <tbody>
+            <tr>
+              <td><strong>Name</strong></td>
+              <td>{{ departmentName }}</td>
+            </tr>
+            <tr>
+              <td><strong>Members</strong></td>
+              <td>
+                <div class="members-row" @click="toggleMemberListDropdown">
+                  {{ members.length }} members
+                  <button class="add-member-btn">+</button>
+                </div>
+                <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
+                  <li v-for="member in members" :key="member.name" class="member">
+                    {{ member.name }}
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Created Date</strong></td>
+              <td>{{ departmentCreationDate }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
-
-const props = defineProps({
-  departmentName: String,
-  departmentCreationDate: String,
-  isOwner: Boolean,
-  sessionId: String,
-});
-
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
@@ -117,7 +102,6 @@ const router = useRouter();
 
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
-const showOverlay = ref(false);
 
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
@@ -169,6 +153,10 @@ const nextMeetingHoursPercentage = computed(() => {
   return (nextMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
+const departmentName = computed(() => teamStore.currentTeam?.teamName || '');
+const departmentCreationDate = computed(() => teamStore.currentTeam?.createdAt || 'Unknown');
+const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -185,16 +173,13 @@ const formatTime = (dateString) => {
 
 const toggleTodayMembersList = () => {
   showTodayMembersList.value = !showTodayMembersList.value;
-  showOverlay.value = showTodayMembersList.value;
 };
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
-  showOverlay.value = showMemberListDropdown.value;
 };
 
 const handleStartConference = async (meetingId, sessionName) => {
-  console.log(meetingId);
   const userId = userStore.userId;
   try {
     let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
@@ -212,7 +197,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 };
 
 const handleJoinConference = async (sessionName) => {
-  console.log(sessionName);
+  console.log(isOwner)
   try {
     const token = await sessionStore.joinConference(sessionName);
     router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
@@ -222,17 +207,8 @@ const handleJoinConference = async (sessionName) => {
 };
 </script>
 
-
 <style scoped>
-.top-section {
-  display: flex;
-  justify-content: space-between;
-  height: auto;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.notice-and-intro {
+.container {
   display: flex;
   justify-content: space-between;
   gap: 2rem;

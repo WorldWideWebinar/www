@@ -9,7 +9,7 @@
         <span class="profile-detail">{{ totalMeetingTime }} hours</span>
       </div>
       <div class="profile-team">
-        <span class="profile-header">Hosted Teams</span>
+        <span class="profile-header">Teams</span>
         <ul class="profile-detail profile-teamlist">
           <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
         </ul>
