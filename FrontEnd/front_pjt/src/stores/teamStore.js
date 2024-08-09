@@ -148,4 +148,8 @@ export const useTeamStore = defineStore('team', {
       return state.teams.filter(team => team.ownerId === hostId);
     }
   }, 
+  persist: {
+    key: 'teamStore',
+    storage: sessionStorage,
+  },
 });
