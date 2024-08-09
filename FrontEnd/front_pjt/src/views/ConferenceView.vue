@@ -22,6 +22,7 @@
             <h5>Original Version</h5>
             <div class="translation-content">
               <!-- Original messages -->
+              <TranscriptionText/>
             </div>
           </div>
           <div class="translation-section">
@@ -70,6 +71,7 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import axios from 'axios';
+import TranscriptionText from '@/components/ConferenceView/TranscriptionText.vue'
 
 const route = useRoute();
 const router = useRouter();
