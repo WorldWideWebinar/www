@@ -20,8 +20,8 @@ public class ChatController {
         List<Chat> chats = chatService.getChatsByTeamId(teamId);
         return chats.stream()
                 .map(chat -> ChatResponse.builder()
-                        .senderId(chat.getSenderId().getUserId()) // Assuming senderId is User entity
-                        .teamId(chat.getTeamId().getTeamId())     // Assuming teamId is Team entity
+                        .senderId(chat.getSenderId().getUserId())
+                        .teamId(chat.getTeamId().getTeamId())
                         .content(chat.getContent())
                         .contentType(chat.getContentType().name())
                         .createdAt(chat.getCreatedAt().toString())

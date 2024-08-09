@@ -23,7 +23,8 @@ public class ChatResponse {
                 .senderId(senderId)
                 .teamId(teamId)
                 .content(content)
-                .contentType("TEXT")
+                .contentType("text")
+                .createdAt(java.time.LocalDateTime.now().toString())
                 .senderProfile(senderProfile)
                 .build();
     }
