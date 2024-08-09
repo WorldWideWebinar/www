@@ -8,6 +8,8 @@ import com.ssafy.globalcc.domain.meetingSTT.dto.response.MeetingSTTResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.repository.MeetingSTTRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -22,6 +24,7 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
+
     private static final Logger log = LoggerFactory.getLogger(MeetingSTTStompController.class);
     private final RabbitTemplate rabbitTemplate;
 
@@ -37,7 +40,6 @@ public class MeetingSTTStompController {
             @Payload final MeetingSTTRequest request
     ) {
         //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
-
         String redisKey = "MeetingSTT:" + meetingId;
         String redisKeyForLastSegmentTime = "MeetingSTT_lastSegmentTime:" + meetingId;
         String redisLastSegmentTime = redisTemplate.opsForValue().get(redisKeyForLastSegmentTime);
