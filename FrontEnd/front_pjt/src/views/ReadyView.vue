@@ -26,8 +26,36 @@
               <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
-          <MeetingList :activeTab="activeTab" />
+          <!-- Meeting List -->
+          <div>
+            <table class="meeting-list">
+              <thead>
+                <tr>
+                  <th>DATE</th>
+                  <th>TIME</th>
+                  <th>AGENDA</th>
+                  <th>JOIN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="meeting in filteredMeetings" :key="meeting.id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+                  <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
+                    @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
+                  </td>
+                  <td>
+                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
+                      {{ buttonText(meeting.status) }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
+
 
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
@@ -43,7 +71,7 @@
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[1] }} - {{ selectedMeeting?.end_at.split('T')[1] }}</td>
+                  <td>{{ formatTime(selectedMeeting.start_at) }} - {{ formatTime(selectedMeeting.end_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -117,7 +145,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
-import MeetingList from '@/components/ReadyView/MeetingList.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
@@ -154,6 +181,36 @@ const isOwner = computed(() => {
   const teamData = teamStore.teams.find((team) => team.id === teamId);
   return teamData && teamData.ownerId == userStore.userId;
 });
+
+const filteredMeetings = computed(() => {
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+  if (activeTab.value === 'PREV') {
+    return meetingStore.meetings.filter(meeting => new Date(meeting.end_at) < startOfDay);
+  } else if (activeTab.value === 'TODAY') {
+    return meetingStore.meetings.filter(meeting => {
+      const startDate = new Date(meeting.start_at);
+      return startDate >= startOfDay && startDate <= endOfDay;
+    });
+  } else if (activeTab.value === 'NEXT') {
+    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) > endOfDay);
+  }
+  return [];
+});
+
+const formatTime = (dateTimeString) => {
+  if (!dateTimeString) return '';
+
+  const date = new Date(dateTimeString);
+  
+  // 시간과 분을 2자리 숫자로 맞추기 위해 padStart 사용
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+};
 
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
@@ -193,6 +250,7 @@ const selectTab = async (tab) => {
   const teamId = parseInt(route.params.id, 10);
   const prev = tab === 'PREV' ? 1 : 0;
   const next = tab === 'NEXT' ? 1 : 0;
+  console.log(`탭: ${tab}, prev: ${prev}, next: ${next}`);
   await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
@@ -271,7 +329,7 @@ const CreateMeeting = () => {
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  height: 385px;
+  min-height: 400px;
 }
 
 .meeting-list-section {

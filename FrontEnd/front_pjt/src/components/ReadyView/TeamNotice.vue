@@ -10,7 +10,7 @@
             <p class="bold">{{ todayMeeting.name }}</p>
           </div>
           <div class="notice-middle">
-            <p>{{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}</p>
+            <p>{{ formatTime(todayMeeting?.start_at) }} - {{ formatTime(todayMeeting?.end_at) }}</p>
             <p class="before-dropdown" @click="toggleTodayMembersList">
               <!-- {{ todayMeeting.members.length }} members will join! -->
             </p>
@@ -59,7 +59,7 @@
         <table class="department-table">
           <tbody>
             <tr>
-              <td><strong>Name</strong></td>
+              <!-- <td><strong>Info</strong></td> -->
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
@@ -74,7 +74,7 @@
                   <div v-if="showInviteMemberInput" class="invite-member-input" ref="inviteInput">
                     <button @click="cancelInvite" class="btns btn-close"></button>
                     <div class="invite-member-row">
-                      <input class="search-member" v-model="newMemberId" placeholder="Enter member ID" />
+                      <input class="search-member" v-model="newMemberId" placeholder="Enter ID" />
                       <button @click="inviteMember" class="btns btn-invite">Invite</button>
                     </div>
                   </div>
@@ -97,6 +97,28 @@ const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
+
+const props = defineProps({
+  todayMeeting: Object,
+  totalMeetingHours: Number,
+  prevMeetingHours: Number,
+  todayMeetingHours: Number,
+  nextMeetingHours: Number
+});
+
+const formatTime = (dateTimeString) => {
+  if (!dateTimeString) return '';
+
+  const date = new Date(dateTimeString);
+
+  // 로컬 시간대의 시간과 분을 가져옵니다.
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+};
+
+
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
@@ -272,9 +294,14 @@ onBeforeUnmount(() => {
   width: 50px;
 }
 
+.department-info {
+  margin: 0 auto;
+}
+
 .department-table {
   width: 100%;
   border-collapse: collapse;
+  margin: 0 auto;
 }
 
 .department-table td {
@@ -390,6 +417,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .add-member-btn {
@@ -408,8 +437,8 @@ onBeforeUnmount(() => {
 .invite-member-input {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: -40%;
+  width: 180%;
   padding: 10px;
   background: #fff;
   border: 1px solid #ddd;
@@ -453,7 +482,7 @@ onBeforeUnmount(() => {
 
 .search-member {
   /* flex: 1; */
-  padding: 8px;
+  padding: 7.3px;
   border-radius: 4px 0 0 4px;
   border: 1px solid #ddd;
   width: 100%;
