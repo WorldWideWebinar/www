@@ -23,7 +23,7 @@
           <div class="notice-right">
             <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
             <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
-              <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
+              <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
           </div>
         </div>
@@ -67,13 +67,18 @@
               <td>
                 <div class="members-row" @click="toggleMemberListDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn">+</button>
+                  <button class="add-member-btn" @click.stop="showInviteMemberInput = true">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
                     {{ member.name }}
                   </li>
                 </ul>
+                <div v-if="showInviteMemberInput" class="invite-member-input" v-click-outside="cancelInvite">
+                  <input v-model="newMemberId" placeholder="Enter member ID" />
+                  <button @click="inviteMember">Invite</button>
+                  <button @click="cancelInvite">Cancel</button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -90,15 +95,17 @@ import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
+import clickOutsideDirective from '@/directives/clickOutsideDirective';
+
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const router = useRouter();
-
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
-
+const showInviteMemberInput = ref(false);
+const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];
@@ -200,6 +207,30 @@ const handleJoinConference = async (sessionName) => {
     console.error('Failed to join conference:', error);
   }
 };
+
+const inviteMember = async () => {
+  if (newMemberId.value) {
+    try {
+      const updatedUserList = [...teamStore.currentTeam.userList, newMemberId.value];
+      await teamStore.editTeam(teamStore.currentTeam.id, departmentName.value, teamStore.currentTeam.ownerId, teamStore.currentTeam.emoji, updatedUserList);
+      await teamStore.fetchTeamById(teamStore.currentTeam.id);
+      showInviteMemberInput.value = false;
+      newMemberId.value = '';
+    } catch (error) {
+      console.error('Failed to invite member:', error);
+    }
+  }
+};
+
+const cancelInvite = () => {
+  showInviteMemberInput.value = false;
+  newMemberId.value = ''; // 입력 필드 초기화
+};
+
+// 커스텀 디렉티브 등록
+const directives = {
+  clickOutside: clickOutsideDirective,
+};
 </script>
 
 <style scoped>
@@ -261,6 +292,7 @@ const handleJoinConference = async (sessionName) => {
 
 .no-meeting {
   margin: auto;
+  padding: 0 20px;
 }
 
 .notice-left,
@@ -438,6 +470,7 @@ const handleJoinConference = async (sessionName) => {
 .members-row {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .add-member-btn {
@@ -500,5 +533,12 @@ const handleJoinConference = async (sessionName) => {
   height: 100%;
   background: transparent;
   z-index: 500;
+}
+
+@media (max-width: 992px) {
+  .container {
+    width: 90%;
+    margin: auto;
+  }
 }
 </style>

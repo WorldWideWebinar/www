@@ -90,6 +90,18 @@ export const useTeamStore = defineStore('team', {
       }
     },
 
+    async editTeam(teamId, teamName, ownerId, emoji, userList,) {
+      const errorStore = useErrorStore()
+      try {
+        const response = await axiosInstance.put(`api/teams/${teamId}`, { teamName, ownerId, emoji, userList})
+        if (!response.data.success) {
+          errorStore.showError('error')
+        }
+      } catch (error) {
+        errorStore.showError(`Error editing team info: ${error.message}`)
+      }
+    },
+
     async deleteTeam(teamId) {
       const errorStore = useErrorStore(); // Access the error store
       try {

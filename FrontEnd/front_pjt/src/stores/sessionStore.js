@@ -73,7 +73,7 @@ export const useSessionStore = defineStore('session', {
     },
   },
   persist: {
-    key: 'meetingStore',
+    key: 'sessionStore',
     storage: sessionStorage,
   },
 });

@@ -5,7 +5,7 @@
       <form @submit.prevent="createMeeting">
         <div class="form-group">
           <label for="team">Team</label>
-          <div>{{ teamName }}</div>
+          <input type="text" v-model="teamName" id="team" readonly />
         </div>
         <div class="form-group">
           <label for="name">Meeting Name</label>
@@ -24,10 +24,10 @@
           <textarea v-model="detail" id="detail"></textarea>
         </div>
         <div class="button-group">
-          <button type="submit" class="btn btn-primary">Create Meeting</button>
+          <button type="submit" class="btns btn-create">Create Meeting</button>
         </div>
       </form>
-      <button @click="close" class="btn btn-secondary close-btn">Close</button>
+      <button @click="close" class="btns btn-close"></button>
     </div>
   </div>
 </template>
@@ -61,7 +61,7 @@ const createMeeting = async () => {
 
   const newMeeting = {
     team_id: teamId.value,
-    name: name.value,
+    name: name.value.replace(/\s+/g, '-'),
     start: new Date(start.value).toISOString(),
     end: new Date(end.value).toISOString(),
     detail: detail.value,
@@ -140,41 +140,70 @@ h2 {
   outline: none;
 }
 
+.form-group input[readonly] {
+  background-color: #f9f9f9;
+  color: #555;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #cccccc;
+  outline: none;
+}
+
 .button-group {
   display: flex;
   justify-content: center;
   margin-top: 20px;
 }
 
-.btn {
-  padding: 10px 20px;
+.btns {
   border: none;
-  border-radius: 4px;
+  text-align: center;
   cursor: pointer;
-  font-size: 14px;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: #fff;
+.btn-create {
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #6a1b9a;
+  font-weight: bold;
+  padding: 12px 35px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
+.btn-create:hover {
+  background-color: #b380bc;
 }
 
-.btn-secondary {
+.btn-close {
   background-color: #6c757d;
   color: #fff;
+  font-size: x-small;
+  position: absolute;
+  top: 25px;
+  right: 20px;
+  padding: 10px;
+  outline: none;
 }
 
-.btn-secondary:hover {
+.btn-close:hover {
   background-color: #5a6268;
 }
 
-.close-btn {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
+.btn-close:focus,
+.btn-close:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 </style>

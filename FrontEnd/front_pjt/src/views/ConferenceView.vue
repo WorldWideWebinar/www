@@ -80,63 +80,11 @@ const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = sessionStore.meetingId
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let mediaRecorder;
-let audioChunks = [];
-const ws = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
+let socket = null;
+let audioContext = null;
+let processor = null;
 
-ws.onopen = () => {
-  ws.send(JSON.stringify({ meetingId: meetingId}))
-  console.log('WebSocket connection established');
-};
-
-ws.onmessage = (message) => {
-  console.log('Received message:', message.data);
-};
-
-ws.onclose = () => {
-  console.log('WebSocket connection closed');
-};
-
-let processor;
-
-const startCapturingAudio = (stream) => {
-  const source = audioContext.createMediaStreamSource(stream);
-  processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-  processor.onaudioprocess = (event) => {
-    const inputData = event.inputBuffer.getChannelData(0);
-    console.log('Audio data received:', inputData.slice(0, 10));
-    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
-    console.log('Resampled data:', resampledData.slice(0, 10));
-    sendDataToBackend(resampledData);
-  };
-
-  source.connect(processor);
-  processor.connect(audioContext.destination);
-};
-
-function resampleTo16kHz(audioData, originalSampleRate) {
-  const data = new Float32Array(audioData);
-  const targetSampleRate = 16000;
-  const resampledLength = Math.round(data.length * targetSampleRate / originalSampleRate);
-  const resampledData = new Float32Array(resampledLength);
-
-  for (let i = 0; i < resampledLength; i++) {
-    const index = i * originalSampleRate / targetSampleRate;
-    const intIndex = Math.floor(index);
-    const frac = index - intIndex;
-    resampledData[i] = data[intIndex] + frac * (data[intIndex + 1] - data[intIndex]);
-  }
-
-  return resampledData;
-}
-
-function sendDataToBackend(audioData) {
-  const arrayBuffer = audioData.buffer;
-  ws.send(arrayBuffer);
-}
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
@@ -184,17 +132,32 @@ const joinSession = async () => {
       resolution: '320x240',
       frameRate: 30,
       insertMode: 'APPEND'
+    }).on('streamCreated', (event) => {
+      console.log("streamCreated", event);
+      let mediaStream
+      mediaStream = event.stream.getMediaStream();
+      captureAudioStream(mediaStream)
     });
     console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
 
-    startCapturingAudio(publisher.value.stream.getMediaStream())
-    
-    session.value = currentSession;
+    if (publisher.value) {
+      var pub;
+      pub = await currentSession.publish(publisher.value);
+      myStreamManager.value = publisher.value;
 
-    console.log('OpenVidu 세션 객체:', currentSession);
-    console.log('OpenVidu 연결 객체:', currentSession.connection);
+      session.value = currentSession;
+
+      console.log('OpenVidu 세션 객체:', currentSession);
+      console.log('OpenVidu 연결 객체:', currentSession.connection);
+
+      // const mediaStream = publisher.value.stream.getMediaStream();
+      // const mediaStream = pub.getMediaStream();
+      // captureAudioStream(mediaStream);
+    } else {
+      console.error('Failed to initialize publisher');
+    }
 
     // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
@@ -226,11 +189,74 @@ const joinSession = async () => {
   }
 };
 
+const captureAudioStream = (mediaStream) => {
+  socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
+
+  socket.onopen = () => {
+    console.log('WebSocket connection opened');
+    console.log('Meeting ID:', sessionStore.meetingId);
+    socket.send(JSON.stringify({ meetingId: sessionStore.meetingId }));
+  };
+
+  socket.onclose = () => {
+    console.log('WebSocket connection closed');
+  };
+
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    socket.close()
+  };
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioContext.createMediaStreamSource(mediaStream);
+  processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+  processor.onaudioprocess = (event) => {
+    const inputData = event.inputBuffer.getChannelData(0);
+    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
+    sendDataToBackend(resampledData);
+  };
+
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+};
+
+const resampleTo16kHz = (audioData, originalSampleRate) => {
+  const data = new Float32Array(audioData);
+  const targetSampleRate = 16000;
+  const resampledLength = Math.round(data.length * targetSampleRate / originalSampleRate);
+  const resampledData = new Float32Array(resampledLength);
+
+  for (let i = 0; i < resampledLength; i++) {
+    const index = i * originalSampleRate / targetSampleRate;
+    const intIndex = Math.floor(index);
+    const frac = index - intIndex;
+    resampledData[i] = data[intIndex] + frac * (data[intIndex + 1] - data[intIndex]);
+  }
+
+  return resampledData;
+};
+
+const sendDataToBackend = (data) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    // const audioBuffer = new Int16Array(data.length);
+    // for (let i = 0; i < data.length; i++) {
+    //   audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
+    // }
+    // socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
+    console.log('sending data');
+    socket.send(data.buffer)
+  } else {
+    console.error('WebSocket is not open');
+  }
+};
+
 const leaveSession = async () => {
   if (session.value) {
-    await sessionStore.endSession(sessionStore.meetingId);
     router.push({ name: 'HomeView' })
+    await sessionStore.endSession(sessionStore.meetingId);
+    console.log(meetingId)
     session.value.disconnect();   
+    socket.close()
     session.value = null;
   }
 };

@@ -7,46 +7,12 @@ import { useMeetingStore } from './meetingStore'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    userId: 1,
+    userId: 0,
     userInfo: {
-      "id": "jooo0",
-      "name": "주연수",
-      "email": "jooys130@naver.com",
-      "profileImageUrl": "http://asdasdad.com/rads.png",
-      "totalMeetingTime": 135,
-      "teamList": [1, 2, 3, 5, 6, 7]
     },
     accessToken: null,
     refreshToken: null,
     userList: [
-      {
-        id: "김가나",
-        userId: 1
-      },
-      {
-        id: "김다라",
-        userId: 2
-      },
-      {
-        id: "김마바",
-        userId: 3
-      },
-      {
-        id: "김사아",
-        userId: 4
-      },
-      {
-        id: "김자차",
-        userId: 5
-      },
-      {
-        id: "김카타",
-        userId: 6
-      },
-      {
-        id: "김파하",
-        userId: 7
-      }
       
     ],
   }),
