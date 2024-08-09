@@ -40,8 +40,8 @@ public class Chat {
     private String senderProfile;
 
     public enum ContentType {
-        TEXT,
-        IMAGE,
-        FILE
+        text,
+        image,
+        file
     }
 }
