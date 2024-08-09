@@ -47,7 +47,7 @@ public class MeetingSTTStompController {
         if(redisLastSegmentTime != null) {
             lastSegmentTime = Float.parseFloat(redisLastSegmentTime);
         }
-        MeetingSTTSegment lastReceivedSegment = null;
+        log.info("lsatSegmentTime : {}", lastSegmentTime);
         for(int i = 0; i < request.getSegments().size(); i++){
             MeetingSTTSegment segment = request.getSegments().get(i);
             if (i == request.getSegments().size() - 1){
