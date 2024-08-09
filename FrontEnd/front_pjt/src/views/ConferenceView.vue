@@ -85,6 +85,8 @@ let socket = null;
 let audioContext = null;
 let processor = null;
 
+const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
@@ -133,31 +135,17 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
+      console.log("내가 팀 주인인가?", isOwner.value)
+      if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
+      createWebsocketConnection()
       captureAudioStream(mediaStream)
     });
     console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
-
-    if (publisher.value) {
-      var pub;
-      pub = await currentSession.publish(publisher.value);
-      myStreamManager.value = publisher.value;
-
-      session.value = currentSession;
-
-      console.log('OpenVidu 세션 객체:', currentSession);
-      console.log('OpenVidu 연결 객체:', currentSession.connection);
-
-      // const mediaStream = publisher.value.stream.getMediaStream();
-      // const mediaStream = pub.getMediaStream();
-      // captureAudioStream(mediaStream);
-    } else {
-      console.error('Failed to initialize publisher');
-    }
 
     // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
@@ -177,6 +165,7 @@ const joinSession = async () => {
         }
 
         sessionStore.addStream(subscriber.stream);
+        if(isOwner.value) captureAudioStream(subscriber.stream.getMediaStream());
       }
     });
 
@@ -188,8 +177,7 @@ const joinSession = async () => {
     console.error('Error connecting to session:', error);
   }
 };
-
-const captureAudioStream = (mediaStream) => {
+const createWebsocketConnection = ()=>{
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
@@ -206,6 +194,8 @@ const captureAudioStream = (mediaStream) => {
     console.error('WebSocket error:', error);
     socket.close()
   };
+}
+const captureAudioStream = (mediaStream) => {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
@@ -215,7 +205,6 @@ const captureAudioStream = (mediaStream) => {
     const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
     sendDataToBackend(resampledData);
   };
-
   source.connect(processor);
   processor.connect(audioContext.destination);
 };
