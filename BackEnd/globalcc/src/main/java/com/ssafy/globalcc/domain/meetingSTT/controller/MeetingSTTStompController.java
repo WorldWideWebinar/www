@@ -55,11 +55,12 @@ public class MeetingSTTStompController {
                     redisTemplate.opsForValue().set(redisKeyForLastSegmentTime,String.valueOf(segment.getEnd()));
                 }
             }else if(segment.getStart() >= lastSegmentTime) {
+                log.info("----------saving to redis --------");
+                log.info("segment: {}" , segment.getText());
                 redisTemplate.opsForList().rightPush(redisKey, segment.getText());
             }
         }
-
-        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
+//        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
         log.info("received request: {}", request);
         MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent(),request.getSegments());
         rabbitTemplate.convertAndSend(
