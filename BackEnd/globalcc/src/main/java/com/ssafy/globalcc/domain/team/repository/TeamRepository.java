@@ -3,6 +3,8 @@ package com.ssafy.globalcc.domain.team.repository;
 import com.ssafy.globalcc.domain.team.entity.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface TeamRepository extends JpaRepository<Team, Integer> {
 //    @Query("select distinct t.owner.userId, t.name, ut.user.userId, m.meetingId, t.emoji, t.createdAt " +
 //            "from Team t " +
@@ -14,4 +16,5 @@ public interface TeamRepository extends JpaRepository<Team, Integer> {
 //    TeamDetailResult findTeamDetailsByTeamId(Integer id);
 
     int deleteTeamByTeamIdAndOwnerUid(Integer teamId, String ownerUid);
+    List<Team> findAllByOwnerUserId(Integer ownerId);
 }

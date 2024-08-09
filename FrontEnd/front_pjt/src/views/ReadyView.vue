@@ -8,6 +8,7 @@
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <div class="top-section">
+        <button @click="startConference" class="join-button">Start</button>
         <div class="notice-and-intro">
           <section class="notice-section">
             <div class="notice-header">
@@ -16,12 +17,12 @@
             <div class="notice-content">
               <div v-if="todayMeeting" class="notice-item">
                 <div class="notice-left">
-                  <p class="bold">{{ todayMeeting.agenda }}</p>
+                  <p class="bold">{{ todayMeeting.name }}</p>
                 </div>
                 <div class="notice-middle">
-                  <p>{{ todayMeeting.time }}</p>
+                  <p>{{ todayMeeting.start_at }} - {{ todayMeeting.end_at }}</p>
                   <p class="before-dropdown" @click="toggleTodayMembersList">
-                    {{ todayMeeting.members }} members will join!
+                    {{ todayMeeting.members.length }} members will join!
                   </p>
                   <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
                     <li v-for="member in todayMeetingMembers" :key="member.name" class="member">
@@ -45,21 +46,12 @@
             <div class="total-meeting-hours">
               <p>We have meetings for {{ totalMeetingHours }} hours</p>
               <div class="meeting-hours-bar">
-                <div
-                  class="meeting-hours-segment prev-meetings"
-                  :style="{ width: prevMeetingHoursPercentage + '%' }"
-                  v-if="prevMeetingHours > 0"
-                ></div>
-                <div
-                  class="meeting-hours-segment today-meetings"
-                  :style="{ width: todayMeetingHoursPercentage + '%' }"
-                  v-if="todayMeetingHours > 0"
-                ></div>
-                <div
-                  class="meeting-hours-segment next-meetings"
-                  :style="{ width: nextMeetingHoursPercentage + '%' }"
-                  v-if="nextMeetingHours > 0"
-                ></div>
+                <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }"
+                  v-if="prevMeetingHours > 0"></div>
+                <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }"
+                  v-if="todayMeetingHours > 0"></div>
+                <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }"
+                  v-if="nextMeetingHours > 0"></div>
               </div>
               <div class="meeting-hours-legend">
                 <div class="legend-item">
@@ -115,28 +107,13 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="activeTab = 'PREV'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'PREV' }"
-                aria-current="page"
-                href="#"
-                >PREV</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
             </li>
             <li class="nav-item" @click="activeTab = 'TODAY'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'TODAY' }"
-                aria-current="page"
-                href="#"
-                >TODAY</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
             </li>
             <li class="nav-item" @click="activeTab = 'NEXT'">
-              <a
-                :class="{ 'nav-link': true, active: activeTab === 'NEXT' }"
-                aria-current="page"
-                href="#"
-                >NEXT</a
-              >
+              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
 
@@ -151,78 +128,57 @@
             </thead>
             <tbody>
               <template v-if="activeTab === 'PREV'">
-                <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.date">
-                  <td>{{ meeting.date }}</td>
-                  <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
-                    {{ meeting.agenda }}
+                <tr v-for="meeting in groupedMeetings.PREV" :key="meeting.meeting_id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.meeting_id === meeting.meeting_id
+                  }" @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('PREV', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('PREV', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('PREV', meeting.status) }}
                     </button>
                   </td>
                 </tr>
               </template>
               <template v-if="activeTab === 'TODAY'">
-                <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.date">
-                  <td>{{ meeting.date }}</td>
-                  <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
-                    {{ meeting.agenda }}
+                <tr v-for="meeting in groupedMeetings.TODAY" :key="meeting.meeting_id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.meeting_id === meeting.meeting_id
+                  }" @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('TODAY', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('TODAY', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('TODAY', meeting.status) }}
                     </button>
                   </td>
                 </tr>
               </template>
               <template v-if="activeTab === 'NEXT'">
-                <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.date">
-                  <td>{{ meeting.date }}</td>
-                  <td>{{ meeting.time }}</td>
-                  <td
-                    :class="{
-                      agenda: true,
-                      'bold-agenda':
-                        selectedMeeting &&
-                        selectedMeeting.date === meeting.date &&
-                        selectedMeeting.agenda === meeting.agenda
-                    }"
-                    @click="selectMeeting(meeting)"
-                  >
-                    {{ meeting.agenda }}
+                <tr v-for="meeting in groupedMeetings.NEXT" :key="meeting.meeting_id">
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
+                  <td :class="{
+                    agenda: true,
+                    'bold-agenda':
+                      selectedMeeting &&
+                      selectedMeeting.meeting_id === meeting.meeting_id
+                  }" @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
                   </td>
                   <td>
-                    <button
-                      :class="buttonClass('NEXT', meeting.status)"
-                      @click="toggleStatus(meeting)"
-                    >
+                    <button :class="buttonClass('NEXT', meeting.status)" @click="toggleStatus(meeting)">
                       {{ buttonText('NEXT', meeting.status) }}
                     </button>
                   </td>
@@ -232,31 +188,27 @@
           </table>
         </section>
 
-        <section
-          :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }"
-        >
+        <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <p>&nbsp;{{ selectedMeeting?.agenda }}&nbsp;</p>
+              <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
             <div class="meeting-detail-content">
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.date }}</td>
+                  <td>{{ selectedMeeting?.start_at.split('T')[0] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.time }}</td>
+                  <td>{{ selectedMeeting?.start_at.split('T')[1] }} - {{ selectedMeeting?.end_at.split('T')[1] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
                   <td>
-                    <button
-                      :class="buttonClass(detailType, selectedMeeting?.status)"
-                      @click="toggleDetailStatus(selectedMeeting)"
-                    >
+                    <button :class="buttonClass(detailType, selectedMeeting?.status)"
+                      @click="toggleDetailStatus(selectedMeeting)">
                       {{ buttonText(detailType, selectedMeeting?.status) }}
                     </button>
                   </td>
@@ -264,13 +216,9 @@
                 <tr>
                   <td><strong>Members</strong></td>
                   <td class="show-member before-dropdown" @click="toggleMembersList">
-                    {{ selectedMeeting?.members }} members joined!
+                    {{ selectedMeeting?.members.length }} members joined!
                     <ul v-show="showMembersList" class="detail-dropdown dropdown">
-                      <li
-                        v-for="member in selectedMeetingMembers"
-                        :key="member.name"
-                        class="member"
-                      >
+                      <li v-for="member in selectedMeetingMembers" :key="member.name" class="member">
                         <img :src="member.avatar" :alt="member.name" />{{ member.name }}
                       </li>
                     </ul>
@@ -295,24 +243,14 @@
                   <thead>
                     <tr>
                       <td>
-                        <a
-                          href="#"
-                          @click.prevent="
-                            previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          "
-                          class="file-link"
-                          >📂summary</a
-                        >
+                        <a href="#" @click.prevent="
+                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
+                          " class="file-link">📂summary</a>
                       </td>
                       <td>
-                        <a
-                          href="#"
-                          @click.prevent="
-                            previewFile({ name: 'record.pdf', link: selectedMeeting.record })
-                          "
-                          class="file-link"
-                          >📁record</a
-                        >
+                        <a href="#" @click.prevent="
+                          previewFile({ name: 'record.pdf', link: selectedMeeting.record })
+                          " class="file-link">📁record</a>
                       </td>
                     </tr>
                   </thead>
@@ -329,6 +267,7 @@
     </div>
   </div>
   <router-view v-else></router-view>
+  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" :propedTeamId="propTeamId"/>
 </template>
 
 <script setup>
@@ -336,7 +275,10 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
+import { useMeetingStore } from '@/stores/meetingStore';
+import { useSessionStore } from '@/stores/sessionStore';
 import axios from 'axios';
+import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 
 const inConference = ref(false);
 const sessionId = ref(null);
@@ -351,6 +293,9 @@ const todayMeetingMembers = ref([]);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const departmentCreationDate = ref('2022-01-01');
+const meetingCreateModal = ref(false);
+const propTeamId = ref('');
+
 const members = ref([
   { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
   { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
@@ -359,133 +304,31 @@ const members = ref([
   { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
   { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
 ]);
-const meetings = ref([
-{
-          date: '2024-11-15',
-          agenda: '현대자동차',
-          status: 'IN',
-          description: 'Detailed description of 현대자동차',
-          time: '13PM-16PM',
-          members: 7,
-          files: [
-            { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-29',
-          agenda: '현대오토에버',
-          status: 'IN',
-          description: 'Detailed description of 현대오토에버',
-          time: '8AM-11AM',
-          members: 3,
-          files: [
-            { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-05',
-          agenda: '현대케피코',
-          status: 'IN',
-          description: 'Detailed description of 현대케피코',
-          time: '16PM-18PM',
-          members: 5,
-          files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-09-15',
-          agenda: '뱅킹 서비스',
-          status: 'OUT',
-          description: 'Detailed description of 뱅킹 서비스',
-          time: '8AM-10AM',
-          members: 8,
-          files: [
-            { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-08-26',
-          agenda: '인스타그램',
-          status: 'OUT',
-          description: 'Detailed description of 인스타그램',
-          time: '11AM-13PM',
-          members: 5,
-          files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-07-25',
-          agenda: '웹 RTC',
-          status: 'IN',
-          description: 'Detailed description of 웹 RTC',
-          time: '15PM-17PM',
-          members: 4,
-          files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
-        },
-        {
-          date: '2024-06-28',
-          agenda: 'TTS',
-          status: 'IN',
-          description: 'Detailed description of TTS',
-          time: '14PM-16PM',
-          members: 6,
-          files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
-          summary: '/path/to/tts_summary.pdf',
-          record: '/path/to/tts_record.pdf'
-        },
-        {
-          date: '2024-07-23',
-          agenda: 'AI 요약',
-          status: 'OUT',
-          description: 'Detailed description of AI 요약',
-          time: '17PM-18PM',
-          members: 4,
-          files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
-          summary: '/path/to/ai_summary.pdf',
-          record: '/path/to/ai_record.pdf'
-        },
-        {
-          date: '2024-06-13',
-          agenda: 'STT',
-          status: 'IN',
-          description: 'Detailed description of STT',
-          time: '20PM-22PM',
-          members: 7,
-          files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/stt_summary.pdf',
-          record: '/path/to/stt_record.pdf'
-        },
-        {
-          date: '2024-05-14',
-          agenda: '다국어 화상회의',
-          status: 'IN',
-          description: 'Detailed description of 다국어화상회의',
-          time: '11AM-15PM',
-          members: 4,
-          files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/다국어 화상회의_summary.pdf',
-          record: '/path/to/다국어 화상회의_record.pdf'
-        }
-]);
-
-const isOwner = ref(false);
-const previewUrl = ref(null);
 
 const route = useRoute();
 const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
+const meetingStore = useMeetingStore();
+const sessionStore = useSessionStore();
 
-const todayMeeting = computed(() => {
-  const today = new Date().toISOString().split('T')[0];
-  return meetings.value.find((meeting) => meeting.date === today);
-});
+const meetings = computed(() => meetingStore.meetings);
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.teams.find((team) => team.id === teamId);
   return teamData ? teamData.teamName : '';
+});
+
+const isOwner = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+  const teamData = teamStore.teams.find((team) => team.id === teamId);
+  return teamData && teamData.ownerId == userStore.userId;
+});
+
+const todayMeeting = computed(() => {
+  const today = new Date().toISOString().split('T')[0];
+  return meetings.value.find((meeting) => meeting.start_at.split('T')[0] === today);
 });
 
 const groupedMeetings = computed(() => {
@@ -494,15 +337,17 @@ const groupedMeetings = computed(() => {
     TODAY: [],
     NEXT: []
   };
-  const today = new Date().toISOString().split('T')[0];
-  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const now = new Date();
+  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
   sortedMeetings.forEach((meeting) => {
-    if (meeting.date === today) {
-      groups.TODAY.push(meeting);
-    } else if (meeting.date > today) {
-      groups.NEXT.push(meeting);
-    } else {
+    const startDateTime = new Date(meeting.start_at);
+    const endDateTime = new Date(meeting.end_at);
+    if (endDateTime < now) {
       groups.PREV.push(meeting);
+    } else if (startDateTime <= now && endDateTime >= now) {
+      groups.TODAY.push(meeting);
+    } else if (startDateTime > now) {
+      groups.NEXT.push(meeting);
     }
   });
   return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV };
@@ -510,37 +355,33 @@ const groupedMeetings = computed(() => {
 
 const totalMeetingHours = computed(() => {
   return meetings.value.reduce((total, meeting) => {
-    const [start, end] = meeting.time
-      .split('-')
-      .map((time) => parseInt(time.replace(/AM|PM/, '')));
-    return total + (end - start);
+    const start = new Date(meeting.start_at);
+    const end = new Date(meeting.end_at);
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const prevMeetingHours = computed(() => {
   return groupedMeetings.value.PREV.reduce((total, meeting) => {
-    const [start, end] = meeting.time
-      .split('-')
-      .map((time) => parseInt(time.replace(/AM|PM/, '')));
-    return total + (end - start);
+    const start = new Date(meeting.start_at);
+    const end = new Date(meeting.end_at);
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const todayMeetingHours = computed(() => {
   return groupedMeetings.value.TODAY.reduce((total, meeting) => {
-    const [start, end] = meeting.time
-      .split('-')
-      .map((time) => parseInt(time.replace(/AM|PM/, '')));
-    return total + (end - start);
+    const start = new Date(meeting.start_at);
+    const end = new Date(meeting.end_at);
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const nextMeetingHours = computed(() => {
   return groupedMeetings.value.NEXT.reduce((total, meeting) => {
-    const [start, end] = meeting.time
-      .split('-')
-      .map((time) => parseInt(time.replace(/AM|PM/, '')));
-    return total + (end - start);
+    const start = new Date(meeting.start_at);
+    const end = new Date(meeting.end_at);
+    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
@@ -574,35 +415,14 @@ const joinConference = async () => {
   }
 };
 
-const startConference = async () => {
-  try {
-    const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
-    const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
-
-    sessionId.value = response.data.id;
-    console.log('Starting conference with OpenVidu, sessionId:', sessionId.value);
-
-    router
-      .push({ name: 'ConferenceView', params: { sessionId: sessionId.value } })
-      .then(() => {
-        inConference.value = true;
-      })
-      .catch((err) => {
-        console.error('Error navigating to ConferenceView:', err);
-      });
-  } catch (error) {
-    console.error('Failed to create OpenVidu session:', error);
-  }
-};
-
 const selectMeeting = (meeting) => {
   selectedMeeting.value = meeting;
-  detailType.value = computeDetailType(meeting.date);
+  detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
-  showMembersList.value = false; // 초기에는 멤버 목록을 숨김
-  showFilesList.value = false; // 초기에는 파일 목록을 숨김
-  previewUrl.value = null; // 초기에는 파일 미리보기 URL 숨김
-  showOverlay.value = true; // 오버레이 표시
+  showMembersList.value = false;
+  showFilesList.value = false;
+  previewUrl.value = null;
+  showOverlay.value = true;
 };
 
 const closeMeetingDetails = () => {
@@ -610,8 +430,8 @@ const closeMeetingDetails = () => {
   selectedMeetingMembers.value = [];
   showMembersList.value = false;
   showFilesList.value = false;
-  previewUrl.value = null; // 파일 미리보기 URL 초기화
-  showOverlay.value = false; // 오버레이 숨김
+  previewUrl.value = null;
+  showOverlay.value = false;
 };
 
 const toggleStatus = (meeting) => {
@@ -637,16 +457,16 @@ const buttonText = (type, status) => {
   return status;
 };
 
-const computeDetailType = (date) => {
+const computeDetailType = (start_at) => {
   const today = new Date().toISOString().split('T')[0];
-  if (date === today) return 'TODAY';
-  else if (date > today) return 'NEXT';
+  if (start_at.split('T')[0] === today) return 'TODAY';
+  else if (start_at.split('T')[0] > today) return 'NEXT';
   else return 'PREV';
 };
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
-  showOverlay.value = showMemberListDropdown.value; // 오버레이 표시
+  showOverlay.value = showMemberListDropdown.value;
 };
 
 const toggleTodayMembersList = () => {
@@ -654,7 +474,7 @@ const toggleTodayMembersList = () => {
   if (todayMeeting.value) {
     todayMeetingMembers.value = members.value.slice(0, todayMeeting.value.members);
   }
-  showOverlay.value = showTodayMembersList.value; // 오버레이 표시
+  showOverlay.value = showTodayMembersList.value;
 };
 
 const selectLatestTodayMeeting = () => {
@@ -683,30 +503,21 @@ const closeDropdowns = () => {
   showTodayMembersList.value = false;
   showFilesList.value = false;
   showMembersList.value = false;
-  showOverlay.value = false; // 오버레이 숨김
+  showOverlay.value = false;
 };
 
-onMounted(() => {
+onMounted(async () => {
   const teamId = parseInt(route.params.id, 10);
-  const team = teamStore.teams.find(team => team.id === teamId);
-  if (team) {
-    isOwner.value = team.ownerId === userStore.userId;
-  } else {
-    console.error(`Team ${teamId} not found in store`);
-  }
+  await teamStore.fetchTeamById(teamId);
   selectLatestTodayMeeting();
 });
 
 watch(
   () => route.params.id,
-  (newId) => {
+  async (newId) => {
     const teamId = parseInt(newId, 10);
-    const team = teamStore.teams.find(team => team.id === teamId);
-    if (team) {
-      isOwner.value = team.ownerId === userStore.userId;
-    } else {
-      console.error(`Team ${teamId} not found in store`);
-    }
+    propTeamId.value = teamId;
+    await teamStore.fetchTeamById(teamId);
   }
 );
 
@@ -715,397 +526,18 @@ watch(activeTab, (newTab) => {
     selectLatestTodayMeeting();
   }
 });
-</script>
 
-<!-- 
+const CreateMeeting = () => {
+  meetingCreateModal.value = true;
+};
 
-<script>
-import { useTeamStore } from '@/stores/teamStore'
-import { useUserStore } from '@/stores/userStore'
-import axios from 'axios'
-
-export default {
-  name: 'ReadyPage',
-  data() {
-    return {
-      inConference: false,
-      sessionId: null, // OpenVidu 세션 ID
-      selectedMeeting: null,
-      detailType: '',
-      showMembersList: false, // 멤버 목록 표시 여부
-      showTodayMembersList: false, // 오늘 미팅 멤버 목록 표시 여부
-      showFilesList: false, // 파일 목록 표시 여부
-      showMemberListDropdown: false, // department 멤버 목록 표시 여부
-      showOverlay: false,
-      todayMeetingMembers: [], // 오늘 미팅 멤버 목록
-      selectedMeetingMembers: [],
-      activeTab: 'TODAY', // 초기 활성화 탭 설정
-      departmentCreationDate: '2022-01-01', // 예시 생성일
-      members: [
-        { name: 'Robert', avatar: 'https://via.placeholder.com/32' },
-        { name: 'Lisa', avatar: 'https://via.placeholder.com/32' },
-        { name: 'Tom', avatar: 'https://via.placeholder.com/32' },
-        { name: 'Mike', avatar: 'https://via.placeholder.com/32' },
-        { name: 'Sophie', avatar: 'https://via.placeholder.com/32' },
-        { name: 'Rachael', avatar: 'https://via.placeholder.com/32' }
-      ],
-      meetings: [
-        {
-          date: '2024-11-15',
-          agenda: '현대자동차',
-          status: 'IN',
-          description: 'Detailed description of 현대자동차',
-          time: '13PM-16PM',
-          members: 7,
-          files: [
-            { name: '현대자동차.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-29',
-          agenda: '현대오토에버',
-          status: 'IN',
-          description: 'Detailed description of 현대오토에버',
-          time: '8AM-11AM',
-          members: 3,
-          files: [
-            { name: '현대오토에버.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-10-05',
-          agenda: '현대케피코',
-          status: 'IN',
-          description: 'Detailed description of 현대케피코',
-          time: '16PM-18PM',
-          members: 5,
-          files: [{ name: '현대케피코.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-09-15',
-          agenda: '뱅킹 서비스',
-          status: 'OUT',
-          description: 'Detailed description of 뱅킹 서비스',
-          time: '8AM-10AM',
-          members: 8,
-          files: [
-            { name: 'bank_v4.pptx', link: '#', uploader: 'Lisa' },
-            { name: 'services.png', link: '#', uploader: 'Robert' }
-          ]
-        },
-        {
-          date: '2024-08-26',
-          agenda: '인스타그램',
-          status: 'OUT',
-          description: 'Detailed description of 인스타그램',
-          time: '11AM-13PM',
-          members: 5,
-          files: [{ name: 'design.pdf', link: '#', uploader: 'Tom' }]
-        },
-        {
-          date: '2024-07-25',
-          agenda: '웹 RTC',
-          status: 'IN',
-          description: 'Detailed description of 웹 RTC',
-          time: '15PM-17PM',
-          members: 4,
-          files: [{ name: 'rtc_spec.docx', link: '#', uploader: 'Mike' }]
-        },
-        {
-          date: '2024-06-28',
-          agenda: 'TTS',
-          status: 'IN',
-          description: 'Detailed description of TTS',
-          time: '14PM-16PM',
-          members: 6,
-          files: [{ name: 'tts_plan.xlsx', link: '#', uploader: 'Sophie' }],
-          summary: '/path/to/tts_summary.pdf',
-          record: '/path/to/tts_record.pdf'
-        },
-        {
-          date: '2024-07-23',
-          agenda: 'AI 요약',
-          status: 'OUT',
-          description: 'Detailed description of AI 요약',
-          time: '17PM-18PM',
-          members: 4,
-          files: [{ name: 'ai_summary.txt', link: '#', uploader: 'Rachael' }],
-          summary: '/path/to/ai_summary.pdf',
-          record: '/path/to/ai_record.pdf'
-        },
-        {
-          date: '2024-06-13',
-          agenda: 'STT',
-          status: 'IN',
-          description: 'Detailed description of STT',
-          time: '20PM-22PM',
-          members: 7,
-          files: [{ name: 'stt_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/stt_summary.pdf',
-          record: '/path/to/stt_record.pdf'
-        },
-        {
-          date: '2024-05-14',
-          agenda: '다국어 화상회의',
-          status: 'IN',
-          description: 'Detailed description of 다국어화상회의',
-          time: '11AM-15PM',
-          members: 4,
-          files: [{ name: '다국어 화상회의_notes.doc', link: '#', uploader: 'Robert' }],
-          summary: '/path/to/다국어 화상회의_summary.pdf',
-          record: '/path/to/다국어 화상회의_record.pdf'
-        }
-      ],
-      messages: [
-        {
-          id: 1,
-          sender: 'Lisa',
-          text: '첨부파일 참조 부탁드립니다.',
-          avatar: 'https://via.placeholder.com/32'
-        },
-        {
-          id: 2,
-          sender: 'Lisa',
-          text: '공유 감사합니다!',
-          avatar: 'https://via.placeholder.com/32'
-        }
-      ],
-      isOwner: false, // 소유자 여부를 저장할 변수
-      previewUrl: null // 추후에 넣기
-    }
-  },
-  computed: {
-    todayMeeting() {
-      const today = new Date().toISOString().split('T')[0]
-      return this.meetings.find((meeting) => meeting.date === today)
-    },
-    departmentName() {
-      const teamStore = useTeamStore()
-      const teamId = parseInt(this.$route.params.id, 10) // 문자열을 숫자로 변환
-      const teamData = teamStore.teams.find((team) => team.id === teamId)
-      return teamData ? teamData.teamName : '' // teamName이 존재하면 반환
-    },
-    groupedMeetings() {
-      const groups = {
-        PREV: [],
-        TODAY: [],
-        NEXT: []
-      }
-      const today = new Date().toISOString().split('T')[0]
-      const sortedMeetings = [...this.meetings].sort((a, b) => new Date(b.date) - new Date(a.date))
-      sortedMeetings.forEach((meeting) => {
-        if (meeting.date === today) {
-          groups.TODAY.push(meeting)
-        } else if (meeting.date > today) {
-          groups.NEXT.push(meeting)
-        } else {
-          groups.PREV.push(meeting)
-        }
-      })
-      return { NEXT: groups.NEXT, TODAY: groups.TODAY, PREV: groups.PREV }
-    },
-    totalMeetingHours() {
-      return this.meetings.reduce((total, meeting) => {
-        const [start, end] = meeting.time
-          .split('-')
-          .map((time) => parseInt(time.replace(/AM|PM/, '')))
-        return total + (end - start)
-      }, 0)
-    },
-    prevMeetingHours() {
-      return this.groupedMeetings.PREV.reduce((total, meeting) => {
-        const [start, end] = meeting.time
-          .split('-')
-          .map((time) => parseInt(time.replace(/AM|PM/, '')))
-        return total + (end - start)
-      }, 0)
-    },
-    todayMeetingHours() {
-      return this.groupedMeetings.TODAY.reduce((total, meeting) => {
-        const [start, end] = meeting.time
-          .split('-')
-          .map((time) => parseInt(time.replace(/AM|PM/, '')))
-        return total + (end - start)
-      }, 0)
-    },
-    nextMeetingHours() {
-      return this.groupedMeetings.NEXT.reduce((total, meeting) => {
-        const [start, end] = meeting.time
-          .split('-')
-          .map((time) => parseInt(time.replace(/AM|PM/, '')))
-        return total + (end - start)
-      }, 0)
-    },
-    prevMeetingHoursPercentage() {
-      return (this.prevMeetingHours / this.totalMeetingHours) * 100
-    },
-    todayMeetingHoursPercentage() {
-      return (this.todayMeetingHours / this.totalMeetingHours) * 100
-    },
-    nextMeetingHoursPercentage() {
-      return (this.nextMeetingHours / this.totalMeetingHours) * 100
-    }
-  },
-  methods: {
-    async joinConference() {
-      try {
-        const response = await axios.get('http://localhost:5000/api/sessions');
-        this.sessionId = response.data.sessionId;
-
-        this.$router
-          .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
-          .then(() => {
-            this.inConference = true
-          })
-          .catch((err) => {
-            console.error('Error navigating to ConferenceView:', err)
-          })
-      } catch (error) {
-        console.error('Failed to join conference:', error);
-      }
-    },
-    async startConference() {
-      try {
-        const customSessionId = 'TestSession'; // 원하는 세션 ID로 변경 가능
-        const response = await axios.post('http://localhost:5000/api/sessions', { customSessionId });
-
-        this.sessionId = response.data.id;
-        console.log('Starting conference with OpenVidu, sessionId:', this.sessionId);
-
-        this.$router
-          .push({ name: 'ConferenceView', params: { sessionId: this.sessionId } })
-          .then(() => {
-            this.inConference = true
-          })
-          .catch((err) => {
-            console.error('Error navigating to ConferenceView:', err)
-          })
-      } catch (error) {
-        console.error('Failed to create OpenVidu session:', error);
-      }
-    },
-    selectMeeting(meeting) {
-      this.selectedMeeting = meeting;
-      this.detailType = this.computeDetailType(meeting.date);
-      this.selectedMeetingMembers = this.members.slice(0, meeting.members);
-      this.showMembersList = false; // 초기에는 멤버 목록을 숨김
-      this.showFilesList = false; // 초기에는 파일 목록을 숨김
-      this.previewUrl = null; // 초기에는 파일 미리보기 URL 숨김
-      this.showOverlay = true; // 오버레이 표시
-    },
-    closeMeetingDetails() {
-      this.selectedMeeting = null;
-      this.selectedMeetingMembers = [];
-      this.showMembersList = false;
-      this.showFilesList = false;
-      this.previewUrl = null; // 파일 미리보기 URL 초기화
-      this.showOverlay = false; // 오버레이 숨김
-    },
-    toggleStatus(meeting) {
-      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
-    },
-    toggleDetailStatus(meeting) {
-      meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
-    },
-    buttonClass(type, status) {
-      if (type === 'NEXT') {
-        return status === 'IN' ? 'btn-green' : 'btn-red';
-      } else if (type === 'PREV') {
-        return 'btn-gray';
-      } else if (type === 'TODAY') {
-        return status === 'IN' ? 'btn-green' : 'btn-red';
-      }
-      return '';
-    },
-    buttonText(type, status) {
-      return status;
-    },
-    computeDetailType(date) {
-      const today = new Date().toISOString().split('T')[0];
-      if (date === today) return 'TODAY';
-      else if (date > today) return 'NEXT';
-      else return 'PREV';
-    },
-    toggleMemberListDropdown() {
-      this.showMemberListDropdown = !this.showMemberListDropdown;
-      this.showOverlay = this.showMemberListDropdown; // 오버레이 표시
-    },
-    toggleTodayMembersList() {
-      this.showTodayMembersList = !this.showTodayMembersList;
-      if (this.todayMeeting) {
-        this.todayMeetingMembers = this.members.slice(0, this.todayMeeting.members);
-      }
-      this.showOverlay = this.showTodayMembersList; // 오버레이 표시
-    },
-    selectLatestTodayMeeting() {
-      const todayMeetings = this.groupedMeetings.TODAY;
-      if (todayMeetings.length > 0) {
-        this.selectMeeting(todayMeetings[0]);
-      }
-    },
-    toggleFilesList() {
-      this.showFilesList = !this.showFilesList;
-      this.showOverlay = this.showFilesList;
-    },
-    toggleMembersList() {
-      this.showMembersList = !this.showMembersList;
-      this.showOverlay = this.showMembersList;
-    },
-    previewFile(file) {
-      this.previewUrl = file.link;
-    },
-    closeDropdowns() {
-      this.showMemberListDropdown = false;
-      this.showTodayMembersList = false;
-      this.showFilesList = false;
-      this.showMembersList = false;
-      this.showOverlay = false; // 오버레이 숨김
-    }
-  },
-  async mounted() {
-    const teamStore = useTeamStore();
-    const userStore = useUserStore();
-    const userId = userStore.userId;
-    const teamId = parseInt(this.$route.params.id, 10);
-
-    // 팀 데이터를 불러와 소유자 여부를 확인
-    const team = teamStore.teams.find(team => team.id === teamId);
-    if (team) {
-      if (team.ownerId === userId) {
-        this.isOwner = true;
-      }
-    } else {
-      console.error(`Team ${teamId} not found in store`);
-    }
-
-    this.selectLatestTodayMeeting();
-
-    // 사용자 정보를 업데이트하여 버튼 상태 동기화
-    userStore.$subscribe((mutation, state) => {
-      if (state.userId === team.ownerId) {
-        this.isOwner = true;
-      } else {
-        this.isOwner = false;
-      }
-    });
-  },
-  watch: {
-    $route(to, from) {
-      if (to.name === 'rnd' && from.name === 'ConferenceView') {
-        this.inConference = false;
-      }
-    },
-    activeTab(newTab) {
-      if (newTab === 'TODAY') {
-        this.selectLatestTodayMeeting();
-      }
-    },
-  }
+const startConference = async () => {
+  const meetingId = selectedMeeting.value.meeting_id; 
+  const userId = userStore.userId; 
+  await sessionStore.startConference(meetingId, userId);
 };
 </script>
- -->
+
 
 
 <style scoped>
@@ -1131,7 +563,7 @@ export default {
 
 .sub-container {
   width: 82%;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 
 .top-section {
@@ -1502,7 +934,7 @@ ul.nav li {
 .meeting-list td:nth-child(3):hover *,
 .meeting-list td.agenda:hover {
   cursor: pointer;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 3px;
@@ -1557,18 +989,22 @@ button {
 
 .meeting-list tbody {
   display: block;
-  max-height: 140px; /* 원하는 최대 높이 설정 */
+  max-height: 140px;
+  /* 원하는 최대 높이 설정 */
   overflow-y: scroll;
 }
 
 .meeting-list tbody::-webkit-scrollbar {
-  width: 0; /* 스크롤바의 너비를 0으로 설정 */
-  background: transparent; /* 스크롤바 배경을 투명하게 설정 */
+  width: 0;
+  /* 스크롤바의 너비를 0으로 설정 */
+  background: transparent;
+  /* 스크롤바 배경을 투명하게 설정 */
 }
 
 .meeting-list tr {
   display: table;
-  width: calc(100% - 1rem); /* 테이블 너비를 100%에서 약간 줄임 */
+  width: calc(100% - 1rem);
+  /* 테이블 너비를 100%에서 약간 줄임 */
   table-layout: fixed;
 }
 
@@ -1586,7 +1022,7 @@ button {
   margin: 1rem auto;
   font-size: larger;
   font-weight: bolder;
-  text-decoration-line: underline;  
+  text-decoration-line: underline;
   text-decoration-style: line;
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 5px;
@@ -1720,6 +1156,7 @@ button {
 }
 
 @media (max-width: 992px) {
+
   .intro-section,
   .chat-section,
   .meeting-detail-section {

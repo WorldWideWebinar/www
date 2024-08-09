@@ -1,5 +1,7 @@
 package com.ssafy.globalcc.domain.user.service;
 
+import com.ssafy.globalcc.domain.team.entity.Team;
+import com.ssafy.globalcc.domain.team.repository.TeamRepository;
 import com.ssafy.globalcc.domain.user.dto.UserDto;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.entity.UserDetail;
@@ -9,6 +11,7 @@ import com.ssafy.globalcc.domain.user.repository.UserRepository;
 import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
 import com.ssafy.globalcc.domain.user.result.*;
 import com.ssafy.globalcc.utils.JwtUtil;
+import io.netty.util.internal.SocketUtils;
 import io.netty.util.internal.StringUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final RedisOperations<String, String> redisOperations;
     @Value("${file.default}")
     private String fileDefault;
+    private final TeamRepository teamRepository;
 
     @Override
     public boolean checkDuplicateUserById(String id) {
@@ -134,9 +138,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(int userId) {
          // TODO: 정책을 참고해서 유저 삭제 진행
-        userRepository.deleteById(userId);
+        // 해당 유저가 팀장으로 있는 팀 조회
+        List<Team> teams = teamRepository.findAllByOwnerUserId(userId);
+        for (Team team : teams) {
+            // 같은 팀 팀원에게 팀장 권한 위임
+            List<UserTeam> userTeams = userTeamRepository.findAllByTeamTeamId(team.getTeamId());
+            if (!userTeams.isEmpty()) {
+                // 첫 번째 팀원을 새로운 팀장으로 지정
+                User newOwner = userTeams.get(0).getUser();
+                // 팀장 변경
+                team.setOwner(newOwner);
+                // 팀 변경 저장
+                teamRepository.save(team);
+            }
+        }
+        // 팀원인 경우
+        if (teams.isEmpty()) {
+            userRepository.deleteById(userId);
+        }
     }
 
     @Override
