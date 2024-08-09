@@ -147,10 +147,16 @@ const joinSession = async () => {
       resolution: '240x160',
       frameRate: 30,
       insertMode: 'APPEND'
+    }).on('streamCreated', (event) => {
+      console.log("streamCreated", event);
+      let mediaStream
+      mediaStream = event.stream.getMediaStream();
+      captureAudioStream(mediaStream)
     });
 
     if (publisher.value) {
-      currentSession.publish(publisher.value);
+      var pub;
+      pub = await currentSession.publish(publisher.value);
       myStreamManager.value = publisher.value;
 
       session.value = currentSession;
@@ -158,8 +164,9 @@ const joinSession = async () => {
       console.log('OpenVidu 세션 객체:', currentSession);
       console.log('OpenVidu 연결 객체:', currentSession.connection);
 
-      const mediaStream = publisher.value.stream.getMediaStream();
-      captureAudioStream(mediaStream);
+      // const mediaStream = publisher.value.stream.getMediaStream();
+      // const mediaStream = pub.getMediaStream();
+      // captureAudioStream(mediaStream);
     } else {
       console.error('Failed to initialize publisher');
     }
@@ -208,8 +215,8 @@ const captureAudioStream = (mediaStream) => {
 
   socket.onerror = (error) => {
     console.error('WebSocket error:', error);
+    socket.close()
   };
-
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
@@ -242,11 +249,13 @@ const resampleTo16kHz = (audioData, originalSampleRate) => {
 
 const sendDataToBackend = (data) => {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    const audioBuffer = new Int16Array(data.length);
-    for (let i = 0; i < data.length; i++) {
-      audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
-    }
-    socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
+    // const audioBuffer = new Int16Array(data.length);
+    // for (let i = 0; i < data.length; i++) {
+    //   audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
+    // }
+    // socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
+    console.log('sending data');
+    socket.send(data.buffer)
   } else {
     console.error('WebSocket is not open');
   }
