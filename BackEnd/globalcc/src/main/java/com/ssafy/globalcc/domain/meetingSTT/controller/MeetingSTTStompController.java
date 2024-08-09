@@ -48,17 +48,18 @@ public class MeetingSTTStompController {
             lastSegmentTime = Float.parseFloat(redisLastSegmentTime);
         }
         log.info("lastSegmentTime : {}", lastSegmentTime);
-        for(int i = 0; i < request.getSegments().size(); i++){
-            MeetingSTTSegment segment = request.getSegments().get(i);
-            log.info("segment: {}" , segment);
-            if (i == request.getSegments().size() - 1){
-                if (segment.getEnd() > lastSegmentTime){
-                    redisTemplate.opsForValue().set(redisKeyForLastSegmentTime,String.valueOf(segment.getEnd()));
+        if(request.getSegments().size() > 1){
+            for(int i = 0; i < request.getSegments().size(); i++){
+                MeetingSTTSegment segment = request.getSegments().get(i);
+                log.info("segment: {}" , segment);
+                if (i == request.getSegments().size() - 1){
+                    if (segment.getEnd() > lastSegmentTime){
+                        redisTemplate.opsForValue().set(redisKeyForLastSegmentTime,String.valueOf(segment.getEnd()));
+                    }
+                }else if(segment.getStart() >= lastSegmentTime) {
+                    log.info("----------saving to redis --------");
+                    redisTemplate.opsForList().rightPush(redisKey, segment.getText());
                 }
-            }else if(segment.getStart() >= lastSegmentTime) {
-                log.info("----------saving to redis --------");
-
-                redisTemplate.opsForList().rightPush(redisKey, segment.getText());
             }
         }
 //        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
