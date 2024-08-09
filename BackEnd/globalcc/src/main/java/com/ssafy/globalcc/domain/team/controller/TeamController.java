@@ -50,6 +50,12 @@ public class TeamController {
         return new ResponseEntity<>(ApiResponse.success(teamId,"팀 삭제 성공"),HttpStatus.OK);
     }
 
+    @PutMapping("{teamId}")
+    public ResponseEntity<?> updateTeamInfo(@PathVariable int teamId, @RequestBody TeamDto teamDto, @AuthenticationPrincipal SecurityUser user) {
+        teamService.updateTeam(teamId, teamDto, user.getUsername());
+        return new ResponseEntity<>(ApiResponse.success(teamId, "팀 정보 수정 성공"), HttpStatus.OK);
+    }
+
     @ExceptionHandler(TeamCreationFailException.class)
     public ResponseEntity<?> handleTeamCreationFail(TeamCreationFailException e) {
         log.error("Team creation failed", e);
