@@ -72,12 +72,26 @@ const messageStore = useMessageStore();
 const token = userStore.accessToken;
 const currentUserId = userStore.userId;
 const now = new Date();
-const today = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
 
-const messages = ref([]); // 애는 그냥 받는다.
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+
+  date.setHours(date.getHours() + 9);
+
+  let formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  formattedTime = formattedTime.replace('AM', 'a.m.').replace('PM', 'p.m.');
+  if (date >= today) {
+    return `${formattedTime}`;
+  } else {
+    const formattedDate = today.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+    return `${formattedDate} ${formattedTime}`;
+  }
+};
 
 const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
@@ -167,18 +181,6 @@ const getTeamName = (teamId) => {
   return team ? team.teamName : '';
 };
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-
-  let formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  
-  if (date >= today) {
-    return `${formattedTime}`;
-  } else {
-    const formattedDate = date.toLocaleDateString('en-GB', { month: '2-digit', day: '2-digit' });
-    return `${formattedDate} ${formattedTime}`;
-  }
-};
 
 const closeChat = () => {
   console.log("Closing chat...");
