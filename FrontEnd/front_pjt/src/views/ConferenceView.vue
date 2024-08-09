@@ -39,9 +39,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <div class="footer-right">
+          <!-- <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>

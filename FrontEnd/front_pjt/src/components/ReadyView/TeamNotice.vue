@@ -11,7 +11,7 @@
           </div>
           <div class="notice-middle">
             <p>
-              {{ formatDate(todayMeeting.start) }} {{ formatTime(todayMeeting.start) }} - {{ formatDate(todayMeeting.end) }} {{ formatTime(todayMeeting.end) }}
+              {{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}
             </p>
             <p class="before-dropdown" @click="toggleTodayMembersList">
               <!-- {{ todayMeeting.members.length }} members will join! -->
@@ -111,7 +111,7 @@ const route = useRoute()
 
 const todayMeeting = computed(() => {
   const teamId = parseInt(route.params.id, 10); 
-  console.log(teamId)
+  console.log(meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId))
   return meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId);
 });
 
@@ -202,6 +202,7 @@ const toggleInviteMemberInput = () => {
 
 const handleStartConference = async (meetingId, sessionName) => {
   const userId = userStore.userId;
+  console.log(meetingId)
   try {
     let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
 
