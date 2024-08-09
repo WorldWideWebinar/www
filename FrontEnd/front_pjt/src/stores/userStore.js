@@ -12,7 +12,9 @@ export const useUserStore = defineStore('user', {
     },
     accessToken: null,
     refreshToken: null,
-    userList: [],
+    userList: [
+      
+    ],
   }),
   getters: {
     isLogin: (state) => state.userId != 0
@@ -121,14 +123,11 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
-          meetingStore.clearMeetings()
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
           errorStore.showError('Log Out Successful')
-          router.push({ name: 'HomeView' })
-          return { success: true, message: response.data.message }
+          router.replace({ name: 'HomeView' })
         } else {
-          errorStore.showError(response.data.message)
           return { success: false, message: response.data.message }
         }
       } catch (error) {
@@ -204,7 +203,7 @@ export const useUserStore = defineStore('user', {
     strategies: [
       {
         key: 'userStore',
-        storage: localStorage,
+        storage: sessionStorage,
         paths: ['userId', 'userInfo', 'accessToken', 'refreshToken']
       }
     ]

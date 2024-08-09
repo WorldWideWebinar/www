@@ -26,7 +26,7 @@ export const useTeamStore = defineStore('team', {
       this.clearTeamUsers()
       const meetingStore = useMeetingStore(); // Access the meeting store
       const errorStore = useErrorStore(); // Access the error store
-      console.log(teamId)
+      
       try {
         // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
@@ -50,14 +50,12 @@ export const useTeamStore = defineStore('team', {
 
     async fetchTeamUsers() {
       const errorStore = useErrorStore();
-      console.log('팀원', this.teamUserList)
       try {
         // this.clearTeamUsers();
         
         const users = await Promise.all(this.teamUserList.map(async (userId) => {
           try {
             const response = await axiosInstance.get(`api/users/${userId}`);
-            console.log(response.data.result)
             return response.data.result;
           } catch (error) {
             errorStore.showError(`Failed to fetch user info for user ${userId}`);
@@ -84,6 +82,7 @@ export const useTeamStore = defineStore('team', {
       userList.push(currentUserId);
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
+        errorStore.showSuccess('Team successfully updated!');
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
         }
@@ -91,6 +90,19 @@ export const useTeamStore = defineStore('team', {
         errorStore.showError(`Error creating team: ${error.message}`);
       }
     },
+
+    async editTeam(teamId, teamName, ownerId, emoji, userList,) {
+      const errorStore = useErrorStore()
+      try {
+        const response = await axiosInstance.put(`api/teams/${teamId}`, { teamName, ownerId, emoji, userList})
+        if (!response.data.success) {
+          errorStore.showError('error')
+        }
+      } catch (error) {
+        errorStore.showError(`Error editing team info: ${error.message}`)
+      }
+    }
+    ,
 
     async deleteTeam(teamId) {
       const errorStore = useErrorStore(); // Access the error store
@@ -150,4 +162,8 @@ export const useTeamStore = defineStore('team', {
       return state.teams.filter(team => team.ownerId === hostId);
     }
   }, 
+  persist: {
+    key: 'teamStore',
+    storage: sessionStorage,
+  },
 });

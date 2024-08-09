@@ -5,8 +5,7 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <user-video v-for="participant in participants" :key="participant.id"
-          :stream-manager="participant.streamManager" />
+        <user-video v-for="participant in participants" :key="participant.id" :stream-manager="participant.streamManager" />
       </div>
       <div class="center">
         <div class="upper-section">
@@ -25,17 +24,10 @@
             </div>
           </div>
           <div class="translation-section">
-            <h5>
-              Translated Version
-                <span class="language-icon">
-                🌐
-                <select v-model="selectedLanguage" @change="updateLanguage">
-                  <option v-for="(label, code) in languages" :key="code" :value="code">
-                    {{ label }}
-                  </option>
-                </select>
-              </span>
-            </h5>
+            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
+            <div class="translation-content">
+              <!-- Translated messages -->
+            </div>
           </div>
         </div>
         <div class="footer">
@@ -47,9 +39,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <!-- <div class="footer-right">
+          <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div> -->
+          </div>
         </div>
       </div>
     </main>
@@ -63,13 +55,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
-import axios from 'axios';
+import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -77,8 +69,9 @@ const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
+
 const sessionId = route.params.sessionId;
-const token = route.params.token;
+const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
@@ -86,31 +79,73 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
-let socket = null;
-let audioContext = null;
-let processor = null;
+const meetingId = sessionStore.meetingId
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let mediaRecorder;
+let audioChunks = [];
+const ws = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
-const languages = {
-  kr: '한국어',
-  en: 'English',
-  es: 'Español',
-  zh: '中文',
-  ja: '日本語'
+
+ws.onopen = () => {
+  ws.send(JSON.stringify({ meetingId: meetingId}))
+  console.log('WebSocket connection established');
 };
 
-const selectedLanguage = ref('kr');
-
-const updateLanguage = () => {
-  console.log('Selected language:', selectedLanguage.value);
+ws.onmessage = (message) => {
+  console.log('Received message:', message.data);
 };
 
+ws.onclose = () => {
+  console.log('WebSocket connection closed');
+};
+
+let processor;
+
+const startCapturingAudio = (stream) => {
+  const source = audioContext.createMediaStreamSource(stream);
+  processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+  processor.onaudioprocess = (event) => {
+    const inputData = event.inputBuffer.getChannelData(0);
+    console.log('Audio data received:', inputData.slice(0, 10));
+    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
+    console.log('Resampled data:', resampledData.slice(0, 10));
+    sendDataToBackend(resampledData);
+  };
+
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+};
+
+function resampleTo16kHz(audioData, originalSampleRate) {
+  const data = new Float32Array(audioData);
+  const targetSampleRate = 16000;
+  const resampledLength = Math.round(data.length * targetSampleRate / originalSampleRate);
+  const resampledData = new Float32Array(resampledLength);
+
+  for (let i = 0; i < resampledLength; i++) {
+    const index = i * originalSampleRate / targetSampleRate;
+    const intIndex = Math.floor(index);
+    const frac = index - intIndex;
+    resampledData[i] = data[intIndex] + frac * (data[intIndex + 1] - data[intIndex]);
+  }
+
+  return resampledData;
+}
+
+function sendDataToBackend(audioData) {
+  const arrayBuffer = audioData.buffer;
+  ws.send(arrayBuffer);
+}
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
+  // 스트림 생성 이벤트 핸들러
   currentSession.on('streamCreated', (event) => {
     console.log('스트림 생성됨:', event.stream);
+
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
 
@@ -130,6 +165,7 @@ const joinSession = async () => {
     sessionStore.addStream(subscriber.stream);
   });
 
+  // 스트림 파괴 이벤트 핸들러
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
@@ -139,12 +175,13 @@ const joinSession = async () => {
   try {
     await currentSession.connect(token, { clientData: userId });
 
+    // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
     publisher.value = OV.initPublisher(undefined, {
-      videoSource: false,
+      videoSource: undefined,
       audioSource: undefined,
-      publishVideo: false,
+      publishVideo: true,
       publishAudio: true,
-      resolution: '240x160',
+      resolution: '320x240',
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
@@ -153,6 +190,9 @@ const joinSession = async () => {
       mediaStream = event.stream.getMediaStream();
       captureAudioStream(mediaStream)
     });
+    console.log('publisher stream:', publisher.value.stream)
+    currentSession.publish(publisher.value);
+    myStreamManager.value = publisher.value;
 
     if (publisher.value) {
       var pub;
@@ -171,6 +211,7 @@ const joinSession = async () => {
       console.error('Failed to initialize publisher');
     }
 
+    // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
       if (stream.connection.connectionId !== currentSession.connection.connectionId) {
         const subscriber = currentSession.subscribe(stream, undefined);
@@ -264,7 +305,9 @@ const sendDataToBackend = (data) => {
 const leaveSession = async () => {
   if (session.value) {
     await sessionStore.endSession(sessionStore.meetingId);
-    session.value.disconnect();
+    console.log(meetingId)
+    router.push({ name: 'HomeView' })
+    session.value.disconnect();   
     session.value = null;
   }
 };
@@ -296,24 +339,11 @@ onMounted(() => {
   joinSession();
 });
 
-onBeforeUnmount(() => {
-  if (audioContext) {
-    audioContext.close();
-  }
-  if (processor) {
-    processor.disconnect();
-  }
-  if (socket) {
-    socket.close();
-  }
-});
-
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
 });
 </script>
-
 
 <style scoped>
 .conference-container {
