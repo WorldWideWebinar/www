@@ -82,7 +82,6 @@ export const useTeamStore = defineStore('team', {
       userList.push(currentUserId);
       try {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
-        errorStore.showSuccess('Team successfully updated!');
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
         }
