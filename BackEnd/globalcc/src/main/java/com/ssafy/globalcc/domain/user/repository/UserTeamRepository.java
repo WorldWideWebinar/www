@@ -22,4 +22,5 @@ public interface UserTeamRepository extends JpaRepository<UserTeam, Integer> {
     @Modifying
     @Query("delete from UserTeam ut where ut.user.userId=:userId AND ut.team.teamId=:teamId")
     int deleteByUserUserId(@Param("userId") Integer userId, @Param("teamId") Integer teamId);
+    List<UserTeam> findAllByTeamTeamId(Integer teamId);
 }
