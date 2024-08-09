@@ -36,6 +36,9 @@ public class Chat {
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
     private Team teamId;
 
+    @Column(name = "sender_profile")
+    private String senderProfile;
+
     public enum ContentType {
         TEXT,
         IMAGE,
