@@ -1,5 +1,6 @@
 package com.ssafy.globalcc.domain.chat.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.globalcc.domain.chat.dto.request.ChatRequest;
 import com.ssafy.globalcc.domain.chat.dto.response.ChatResponse;
 import com.ssafy.globalcc.domain.chat.entity.Chat;
@@ -20,9 +21,7 @@ import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -37,6 +36,7 @@ public class ChatStompController {
     private static final String EXCHANGE_NAME = "chat.exchange";
     private static final String ROUTING_KEY = "chat.key";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @MessageMapping("chat.{teamId}")
     public void share(
@@ -45,8 +45,19 @@ public class ChatStompController {
     ) {
         String redisKey = "Chat:" + teamId;
         String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
-        String redisValue = String.format("%s#%s#%s", request.getSenderId(), timestamp, request.getContent());
-        redisTemplate.opsForList().rightPush(redisKey, redisValue);
+
+        Map<String, String> chatData = new HashMap<>();
+        chatData.put("senderId", String.valueOf(request.getSenderId()));
+        chatData.put("timestamp", timestamp);
+        chatData.put("content", request.getContent());
+        chatData.put("senderProfile", request.getSenderProfile());
+
+        try {
+            String redisValue = objectMapper.writeValueAsString(chatData);
+            redisTemplate.opsForList().rightPush(redisKey, redisValue);
+        } catch (Exception e) {
+            log.error("Error serializing chat data", e);
+        }
 
         ChatResponse response = ChatResponse.of(request.getSenderId(), request.getTeamId(), request.getContent(), request.getSenderProfile());
         rabbitTemplate.convertAndSend(
@@ -67,27 +78,33 @@ public class ChatStompController {
 
                     List<Chat> chatList = messageList.stream()
                             .map(message -> {
-                                String[] parts = message.split("#", 3);
-                                log.debug("-------Redis Test-------");
-                                log.debug(parts[0] + " # " + parts[1] + " # " + parts[2]);
-                                log.debug("------------------------");
-                                if (parts.length < 3) {
-                                    throw new IllegalArgumentException("Invalid message format");
+                                try {
+                                    Map<String, String> chatData = objectMapper.readValue(message, Map.class);
+
+                                    Integer senderId = Integer.valueOf(chatData.get("senderId"));
+                                    String timestampStr = chatData.get("timestamp");
+                                    String content = chatData.get("content");
+                                    String senderProfile = chatData.get("senderProfile");
+
+                                    log.debug("------------Redis Test------------");
+                                    log.debug(senderId + ":" + timestampStr + ":" + content + ":" + senderProfile);
+                                    log.debug("----------------------------------");
+
+                                    LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DATE_TIME_FORMATTER);
+                                    User user = userService.findUserById(senderId);
+
+                                    Chat chat = new Chat();
+                                    chat.setTeamId(team);
+                                    chat.setSenderId(user);
+                                    chat.setContent(content);
+                                    chat.setContentType(Chat.ContentType.TEXT);
+                                    chat.setSenderProfile(senderProfile);
+                                    chat.setCreatedAt(timestamp);
+                                    return chat;
+                                } catch (Exception e) {
+                                    log.error("Error deserializing chat data", e);
+                                    throw new RuntimeException("Failed to deserialize message", e);
                                 }
-                                Integer senderId = Integer.valueOf(parts[0]);
-                                String timestampStr = parts[1];
-                                String content = parts[2];
-
-                                LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DATE_TIME_FORMATTER);
-                                User user = userService.findUserById(senderId);
-
-                                Chat chat = new Chat();
-                                chat.setTeamId(team);
-                                chat.setSenderId(user);
-                                chat.setContent(content);
-                                chat.setContentType(Chat.ContentType.TEXT);
-                                chat.setCreatedAt(timestamp);
-                                return chat;
                             })
                             .toList();
 
