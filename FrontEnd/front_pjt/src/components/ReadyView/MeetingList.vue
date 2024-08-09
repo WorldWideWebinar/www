@@ -141,6 +141,36 @@ ul.nav li {
   font-weight: bold;
 }
 
+td button {
+  border: none;
+  border-radius: 50px;
+  width: 60px;
+  padding: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-green {
+  background-color: rgba(139, 195, 74, 0.5);
+  color: black;
+}
+
+.btn-red {
+  background-color: rgba(244, 67, 54, 0.5);
+  color: black;
+}
+
+.btn-gray {
+  background-color: rgba(108, 117, 125, 0.5);
+  color: black;
+}
+
 .meeting-list tbody {
   display: block;
   max-height: 140px;
@@ -157,4 +187,6 @@ ul.nav li {
   width: calc(100% - 1rem);
   table-layout: fixed;
 }
+
+
 </style>
