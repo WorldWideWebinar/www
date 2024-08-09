@@ -127,18 +127,18 @@ const totalMeetingHours = computed(() => {
 const prevMeetingHours = computed(() => {
   if (!meetingStore.groupedMeetings.PREV.length) return 0;
   return meetingStore.groupedMeetings.PREV.reduce((total, meeting) => {
-    const start = new Date(meeting.start);
-    const end = new Date(meeting.end);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+    const start_at = new Date(meeting.start_at);
+    const end_at = new Date(meeting.end_at);
+    return total + (end_at - start_at) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const todayMeetingHours = computed(() => {
   if (!meetingStore.groupedMeetings.TODAY.length) return 0;
   return meetingStore.groupedMeetings.TODAY.reduce((total, meeting) => {
-    const start = new Date(meeting.start);
-    const end = new Date(meeting.end);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
+    const start_at = new Date(meeting.start_at);
+    const end_at = new Date(meeting.end_at);
+    return total + (end_at - start_at) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
