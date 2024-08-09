@@ -190,12 +190,12 @@ watch(() => messageStore.messages, () => {
 onMounted(() => {
   console.log('열림')
   if (stompClient && stompClient.connected) {
+    console.log('연결 되어 있음')
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
-  }
-  if (props.selectedTeamId) {
-    handleSelectTeam(props.selectedTeamId);
-  }
+  }else{
+      handleSelectTeam(props.selectedTeamId)
+    }
 });
 </script>
 
@@ -355,7 +355,8 @@ onMounted(() => {
   height: 40px;
   border-radius: 50%;
   margin: auto;
-  margin-right: 15px;
+  margin-right: 10px;
+  margin-left: 10px;
 }
 
 /* .message-content {
@@ -394,5 +395,9 @@ onMounted(() => {
 
 .message-from-me .message-content-wrapper .message-body {
   text-align: right;
+}
+
+.message-content{
+  flex-grow: 1;
 }
 </style>
