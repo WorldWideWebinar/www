@@ -80,63 +80,11 @@ const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = sessionStore.meetingId
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let mediaRecorder;
-let audioChunks = [];
-const ws = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
+let socket = null;
+let audioContext = null;
+let processor = null;
 
-ws.onopen = () => {
-  ws.send(JSON.stringify({ meetingId: meetingId}))
-  console.log('WebSocket connection established');
-};
-
-ws.onmessage = (message) => {
-  console.log('Received message:', message.data);
-};
-
-ws.onclose = () => {
-  console.log('WebSocket connection closed');
-};
-
-let processor;
-
-const startCapturingAudio = (stream) => {
-  const source = audioContext.createMediaStreamSource(stream);
-  processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-  processor.onaudioprocess = (event) => {
-    const inputData = event.inputBuffer.getChannelData(0);
-    console.log('Audio data received:', inputData.slice(0, 10));
-    const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
-    console.log('Resampled data:', resampledData.slice(0, 10));
-    sendDataToBackend(resampledData);
-  };
-
-  source.connect(processor);
-  processor.connect(audioContext.destination);
-};
-
-function resampleTo16kHz(audioData, originalSampleRate) {
-  const data = new Float32Array(audioData);
-  const targetSampleRate = 16000;
-  const resampledLength = Math.round(data.length * targetSampleRate / originalSampleRate);
-  const resampledData = new Float32Array(resampledLength);
-
-  for (let i = 0; i < resampledLength; i++) {
-    const index = i * originalSampleRate / targetSampleRate;
-    const intIndex = Math.floor(index);
-    const frac = index - intIndex;
-    resampledData[i] = data[intIndex] + frac * (data[intIndex + 1] - data[intIndex]);
-  }
-
-  return resampledData;
-}
-
-function sendDataToBackend(audioData) {
-  const arrayBuffer = audioData.buffer;
-  ws.send(arrayBuffer);
-}
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
