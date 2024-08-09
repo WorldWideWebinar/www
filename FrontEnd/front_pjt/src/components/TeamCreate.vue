@@ -468,7 +468,6 @@ body {
   cursor: pointer;
   border-radius: 20px;
   background-color: #6a1b9a;
-  font-size: 12px;
   font-weight: bold;
   padding: 12px 35px;
   letter-spacing: 1px;
@@ -500,6 +499,7 @@ body {
 
 .icon-section::-webkit-scrollbar-track, .results-overlay::-webkit-scrollbar-track {
   background-color: #f0f0f0;
+  border-radius: 5px;
 }
 
 
@@ -518,6 +518,7 @@ body {
 
 .selected-users ul::-webkit-scrollbar-track {
   background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 @media (max-width: 992px) {
