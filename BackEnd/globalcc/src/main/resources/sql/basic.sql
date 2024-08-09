@@ -136,3 +136,5 @@ ADD detail VARCHAR(255);
 
 -- uid 제약조건에 unique 추가
 ALTER TABLE user ADD CONSTRAINT unique_uid UNIQUE (uid);
+
+ALTER TABLE chat ADD COLUMN senderProfile TEXT NULL;

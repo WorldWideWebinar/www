@@ -3,6 +3,7 @@ package com.ssafy.globalcc.domain.user.service;
 import com.ssafy.globalcc.domain.user.dto.UserDto;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.entity.UserDetail;
+import com.ssafy.globalcc.domain.user.exception.NoSuchUserException;
 import com.ssafy.globalcc.domain.user.repository.UserDetailRepository;
 import com.ssafy.globalcc.domain.user.repository.UserRepository;
 import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
@@ -62,6 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean logoutUser(int userId) {
         // Redis에서 refresh token 삭제
         var result = redisOperations.delete(Integer.toString(userId));
@@ -149,5 +151,11 @@ public class UserServiceImpl implements UserService {
         // 토큰에서 userID 추출
 
         return jwtUtil.createAccessToken(id);
+    }
+
+    @Override
+    public User findUserById(int userId) {
+        return userRepository.findUserByUserId(userId)
+                .orElseThrow(() -> new NoSuchUserException("User with id " + userId + " not found"));
     }
 }

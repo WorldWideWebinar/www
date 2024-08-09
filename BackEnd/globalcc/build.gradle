@@ -59,6 +59,9 @@ dependencies {
 
 	// openvidu
 	implementation group: 'io.openvidu', name: 'openvidu-java-client', version: '2.25.0'
+
+	// deepL
+	implementation "com.deepl.api:deepl-java:1.5.0"
 }
 
 tasks.named('test') {

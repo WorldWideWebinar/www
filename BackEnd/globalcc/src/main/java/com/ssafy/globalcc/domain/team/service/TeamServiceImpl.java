@@ -1,6 +1,7 @@
 package com.ssafy.globalcc.domain.team.service;
 
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
+import com.ssafy.globalcc.domain.meeting.exception.NoSuchMeetingException;
 import com.ssafy.globalcc.domain.meeting.repository.MeetingRepository;
 import com.ssafy.globalcc.domain.team.dto.TeamDto;
 import com.ssafy.globalcc.domain.team.dto.TeamOutDto;
@@ -116,10 +117,59 @@ public class TeamServiceImpl implements TeamService{
     }
 
     @Override
+    public Team findTeamById(int teamId) {
+        return teamRepository.findById(teamId)
+                .orElseThrow(() -> new NoSuchMeetingException("Team with ID " + teamId + " not found."));
+    }
+
+    @Override
     public Team getTeamByIdAndOwnerUid(int teamId, String username) {
         Team team = teamRepository.findById(teamId).orElseThrow(NoSuchTeamException::new);
         if(!username.equals(team.getOwner().getUid())) throw new NotTeamOwnerException();
         return team;
+    }
+
+    @Override
+    @Transactional
+    public void updateTeam(int teamId, TeamDto teamDto, String ownerUid) {
+        Team team = teamRepository.findById(teamId).orElseThrow(NoSuchTeamException::new);
+
+        if (!team.getOwner().getUid().equals(ownerUid)) {
+            throw new NotTeamOwnerException();
+        }
+
+        team.setName(teamDto.getTeamName());
+        team.setEmoji(teamDto.getEmoji());
+
+        // 새로운 사용자 목록을 기반으로 UserTeam 업데이트
+        List<User> existingUsers = team.getUserTeam().stream()
+                .map(UserTeam::getUser)
+                .toList();
+
+        List<User> newUsers = userRepository.findUsersByUidIn(teamDto.getUserList());
+
+        // 새로운 유저 추가
+        List<UserTeam> newUserTeams = new ArrayList<>();
+        for (User newUser : newUsers) {
+            if (!existingUsers.contains(newUser)) {
+                newUserTeams.add(UserTeam.builder()
+                        .team(team)
+                        .user(newUser)
+                        .admission(true)
+                        .lastTime(null)
+                        .build());
+            }
+        }
+
+        // 기존 UserTeam과 비교해서 삭제된 유저 처리
+        for (User existingUser : existingUsers) {
+            if (!newUsers.contains(existingUser)) {
+                userTeamRepository.deleteByUserUserId(existingUser.getUserId(), teamId);
+            }
+        }
+        userTeamRepository.saveAll(newUserTeams);
+
+        teamRepository.save(team);
     }
 
 }
