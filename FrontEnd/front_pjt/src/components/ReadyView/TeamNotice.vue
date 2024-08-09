@@ -3,6 +3,7 @@
     <section class="notice-section">
       <div class="notice-header">
         <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
+        <button @click="checkTodayMeeting(todayMeeting)"></button>
       </div>
       <div class="notice-content">
         <div v-if="todayMeeting" class="notice-item">
@@ -22,7 +23,8 @@
               </li>
             </ul>
           </div>
-          <div class="notice-right">
+          <div class="notice-right" >
+            
             <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
             <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
               <img class="play-button" src="@/assets/img/play.png" alt="play">
@@ -111,7 +113,6 @@ const route = useRoute()
 
 const todayMeeting = computed(() => {
   const teamId = parseInt(route.params.id, 10); 
-  console.log(meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId))
   return meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId);
 });
 
@@ -262,6 +263,11 @@ const handleClickOutside = (event) => {
     closeMemberListDropdown();
   }
 };
+
+const checkTodayMeeting = () => {
+  console.log("todayMeeting: ", todayMeeting)
+  console.log("group meetings" , meetingStore.groupedMeetings)
+}
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);

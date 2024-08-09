@@ -34,10 +34,11 @@ const searchQuery = ref('');
 const showUsers = ref(false);
 const showResults = ref(false);
 const selectedUser = ref(null);
+const userId = userStore.userId
 
 const filteredUsers = computed(() =>
   userStore.userList.filter(user => 
-    user.username !== userStore.userInfo.id && // 본인의 userId를 제외
+    user.userId !== userId && 
     (user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.value.toLowerCase()))
   )

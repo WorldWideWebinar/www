@@ -56,10 +56,11 @@ const detail = ref('');
 
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
-    alert('Please fill out all required fields');
+    alert('필수 필드를 모두 입력해주세요.');
     return;
   }
 
+  // 요청을 보낼 때 사용할 객체 생성 (start, end 사용)
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
@@ -71,10 +72,26 @@ const createMeeting = async () => {
   console.log(newMeeting);
 
   try {
-    await meetingStore.addMeeting(newMeeting);
+    // Backend에 미팅 생성 요청 보내기
+    const response = await meetingStore.addMeeting(newMeeting);
+
+    if (response) {
+      // 응답을 받은 후 start, end를 start_at, end_at으로 변경
+      const savedMeeting = {
+        ...newMeeting,
+        meeting_id: response.data.result,
+        start_at: newMeeting.start,
+        end_at: newMeeting.end,
+      };
+      delete savedMeeting.start;
+      delete savedMeeting.end;
+
+      meetingStore.meetings.push(savedMeeting); // 수정된 미팅을 store에 추가
+    }
+    
     close();
   } catch (error) {
-    errorStore.showError('Error creating meeting:', error);
+    errorStore.showError('미팅 생성 중 오류 발생:', error);
   }
 };
 

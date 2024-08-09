@@ -48,7 +48,7 @@
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
                   <td>{{ meeting.start }}</td>
-                  <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td>
+                  <!-- <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td> -->
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
                     @click="selectMeeting(meeting)">
                     {{ meeting.name }}
@@ -79,7 +79,7 @@
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td>
+                  <!-- <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td> -->
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
