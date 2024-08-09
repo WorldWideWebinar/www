@@ -241,10 +241,11 @@ const sendDataToBackend = (data) => {
 
 const leaveSession = async () => {
   if (session.value) {
+    router.push({ name: 'HomeView' })
     await sessionStore.endSession(sessionStore.meetingId);
     console.log(meetingId)
-    router.push({ name: 'HomeView' })
     session.value.disconnect();   
+    socket.close()
     session.value = null;
   }
 };

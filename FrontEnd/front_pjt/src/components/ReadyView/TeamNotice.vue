@@ -23,7 +23,7 @@
           <div class="notice-right">
             <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
             <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
-              <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
+              <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
           </div>
         </div>
@@ -94,7 +94,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import clickOutsideDirective from '@/directives/clickOutsideDirective';
 
 const teamStore = useTeamStore();
@@ -102,12 +102,10 @@ const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const router = useRouter();
-const route = useRoute();
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
-const teamId = route.params.id
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];
@@ -294,6 +292,7 @@ const directives = {
 
 .no-meeting {
   margin: auto;
+  padding: 0 20px;
 }
 
 .notice-left,
@@ -471,6 +470,7 @@ const directives = {
 .members-row {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .add-member-btn {
@@ -533,5 +533,12 @@ const directives = {
   height: 100%;
   background: transparent;
   z-index: 500;
+}
+
+@media (max-width: 992px) {
+  .container {
+    width: 90%;
+    margin: auto;
+  }
 }
 </style>

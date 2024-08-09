@@ -242,7 +242,7 @@ const CreateMeeting = () => {
 .ready-page-container {
   display: flex;
   flex-direction: column;
-  min-height: 110vh;
+  min-height: 100vh;
   padding: 1rem;
   box-sizing: border-box;
   background-color: #fcf9fc;
@@ -564,6 +564,11 @@ button {
 
   .sub-container {
     width: 100%;
+  }
+
+  .main-section {
+    width: 90%;
+    margin: auto;
   }
 }
 </style>
