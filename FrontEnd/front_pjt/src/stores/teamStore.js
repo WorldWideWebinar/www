@@ -100,8 +100,7 @@ export const useTeamStore = defineStore('team', {
       } catch (error) {
         errorStore.showError(`Error editing team info: ${error.message}`)
       }
-    }
-    ,
+    },
 
     async deleteTeam(teamId) {
       const errorStore = useErrorStore(); // Access the error store
