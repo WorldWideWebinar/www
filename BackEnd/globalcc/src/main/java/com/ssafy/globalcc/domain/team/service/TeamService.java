@@ -14,6 +14,9 @@ public interface TeamService {
 
     void deleteTeam(int teamId, String username);
 
+    Team findTeamById(int teamId);
 
     Team getTeamByIdAndOwnerUid(int teamId, String username);
+
+    void updateTeam(int teamId, TeamDto teamDto, String ownerUid);
 }

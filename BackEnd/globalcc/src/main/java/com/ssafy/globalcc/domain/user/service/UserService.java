@@ -18,4 +18,5 @@ public interface UserService {
     void updateUser(UserDto user, int userId);
     void deleteUser(int userId);
     String getNewAccessTokenWithRefreshToken(int id, String refreshToken);
+    User findUserById(int userId);
 }
