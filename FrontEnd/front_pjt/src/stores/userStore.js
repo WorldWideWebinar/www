@@ -157,7 +157,6 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
-          meetingStore.clearMeetings()
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
           errorStore.showError('Log Out Successful')
@@ -238,7 +237,7 @@ export const useUserStore = defineStore('user', {
     strategies: [
       {
         key: 'userStore',
-        storage: localStorage,
+        storage: sessionStorage,
         paths: ['userId', 'userInfo', 'accessToken', 'refreshToken']
       }
     ]
