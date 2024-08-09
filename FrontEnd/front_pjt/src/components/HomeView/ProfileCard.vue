@@ -132,6 +132,7 @@ const goToUserEditView = () => {
 
 .profile-teamlist::-webkit-scrollbar-track {
   background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .profile-team li {

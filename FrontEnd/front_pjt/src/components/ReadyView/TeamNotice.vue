@@ -23,7 +23,7 @@
           <div class="notice-right">
             <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
             <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
-              <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
+              <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
           </div>
         </div>
@@ -266,6 +266,7 @@ const handleJoinConference = async (sessionName) => {
 
 .no-meeting {
   margin: auto;
+  padding: 0 20px;
 }
 
 .notice-left,
@@ -443,6 +444,7 @@ const handleJoinConference = async (sessionName) => {
 .members-row {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .add-member-btn {
@@ -505,5 +507,12 @@ const handleJoinConference = async (sessionName) => {
   height: 100%;
   background: transparent;
   z-index: 500;
+}
+
+@media (max-width: 992px) {
+  .container {
+    width: 90%;
+    margin: auto;
+  }
 }
 </style>
