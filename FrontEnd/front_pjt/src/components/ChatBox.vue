@@ -71,8 +71,8 @@ const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
 const currentUserId = userStore.userId;
-const now = Date();
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const now = new Date();
+const today = new Date();
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
