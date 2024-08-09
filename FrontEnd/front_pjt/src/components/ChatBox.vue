@@ -71,6 +71,8 @@ const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
 const currentUserId = userStore.userId;
+const now = Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
@@ -167,7 +169,15 @@ const getTeamName = (teamId) => {
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  let formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  
+  if (date >= today) {
+    return `${formattedTime}`;
+  } else {
+    const formattedDate = date.toLocaleDateString('en-GB', { month: '2-digit', day: '2-digit' });
+    return `${formattedDate} ${formattedTime}`;
+  }
 };
 
 const closeChat = () => {

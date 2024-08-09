@@ -47,14 +47,5 @@ export const useMessageStore = defineStore('message', {
       this.messages = [];
       this.nextChatId = 1; // 메시지 클리어 시 ID 초기화
     },
-    async fetchMessagesByTeamId(teamId) {
-      try {
-        console.log('스토어 진입')
-        const response = await axiosInstance.get(`/api/chats/team/${teamId}`);
-        this.setMessages(response.data);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    }
   },
 });
