@@ -62,25 +62,25 @@
           <tbody>
             <tr>
               <td><strong>Name</strong></td>
-              <td>{{ departmentName }}</td>
-            </tr>
-            <tr>
-              <td><strong>Members</strong></td>
-              <td>
-                <div class="members-row" @click="toggleMemberListDropdown">
+              <td style="position: relative;">
+                <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn" @click.stop="showInviteMemberInput = true">+</button>
+                  <button class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
                     {{ member.name }}
                   </li>
                 </ul>
-                <div v-if="showInviteMemberInput" class="invite-member-input" v-click-outside="cancelInvite">
-                  <input v-model="newMemberId" placeholder="Enter member ID" />
-                  <button @click="inviteMember">Invite</button>
-                  <button @click="cancelInvite">Cancel</button>
-                </div>
+                <transition name="slide-fade">
+                  <div v-if="showInviteMemberInput" class="invite-member-input" ref="inviteInput">
+                    <button @click="cancelInvite" class="btns btn-close"></button>
+                    <div class="invite-member-row">
+                      <input class="search-member" v-model="newMemberId" placeholder="Enter member ID" />
+                      <button @click="inviteMember" class="btns btn-invite">Invite</button>
+                    </div>
+                  </div>
+                </transition>
               </td>
             </tr>
           </tbody>
@@ -91,24 +91,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter } from 'vue-router';
-import clickOutsideDirective from '@/directives/clickOutsideDirective';
+import { useRouter, useRoute } from 'vue-router'
 
 const teamStore = useTeamStore();
-const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
-const userStore = useUserStore();
-const router = useRouter();
-const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
+const meetingStore =useMeetingStore()
 const members = computed(() => teamStore.teamUserInfo);
+const userStore = useUserStore();
+const router = useRouter();
+const route = useRoute()
+
 const todayMeeting = computed(() => {
   return meetingStore.groupedMeetings.TODAY[0];
 });
@@ -189,6 +187,10 @@ const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
 };
 
+const toggleInviteMemberInput = () => {
+  showInviteMemberInput.value = !showInviteMemberInput.value;
+};
+
 const handleStartConference = async (meetingId, sessionName) => {
   const userId = userStore.userId;
   try {
@@ -200,14 +202,13 @@ const handleStartConference = async (meetingId, sessionName) => {
     }
 
     const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token} });
+    router.push({ name: 'ConferenceView', params: { sessionId, token } });
   } catch (error) {
     console.error('Failed to start conference:', error);
   }
 };
 
 const handleJoinConference = async (sessionName) => {
-  console.log(isOwner)
   try {
     const token = await sessionStore.joinConference(sessionName);
     router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
@@ -219,9 +220,7 @@ const handleJoinConference = async (sessionName) => {
 const inviteMember = async () => {
   if (newMemberId.value) {
     try {
-      const updatedUserList = [...teamStore.currentTeam.userList, newMemberId.value];
-      await teamStore.editTeam(teamStore.currentTeam.id, departmentName.value, teamStore.currentTeam.ownerId, teamStore.currentTeam.emoji, updatedUserList);
-      await teamStore.fetchTeamById(teamStore.currentTeam.id);
+      // 초대 멤버 로직
       showInviteMemberInput.value = false;
       newMemberId.value = '';
     } catch (error) {
@@ -232,14 +231,37 @@ const inviteMember = async () => {
 
 const cancelInvite = () => {
   showInviteMemberInput.value = false;
-  newMemberId.value = ''; // 입력 필드 초기화
+  newMemberId.value = '';
 };
 
-// 커스텀 디렉티브 등록
-const directives = {
-  clickOutside: clickOutsideDirective,
+const closeMemberListDropdown = () => {
+  showMemberListDropdown.value = false;
 };
+
+const handleClickOutside = (event) => {
+  const inviteInputElement = document.querySelector('.invite-member-input');
+  const memberDropdownElement = document.querySelector('.members-dropdown');
+  
+  // 초대 입력 창 외부 클릭 시 닫기
+  if (inviteInputElement && !inviteInputElement.contains(event.target)) {
+    cancelInvite();
+  }
+
+  // 멤버 리스트 드롭다운 외부 클릭 시 닫기
+  if (memberDropdownElement && !memberDropdownElement.contains(event.target) && !event.target.closest('.members-row')) {
+    closeMemberListDropdown();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>
+
 
 <style scoped>
 .container {
@@ -494,6 +516,91 @@ const directives = {
   margin: 0 0 0 15px;
 }
 
+.invite-member-input {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btns {
+  border: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btn-close {
+  /* background-color: #6c757d; */
+  color: #5a6268;
+  font-size: xx-small;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px;
+  outline: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-close:focus,
+.btn-close:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.invite-member-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-member {
+  /* flex: 1; */
+  padding: 8px;
+  border-radius: 4px 0 0 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
+
+.btn-invite {
+  font-size: 0.6rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+  background-color: #6a1b9a;
+  padding: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-invite:hover {
+  background-color: #b380bc;
+}
+.slide-fade-enter-active, .slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-enter-from, .slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.members-dropdown {
+  padding-top: 50pz;
+}
+
 .dropdown {
   list-style: none;
   padding: 0;
@@ -542,6 +649,33 @@ const directives = {
   background: transparent;
   z-index: 500;
 }
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* 스크롤바 커스텀 */
+.members::-webkit-scrollbar, .dropdown::-webkit-scrollbar {
+  width: 12px;
+}
+
+.members::-webkit-scrollbar-thumb, .dropdown::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 5px;
+}
+
+.members::-webkit-scrollbar-thumb:hover, .dropdown::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.members::-webkit-scrollbar-track, .dropdown::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
 
 @media (max-width: 992px) {
   .container {
