@@ -5,13 +5,16 @@ import com.ssafy.globalcc.domain.team.repository.TeamRepository;
 import com.ssafy.globalcc.domain.user.dto.UserDto;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.entity.UserDetail;
+import com.ssafy.globalcc.domain.user.entity.UserTeam;
 import com.ssafy.globalcc.domain.user.exception.NoSuchUserException;
 import com.ssafy.globalcc.domain.user.repository.UserDetailRepository;
 import com.ssafy.globalcc.domain.user.repository.UserRepository;
 import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
-import com.ssafy.globalcc.domain.user.result.*;
+import com.ssafy.globalcc.domain.user.result.JwtResult;
+import com.ssafy.globalcc.domain.user.result.LoginResult;
+import com.ssafy.globalcc.domain.user.result.UserDetailResult;
+import com.ssafy.globalcc.domain.user.result.UserListResult;
 import com.ssafy.globalcc.utils.JwtUtil;
-import io.netty.util.internal.SocketUtils;
 import io.netty.util.internal.StringUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +24,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
