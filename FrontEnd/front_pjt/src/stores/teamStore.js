@@ -7,62 +7,6 @@ import axiosInstance from '@/axios';
 export const useTeamStore = defineStore('team', {
   state: () => ({
     teams: [
-      {
-        "id": 1,
-        "ownerId": 1,
-        "teamName": "R&D Management",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 2,
-        "ownerId": 1,
-        "teamName": "아주아주 긴 팀명 실험해보기",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 3,
-        "ownerId": 1,
-        "teamName": "Purchase",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 4,
-        "ownerId": 1,
-        "teamName": "abcdefghijklmnopqustuvwxyz",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 5,
-        "ownerId": 1,
-        "teamName": "가나다라마바사아자차카타파하",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 6,
-        "ownerId": 1,
-        "teamName": "Bonjour, Paris",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      },
-      {
-        "id": 7,
-        "ownerId": 1,
-        "teamName": "Last Christmas",
-        "userList": [1, 3],
-        "emoji": "🚀",
-        "meetingList": [2, 5, 7],
-      }
     ],
     teamInfo : null,
     isOwner: false,
@@ -82,7 +26,7 @@ export const useTeamStore = defineStore('team', {
       this.clearTeamUsers()
       const meetingStore = useMeetingStore(); // Access the meeting store
       const errorStore = useErrorStore(); // Access the error store
-      console.log(teamId)
+      
       try {
         // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
@@ -106,14 +50,12 @@ export const useTeamStore = defineStore('team', {
 
     async fetchTeamUsers() {
       const errorStore = useErrorStore();
-      console.log('팀원', this.teamUserList)
       try {
         // this.clearTeamUsers();
         
         const users = await Promise.all(this.teamUserList.map(async (userId) => {
           try {
             const response = await axiosInstance.get(`api/users/${userId}`);
-            console.log(response.data.result)
             return response.data.result;
           } catch (error) {
             errorStore.showError(`Failed to fetch user info for user ${userId}`);
@@ -147,6 +89,19 @@ export const useTeamStore = defineStore('team', {
         errorStore.showError(`Error creating team: ${error.message}`);
       }
     },
+
+    async editTeam(teamId, teamName, ownerId, emoji, userList,) {
+      const errorStore = useErrorStore()
+      try {
+        const response = await axiosInstance.put(`api/teams/${teamId}`, { teamName, ownerId, emoji, userList})
+        if (!response.data.success) {
+          errorStore.showError('error')
+        }
+      } catch (error) {
+        errorStore.showError(`Error editing team info: ${error.message}`)
+      }
+    }
+    ,
 
     async deleteTeam(teamId) {
       const errorStore = useErrorStore(); // Access the error store
@@ -206,4 +161,8 @@ export const useTeamStore = defineStore('team', {
       return state.teams.filter(team => team.ownerId === hostId);
     }
   }, 
+  persist: {
+    key: 'teamStore',
+    storage: sessionStorage,
+  },
 });

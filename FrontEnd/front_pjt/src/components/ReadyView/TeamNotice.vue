@@ -67,18 +67,19 @@
               <td>
                 <div class="members-row" @click="toggleMemberListDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn">+</button>
+                  <button class="add-member-btn" @click.stop="showInviteMemberInput = true">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
                     {{ member.name }}
                   </li>
                 </ul>
+                <div v-if="showInviteMemberInput" class="invite-member-input" v-click-outside="cancelInvite">
+                  <input v-model="newMemberId" placeholder="Enter member ID" />
+                  <button @click="inviteMember">Invite</button>
+                  <button @click="cancelInvite">Cancel</button>
+                </div>
               </td>
-            </tr>
-            <tr>
-              <td><strong>Created Date</strong></td>
-              <td>{{ departmentCreationDate }}</td>
             </tr>
           </tbody>
         </table>
@@ -93,16 +94,20 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import clickOutsideDirective from '@/directives/clickOutsideDirective';
+
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const router = useRouter();
-
+const route = useRoute();
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
-
+const showInviteMemberInput = ref(false);
+const newMemberId = ref('');
+const teamId = route.params.id
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];
@@ -154,7 +159,6 @@ const nextMeetingHoursPercentage = computed(() => {
 });
 
 const departmentName = computed(() => teamStore.currentTeam?.teamName || '');
-const departmentCreationDate = computed(() => teamStore.currentTeam?.createdAt || 'Unknown');
 const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
 
 const formatDate = (dateString) => {
@@ -186,7 +190,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, teamId, userId, sessionName);
     }
 
     const token = await sessionStore.joinConference(sessionId);
@@ -204,6 +208,30 @@ const handleJoinConference = async (sessionName) => {
   } catch (error) {
     console.error('Failed to join conference:', error);
   }
+};
+
+const inviteMember = async () => {
+  if (newMemberId.value) {
+    try {
+      const updatedUserList = [...teamStore.currentTeam.userList, newMemberId.value];
+      await teamStore.editTeam(teamStore.currentTeam.id, departmentName.value, teamStore.currentTeam.ownerId, teamStore.currentTeam.emoji, updatedUserList);
+      await teamStore.fetchTeamById(teamStore.currentTeam.id);
+      showInviteMemberInput.value = false;
+      newMemberId.value = '';
+    } catch (error) {
+      console.error('Failed to invite member:', error);
+    }
+  }
+};
+
+const cancelInvite = () => {
+  showInviteMemberInput.value = false;
+  newMemberId.value = ''; // 입력 필드 초기화
+};
+
+// 커스텀 디렉티브 등록
+const directives = {
+  clickOutside: clickOutsideDirective,
 };
 </script>
 
