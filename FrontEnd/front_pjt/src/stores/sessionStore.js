@@ -21,9 +21,9 @@ export const useSessionStore = defineStore('session', {
     removeStream(streamId) {
       this.streams = this.streams.filter(stream => stream.id !== streamId);
     },
-    async startConference(meetingId, teamId, userId, customSessionId) {
+    async startConference(meetingId, userId, customSessionId) {
       try {
-        const response = await axiosInstance.post(`/api/sessions/${meetingId+teamId}/${userId}`, { customSessionId });
+        const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { customSessionId });
 
         this.sessionId = response.data.result;
         this.meetingId = meetingId;
@@ -73,7 +73,7 @@ export const useSessionStore = defineStore('session', {
     },
   },
   persist: {
-    key: 'meetingStore',
+    key: 'sessionStore',
     storage: sessionStorage,
   },
 });
