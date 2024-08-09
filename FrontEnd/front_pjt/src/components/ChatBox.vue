@@ -16,7 +16,8 @@
           <button class="close-btn" @click="closeChat">✖</button>
         </div>
         <div ref="chatContent" class="chat-content">
-          <div v-for="message in messageStore.messages" :key="message.chat_id" class="chat-message" :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
+          <div v-for="message in messageStore.messages" :key="message.chat_id" class="chat-message"
+            :class="{ 'message-from-me': currentUserId == message.senderId, 'message-from-others': currentUserId != message.senderId }">
             <div v-if="currentUserId != message.senderId" style="flex-grow: 1;" class="message-content-wrapper">
               <img :src="message.senderProfile" class="profile-image" />
               <div class="message-content">
@@ -50,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMessageStore } from '@/stores/chatStore';
@@ -91,7 +92,7 @@ const setupWebSocket = (teamId) => {
     subscription.unsubscribe(); // 기존 구독 해제
     subscription = null
   }
-  
+
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -133,11 +134,11 @@ function showMessage(content) {
 
 
   const newMessage = {
-  senderId: content.senderId, // 수정된 필드 이름
-  teamId: content.teamId, // 수정된 필드 이름
-  content: content.content,
-  createdAt: content.createdAt, // 수정된 필드 이름
-  senderProfile: content.senderProfile // 수정된 필드 이름
+    senderId: content.senderId, // 수정된 필드 이름
+    teamId: content.teamId, // 수정된 필드 이름
+    content: content.content,
+    createdAt: content.createdAt, // 수정된 필드 이름
+    senderProfile: content.senderProfile // 수정된 필드 이름
   };
 
   messageStore.addMessage(newMessage);
@@ -189,14 +190,22 @@ watch(() => messageStore.messages, () => {
 
 onMounted(() => {
   console.log('열림')
-  if (stompClient && stompClient.connected) {
-    console.log('연결 되어 있음')
-    subscription.unsubscribe(); // 구독 해제
-    subscription = null; // 구독 객체 초기화
-  }else{
-      handleSelectTeam(props.selectedTeamId)
-    }
+  handleSelectTeam(props.selectedTeamId)
 });
+
+onUnmounted(() => {
+  if (stompClient && stompClient.connected) {
+    // 구독 해제 및 소켓 연결 종료
+    if (subscription) {
+      subscription.unsubscribe();
+      subscription = null;
+    }
+    stompClient.disconnect(() => {
+      console.log('WebSocket disconnected');
+    });
+  }
+});
+
 </script>
 
 
@@ -312,6 +321,25 @@ onMounted(() => {
   max-height: 300px;
 }
 
+
+.chat-content::-webkit-scrollbar {
+  width: 8px;
+  /* 스크롤바 너비 설정 */
+}
+
+.chat-content::-webkit-scrollbar-thumb {
+  background-color: #6200ea;
+  /* 스크롤바 색상 */
+  border-radius: 4px;
+  /* 스크롤바 둥근 모서리 */
+}
+
+.chat-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  /* 스크롤바 트랙 색상 */
+  border-radius: 4px;
+}
+
 .chat-input {
   display: flex;
   padding: 10px;
@@ -364,11 +392,13 @@ onMounted(() => {
 } */
 
 .message-from-me {
-  background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
+  background-color: #f9e3f8;
+  /* 사용자 보낸 메시지의 배경 색상 */
 }
 
 .message-from-others {
-  background-color: #e1e1e1; /* 다른 사용자가 보낸 메시지의 배경 색상 */
+  background-color: #e1e1e1;
+  /* 다른 사용자가 보낸 메시지의 배경 색상 */
 }
 
 .message-header {
@@ -397,7 +427,7 @@ onMounted(() => {
   text-align: right;
 }
 
-.message-content{
+.message-content {
   flex-grow: 1;
 }
 </style>
