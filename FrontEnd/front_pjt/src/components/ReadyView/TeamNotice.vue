@@ -94,7 +94,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import clickOutsideDirective from '@/directives/clickOutsideDirective';
 
 const teamStore = useTeamStore();
@@ -102,12 +102,10 @@ const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const router = useRouter();
-const route = useRoute();
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
-const teamId = route.params.id
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];
