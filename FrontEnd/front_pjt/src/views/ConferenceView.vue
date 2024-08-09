@@ -85,8 +85,8 @@ let socket = null;
 let audioContext = null;
 let processor = null;
 
-const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
-
+// const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+const isOwner = computed(() => sessionStore.meetingId != null);
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();

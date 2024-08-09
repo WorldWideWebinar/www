@@ -3,7 +3,8 @@ import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
-    meetings: [],
+    meetings: [
+    ],
     groupedMeetings: {
       PREV: [],
       TODAY: [],
@@ -70,6 +71,8 @@ export const useMeetingStore = defineStore('meeting', {
         console.error('Failed to fetch meetings:', error);
       }
     },
+
+    // async deleteMeeting()
 
     groupMeetings(prev, next) {
       if (prev) {
