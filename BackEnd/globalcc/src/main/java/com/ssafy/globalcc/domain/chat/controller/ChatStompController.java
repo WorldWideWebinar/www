@@ -97,7 +97,7 @@ public class ChatStompController {
                                     chat.setTeamId(team);
                                     chat.setSenderId(user);
                                     chat.setContent(content);
-                                    chat.setContentType(Chat.ContentType.TEXT);
+                                    chat.setContentType(Chat.ContentType.text);
                                     chat.setSenderProfile(senderProfile);
                                     chat.setCreatedAt(timestamp);
                                     return chat;
