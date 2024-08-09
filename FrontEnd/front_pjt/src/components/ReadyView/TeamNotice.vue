@@ -11,7 +11,7 @@
           </div>
           <div class="notice-middle">
             <p>
-              {{ formatDate(todayMeeting.start) }} {{ formatTime(todayMeeting.start) }} - {{ formatDate(todayMeeting.end) }} {{ formatTime(todayMeeting.end) }}
+              {{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start) }} - {{ formatDate(todayMeeting.end) }} {{ formatTime(todayMeeting.end) }}
             </p>
             <p class="before-dropdown" @click="toggleTodayMembersList">
               <!-- {{ todayMeeting.members.length }} members will join! -->
@@ -114,6 +114,7 @@ const todayMeeting = computed(() => {
 });
 
 const totalMeetingHours = computed(() => {
+  if (!meetingStore.meetings.length) return 0;
   return meetingStore.meetings.reduce((total, meeting) => {
     const start = new Date(meeting.start);
     const end = new Date(meeting.end);
@@ -122,6 +123,7 @@ const totalMeetingHours = computed(() => {
 });
 
 const prevMeetingHours = computed(() => {
+  if (!meetingStore.groupedMeetings.PREV.length) return 0;
   return meetingStore.groupedMeetings.PREV.reduce((total, meeting) => {
     const start = new Date(meeting.start);
     const end = new Date(meeting.end);
@@ -130,6 +132,7 @@ const prevMeetingHours = computed(() => {
 });
 
 const todayMeetingHours = computed(() => {
+  if (!meetingStore.groupedMeetings.TODAY.length) return 0;
   return meetingStore.groupedMeetings.TODAY.reduce((total, meeting) => {
     const start = new Date(meeting.start);
     const end = new Date(meeting.end);
@@ -138,6 +141,7 @@ const todayMeetingHours = computed(() => {
 });
 
 const nextMeetingHours = computed(() => {
+  if (!meetingStore.groupedMeetings.NEXT.length) return 0;
   return meetingStore.groupedMeetings.NEXT.reduce((total, meeting) => {
     const start = new Date(meeting.start);
     const end = new Date(meeting.end);
@@ -146,14 +150,17 @@ const nextMeetingHours = computed(() => {
 });
 
 const prevMeetingHoursPercentage = computed(() => {
+  if (totalMeetingHours.value === 0) return 0;
   return (prevMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
 const todayMeetingHoursPercentage = computed(() => {
+  if (totalMeetingHours.value === 0) return 0;
   return (todayMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
 const nextMeetingHoursPercentage = computed(() => {
+  if (totalMeetingHours.value === 0) return 0;
   return (nextMeetingHours.value / totalMeetingHours.value) * 100;
 });
 
