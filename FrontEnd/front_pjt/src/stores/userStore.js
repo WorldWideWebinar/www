@@ -114,26 +114,14 @@ export const useUserStore = defineStore('user', {
       const errorStore = useErrorStore()
       const teamStore = useTeamStore()
       const meetingStore = useMeetingStore()
-      try {
-        const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
+      const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
+      this.userId = 0
+      this.userInfo = {}
+      this.accessToken = null
+      this.refreshToken = null
+      teamStore.clearTeams()
+      teamStore.clearTeamUsers()
 
-        if (response.data.success) {
-          // 사용자 정보를 초기화
-          this.userId = 0
-          this.userInfo = {}
-          this.accessToken = null
-          this.refreshToken = null
-          teamStore.clearTeams()
-          teamStore.clearTeamUsers()
-          errorStore.showError('Log Out Successful')
-          router.replace({ name: 'HomeView' })
-        } else {
-          return { success: false, message: response.data.message }
-        }
-      } catch (error) {
-        errorStore.showError('Failed to sign out')
-        return { success: false, message: error.message }
-      }
     },
 
     async checkIdDuplication(id) {

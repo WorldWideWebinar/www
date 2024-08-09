@@ -4,39 +4,6 @@ import axiosInstance from '@/axios'
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
     meetings: [
-      {
-        "meeting_id": 1,
-        "team_id": 10,
-        "name": "프로젝트 아이디어 회의",
-        "start_at": "2024-07-17 9:00:00",
-        "end_at": "2024-07-17 11:00:00",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00"
-      },
-      {
-        "meeting_id": 1,
-        "team_id": 10,
-        "name": "프로젝트 아이디어 회의",
-        "start_at": "2024-08-09 9:00:00",
-        "end_at": "2024-08-17 11:00:00",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00"
-      },
-      {
-        "meeting_id": 1,
-        "team_id": 10,
-        "name": "프로젝트 아이디어 회의",
-        "start_at": "2024-09-07 9:00:00",
-        "end_at": "2024-09-17 11:00:00",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00"
-      }
     ],
     groupedMeetings: {
       PREV: [],
@@ -104,6 +71,8 @@ export const useMeetingStore = defineStore('meeting', {
         console.error('Failed to fetch meetings:', error);
       }
     },
+
+    // async deleteMeeting()
 
     groupMeetings(prev, next) {
       if (prev) {
