@@ -46,7 +46,7 @@ export const useMeetingStore = defineStore('meeting', {
       }
     },
 
-    async fetchMeetings(teamId, prev = 0, next = 0) {
+    async fetchMeetings(teamId, prev = false, next = false) {
       try {
         const today = new Date().toISOString();
 
@@ -65,22 +65,35 @@ export const useMeetingStore = defineStore('meeting', {
 
         this.meetings.push(...filteredMeetings);
 
-        this.groupMeetings();
-
+        this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
       } catch (error) {
         console.error('Failed to fetch meetings:', error);
       }
     },
-    groupMeetings() {
-      const today = new Date().toISOString().split('T')[0];
-      this.groupedMeetings.PREV = this.meetings.filter(meeting => meeting.end_at.split('T')[0] < today);
-      this.groupedMeetings.TODAY = this.meetings.filter(meeting => meeting.start_at.split('T')[0] === today);
-      this.groupedMeetings.NEXT = this.meetings.filter(meeting => meeting.start_at.split('T')[0] > today);
+
+    groupMeetings(prev, next) {
+      if (prev) {
+        this.groupedMeetings.PREV = [...this.meetings];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [];
+      } else if (next) {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [...this.meetings];
+      } else {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [...this.meetings];
+        this.groupedMeetings.NEXT = [];
+      }
     }
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter((meeting) => meeting.team_id === teamId)
     }
-  }
+  },
+  persist: {
+    key: 'meetingStore',
+    storage: sessionStorage,
+  },
 })
