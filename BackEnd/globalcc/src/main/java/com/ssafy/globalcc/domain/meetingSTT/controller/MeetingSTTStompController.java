@@ -47,16 +47,17 @@ public class MeetingSTTStompController {
         if(redisLastSegmentTime != null) {
             lastSegmentTime = Float.parseFloat(redisLastSegmentTime);
         }
-        log.info("lsatSegmentTime : {}", lastSegmentTime);
+        log.info("lastSegmentTime : {}", lastSegmentTime);
         for(int i = 0; i < request.getSegments().size(); i++){
             MeetingSTTSegment segment = request.getSegments().get(i);
+            log.info("segment: {}" , segment);
             if (i == request.getSegments().size() - 1){
                 if (segment.getEnd() > lastSegmentTime){
                     redisTemplate.opsForValue().set(redisKeyForLastSegmentTime,String.valueOf(segment.getEnd()));
                 }
             }else if(segment.getStart() >= lastSegmentTime) {
                 log.info("----------saving to redis --------");
-                log.info("segment: {}" , segment.getText());
+
                 redisTemplate.opsForList().rightPush(redisKey, segment.getText());
             }
         }
