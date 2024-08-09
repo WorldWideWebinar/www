@@ -190,7 +190,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, teamId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
     }
 
     const token = await sessionStore.joinConference(sessionId);
