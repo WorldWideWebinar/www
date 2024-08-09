@@ -94,7 +94,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUserStore } from '@/stores/userStore';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import clickOutsideDirective from '@/directives/clickOutsideDirective';
 
 const teamStore = useTeamStore();
@@ -102,12 +102,12 @@ const meetingStore = useMeetingStore();
 const sessionStore = useSessionStore();
 const userStore = useUserStore();
 const router = useRouter();
-
+const route = useRoute();
 const showTodayMembersList = ref(false);
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
-
+const teamId = route.params.id
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
   const today = new Date().toISOString().split('T')[0];
@@ -190,7 +190,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, teamId, userId, sessionName);
     }
 
     const token = await sessionStore.joinConference(sessionId);
