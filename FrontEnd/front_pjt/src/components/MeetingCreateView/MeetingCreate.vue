@@ -37,11 +37,12 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useErrorStore } from '@/stores/errorStore'
 
 const route = useRoute();
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-
+const errorStore = useErrorStore();
 const teamId = computed(() => parseInt(route.params.id, 10));
 const teamName = computed(() => {
   const team = teamStore.teams.find(team => team.id === teamId.value);
@@ -71,11 +72,9 @@ const createMeeting = async () => {
 
   try {
     await meetingStore.addMeeting(newMeeting);
-    alert('Meeting created successfully');
     close();
   } catch (error) {
-    console.error('Error creating meeting:', error);
-    alert('Error creating meeting');
+    errorStore.showError('Error creating meeting:', error);
   }
 };
 

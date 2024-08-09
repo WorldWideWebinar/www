@@ -5,7 +5,7 @@
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
       </span>
     </header>
-    
+
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <TeamNotice />
@@ -26,9 +26,37 @@
               <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
-          <MeetingList :activeTab="activeTab" />
+          <!-- Meeting List -->
+          <div>
+            <table class="meeting-list">
+              <thead>
+                <tr>
+                  <th>DATE</th>
+                  <th>TIME</th>
+                  <th>AGENDA</th>
+                  <th>JOIN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="meeting in filteredMeetings" :key="meeting.id">
+                  <td>{{ meeting.start.split('T')[0] }}</td>
+                  <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td>
+                  <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
+                    @click="selectMeeting(meeting)">
+                    {{ meeting.name }}
+                  </td>
+                  <td>
+                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
+                      {{ buttonText(meeting.status) }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
+        <!-- Meeting Details -->
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
@@ -39,11 +67,11 @@
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[0] }}</td>
+                  <td>{{ selectedMeeting?.start.split('T')[0] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[1] }} - {{ selectedMeeting?.end_at.split('T')[1] }}</td>
+                  <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -110,14 +138,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
-import MeetingList from '@/components/ReadyView/MeetingList.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
@@ -125,7 +151,6 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
 const inConference = ref(false);
 const selectedMeeting = ref(null);
 const detailType = ref('');
@@ -135,12 +160,21 @@ const showOverlay = ref(false);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
-const meetingCreateModal = ref(false)
+const meetingCreateModal = ref(false);
 
 const members = computed(() => teamStore.teamUserInfo);
-const meetings = computed(() => {
+
+const filteredMeetings = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  return meetingStore.meetings.filter(meeting => meeting.team_id === teamId);
+
+  if (activeTab.value === 'PREV') {
+    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'TODAY') {
+    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'NEXT') {
+    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
+  }
+  return [];
 });
 
 const departmentName = computed(() => {
@@ -208,15 +242,24 @@ onMounted(async () => {
 });
 
 const selectMeeting = (meeting) => {
+  console.log(meeting);
+
+  // meeting이 속한 그룹을 확인하고 detailType 설정
+  if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
+    detailType.value = 'PREV';
+  } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
+    detailType.value = 'TODAY';
+  } else if (meetingStore.groupedMeetings.NEXT.includes(meeting)) {
+    detailType.value = 'NEXT';
+  }
+
   selectedMeeting.value = meeting;
-  detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
   previewUrl.value = null;
   showOverlay.value = true;
 };
-
 const closeMeetingDetails = () => {
   selectedMeeting.value = null;
   selectedMeetingMembers.value = [];
@@ -224,13 +267,6 @@ const closeMeetingDetails = () => {
   showFilesList.value = false;
   previewUrl.value = null;
   showOverlay.value = false;
-};
-
-const computeDetailType = (start_at) => {
-  const today = new Date().toISOString().split('T')[0];
-  if (start_at.split('T')[0] === today) return 'TODAY';
-  if (start_at.split('T')[0] > today) return 'NEXT';
-  return 'PREV';
 };
 
 const CreateMeeting = () => {

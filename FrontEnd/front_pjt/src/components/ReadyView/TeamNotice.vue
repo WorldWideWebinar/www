@@ -10,7 +10,9 @@
             <p class="bold">{{ todayMeeting.name }}</p>
           </div>
           <div class="notice-middle">
-            <p>{{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}</p>
+            <p>
+              {{ formatDate(todayMeeting.start) }} {{ formatTime(todayMeeting.start) }} - {{ formatDate(todayMeeting.end) }} {{ formatTime(todayMeeting.end) }}
+            </p>
             <p class="before-dropdown" @click="toggleTodayMembersList">
               <!-- {{ todayMeeting.members.length }} members will join! -->
             </p>
@@ -108,38 +110,37 @@ const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const todayMeeting = computed(() => {
-  const today = new Date().toISOString().split('T')[0];
-  return meetingStore.meetings.find((meeting) => meeting.start_at.split('T')[0] === today);
+  return meetingStore.groupedMeetings.TODAY[0];
 });
 
 const totalMeetingHours = computed(() => {
   return meetingStore.meetings.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
+    const start = new Date(meeting.start);
+    const end = new Date(meeting.end);
     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const prevMeetingHours = computed(() => {
   return meetingStore.groupedMeetings.PREV.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
+    const start = new Date(meeting.start);
+    const end = new Date(meeting.end);
     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const todayMeetingHours = computed(() => {
   return meetingStore.groupedMeetings.TODAY.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
+    const start = new Date(meeting.start);
+    const end = new Date(meeting.end);
     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
 
 const nextMeetingHours = computed(() => {
   return meetingStore.groupedMeetings.NEXT.reduce((total, meeting) => {
-    const start = new Date(meeting.start_at);
-    const end = new Date(meeting.end_at);
+    const start = new Date(meeting.start);
+    const end = new Date(meeting.end);
     return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
   }, 0);
 });
