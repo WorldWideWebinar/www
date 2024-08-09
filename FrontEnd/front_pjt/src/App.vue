@@ -8,16 +8,8 @@
       </div>
       <div class="nav-container flex-grow-1">
         <ul class="nav flex-column">
-          <li 
-          class="nav-item" 
-          v-for="team in teams" 
-          :key="team.id"
-          >
-            <RouterLink 
-              class="nav-link" 
-              :to="{ name: 'ReadyView', params: { id: team.id } }" 
-              active-class="active"
-              >
+          <li class="nav-item" v-for="team in teams" :key="team.id">
+            <RouterLink class="nav-link" :to="{ name: 'ReadyView', params: { id: team.id } }" active-class="active">
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
@@ -37,7 +29,7 @@
       <RouterView />
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId"/>
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId" />
     <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
@@ -119,6 +111,12 @@ onMounted(() => {
   watch(teams, checkScroll, { immediate: true })
   window.addEventListener('resize', checkScroll)
 })
+
+watch(isLogin, (newValue, oldValue) => {
+  if (oldValue && !newValue) {
+    isChatOpen.value = false;
+  }
+});
 </script>
 
 <style scoped>
@@ -161,11 +159,13 @@ onMounted(() => {
 
 .sidebar .btn-home {
   margin: 0px auto;
-  padding: 0px 5px; /* 간격 조정 */
+  padding: 0px 5px;
+  /* 간격 조정 */
 }
 
 .sidebar .btn-home img {
-  width: 60px; /* 크기 조정 */
+  width: 60px;
+  /* 크기 조정 */
   margin: 5px auto;
 }
 
@@ -179,7 +179,8 @@ onMounted(() => {
 /* 팀 목록 */
 .nav-container {
   flex-grow: 1;
-  overflow-y: auto; /* 세로 스크롤 가능 */
+  overflow-y: auto;
+  /* 세로 스크롤 가능 */
   position: relative;
 }
 
@@ -224,17 +225,23 @@ li.nav-item {
 .sidebar .link-text {
   margin-top: 0.2rem;
   font-size: 0.7rem;
-  word-wrap: break-word; /* 길면 줄바꿈 */
-  overflow: hidden; /* 넘치는 부분 숨기기 */
-  text-overflow: ellipsis; /* 넘치는 부분을 생략(...)으로 표시 */
-  max-width: 85%; /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
+  word-wrap: break-word;
+  /* 길면 줄바꿈 */
+  overflow: hidden;
+  /* 넘치는 부분 숨기기 */
+  text-overflow: ellipsis;
+  /* 넘치는 부분을 생략(...)으로 표시 */
+  max-width: 85%;
+  /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
   display: block;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 표시할 최대 줄 수 */
+  -webkit-line-clamp: 2;
+  /* 표시할 최대 줄 수 */
   -webkit-box-orient: vertical;
   line-clamp: 2;
   box-orient: vertical;
-  white-space: normal; /* 두 줄로 표시 */
+  white-space: normal;
+  /* 두 줄로 표시 */
 }
 
 .btn-icon {
