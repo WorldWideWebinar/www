@@ -63,6 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean logoutUser(int userId) {
         // Redis에서 refresh token 삭제
         var result = redisOperations.delete(Integer.toString(userId));
