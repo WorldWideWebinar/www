@@ -3,6 +3,7 @@ package com.ssafy.globalcc.domain.meetingSTT.controller;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.repository.MeetingRepository;
 import com.ssafy.globalcc.domain.meetingSTT.dto.request.MeetingSTTRequest;
+import com.ssafy.globalcc.domain.meetingSTT.dto.request.MeetingSTTSegment;
 import com.ssafy.globalcc.domain.meetingSTT.dto.response.MeetingSTTResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.repository.MeetingSTTRepository;
@@ -21,6 +22,7 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
+    private static final Logger log = LoggerFactory.getLogger(MeetingSTTStompController.class);
     private final RabbitTemplate rabbitTemplate;
 
     private static final String EXCHANGE_NAME = "meetingSTT.exchange";
@@ -28,7 +30,7 @@ public class MeetingSTTStompController {
     private final MeetingSTTRepository meetingSTTRepository;
     private final MeetingRepository meetingRepository;
     private final RedisTemplate<String, String> redisTemplate;
-
+    private final float MIN_LAST = -1f;
     @MessageMapping("meetingSTT.{meetingId}")
     public void share(
             @DestinationVariable("meetingId") final Integer meetingId,
@@ -37,9 +39,30 @@ public class MeetingSTTStompController {
         //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
 
         String redisKey = "MeetingSTT:" + meetingId;
-        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
-
-        MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent());
+        String redisKeyForLastSegmentTime = "MeetingSTT_lastSegmentTime:" + meetingId;
+        String redisLastSegmentTime = redisTemplate.opsForValue().get(redisKeyForLastSegmentTime);
+        float lastSegmentTime = MIN_LAST;
+        if(redisLastSegmentTime != null) {
+            lastSegmentTime = Float.parseFloat(redisLastSegmentTime);
+        }
+        log.info("lastSegmentTime : {}", lastSegmentTime);
+        if(request.getSegments().size() > 1){
+            for(int i = 0; i < request.getSegments().size(); i++){
+                MeetingSTTSegment segment = request.getSegments().get(i);
+                log.info("segment: {}" , segment);
+                if (i == request.getSegments().size() - 1){
+                    if (segment.getEnd() > lastSegmentTime){
+                        redisTemplate.opsForValue().set(redisKeyForLastSegmentTime,String.valueOf(segment.getEnd()));
+                    }
+                }else if(segment.getStart() >= lastSegmentTime) {
+                    log.info("----------saving to redis --------");
+                    redisTemplate.opsForList().rightPush(redisKey, segment.getText());
+                }
+            }
+        }
+//        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
+        log.info("received request: {}", request);
+        MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent(),request.getSegments());
         rabbitTemplate.convertAndSend(
                 EXCHANGE_NAME, ROUTING_KEY + meetingId, response
         );
