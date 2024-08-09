@@ -70,8 +70,8 @@ const fetchUserTeams = async () => {
     await userStore.fetchUserInfo(userStore.userId)
     const userInfo = userStore.userInfo
     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-      console.log('Teams:', teamStore.teams)
+      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id === teamId));
+      await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
     hasFetchedUserInfo.value = true;
     userStore.fetchAllUsers();

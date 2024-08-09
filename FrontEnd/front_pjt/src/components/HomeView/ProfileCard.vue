@@ -1,15 +1,16 @@
 <template>
   <div class="profile-card-outer">
     <div class="profile-card-inner">
-      <img :src="profileImage" alt="Profile Image" class="profile-image" />
+      <!-- <img :src="profileImage" alt="Profile Image" class="profile-image" /> -->
+      <img src="../../assets/img/profile.png" alt="Profile Image" class="profile-image">
       <div class="profile-name">{{ name }}</div>
       <div class="profile-time">
-        <span style="font-weight: bold;">Total Meeting Time</span><br>
-        <span>{{ totalMeetingTime }} hours</span>
+        <span class="profile-header">Total Meeting Time</span><br>
+        <span class="profile-detail">{{ totalMeetingTime }} hours</span>
       </div>
       <div class="profile-team">
-        <span style="font-weight: bold;">Teams</span>
-        <ul>
+        <span class="profile-header">Teams</span>
+        <ul class="profile-detail profile-teamlist">
           <li v-for="team in hostedTeams" :key="team.id">{{ team.teamName }}</li>
         </ul>
       </div>
@@ -62,7 +63,7 @@ const goToUserEditView = () => {
 .profile-card-inner {
   background-color: #fff;
   height: 526px; /* 높이 조정 */
-  padding: 40px 60px;
+  padding: 30px 40px 60px;
   text-align: center;
   margin: 0px auto;
   border-radius: 20px;
@@ -71,40 +72,66 @@ const goToUserEditView = () => {
 }
 
 .profile-image {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   border: 1px solid black;
 }
 
 .profile-name {
   font-size: 1.2rem;
   font-weight: bolder;
-  padding-bottom: 20px;
+  padding-bottom: 15px;
   border-bottom: 2px dashed lightgray;
 }
 
 .profile-time {
   margin: 20px auto;
-  padding: 10px;
-  padding-bottom: 30px;
+  padding: 0px;
+  padding-bottom: 15px;
   border-bottom: 2px dashed lightgray;
+}
+
+.profile-header {
+  font-weight: bold;
+}
+
+.profile-detail {
+  font-size: 0.9rem;
+  margin: 10px auto;
 }
 
 .profile-team {
   margin: 10px auto;
-  max-height: calc(100% - 300px); /* 이미지, 이름, 타임, 마진 등을 제외한 높이 */
   padding: 0px;
-  overflow-y: auto; /* 스크롤 추가 */
+  padding-bottom: 0px;
   text-align: center;
-  scrollbar-width: thin;
+  height: 130px;
 }
 
-.profile-team ul {
-  margin-top: 10px;
-  padding-bottom: 15px;
+.profile-teamlist {
+  overflow-y: auto; /* 스크롤 추가 */
+  height: 80px;
+  margin-bottom: 5px;
+}
+
+.profile-teamlist::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-teamlist::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.profile-teamlist::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.profile-teamlist::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
 }
 
 .profile-team li {
@@ -113,5 +140,25 @@ const goToUserEditView = () => {
   text-align: center;
   margin-left: -25px;
   padding: 0px 15px;
+  font-size: 0.8rem;
+}
+
+.profile-edit-button {
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #6a1b9a;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 35px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+}
+
+.profile-edit-button:hover {
+  background-color: #b380bc;
 }
 </style>

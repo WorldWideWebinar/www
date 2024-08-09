@@ -26,7 +26,7 @@ export const useTeamStore = defineStore('team', {
       this.clearTeamUsers()
       const meetingStore = useMeetingStore(); // Access the meeting store
       const errorStore = useErrorStore(); // Access the error store
-      console.log(teamId)
+      
       try {
         // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
@@ -50,14 +50,12 @@ export const useTeamStore = defineStore('team', {
 
     async fetchTeamUsers() {
       const errorStore = useErrorStore();
-      console.log('팀원', this.teamUserList)
       try {
         // this.clearTeamUsers();
         
         const users = await Promise.all(this.teamUserList.map(async (userId) => {
           try {
             const response = await axiosInstance.get(`api/users/${userId}`);
-            console.log(response.data.result)
             return response.data.result;
           } catch (error) {
             errorStore.showError(`Failed to fetch user info for user ${userId}`);
@@ -150,4 +148,8 @@ export const useTeamStore = defineStore('team', {
       return state.teams.filter(team => team.ownerId === hostId);
     }
   }, 
+  persist: {
+    key: 'teamStore',
+    storage: sessionStorage,
+  },
 });
