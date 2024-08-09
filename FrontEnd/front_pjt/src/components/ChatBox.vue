@@ -35,7 +35,7 @@
                 </div>
                 <div class="message-body">{{ message.content }}</div>
               </div>
-              <img :src="message.sender_profile" class="profile-image" />
+              <img :src="message.senderProfile" class="profile-image" />
             </div>
           </div>
         </div>
@@ -87,8 +87,11 @@ const handleSelectTeam = async (teamId) => {
 
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected && subscription) {
+    console.log('해제')
     subscription.unsubscribe(); // 기존 구독 해제
+    subscription = null
   }
+  
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
   stompClient.connect(
@@ -142,7 +145,7 @@ function showMessage(content) {
 
 const backToTeamList = () => {
   emit('selectTeam', null);
-  if (subscription) {
+  if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
   }
@@ -186,6 +189,10 @@ watch(() => messageStore.messages, () => {
 
 onMounted(() => {
   console.log('열림')
+  if (stompClient && stompClient.connected) {
+    subscription.unsubscribe(); // 구독 해제
+    subscription = null; // 구독 객체 초기화
+  }
   if (props.selectedTeamId) {
     handleSelectTeam(props.selectedTeamId);
   }
@@ -351,9 +358,9 @@ onMounted(() => {
   margin-right: 15px;
 }
 
-.message-content {
+/* .message-content {
   flex-grow: 1;
-}
+} */
 
 .message-from-me {
   background-color: #f9e3f8; /* 사용자 보낸 메시지의 배경 색상 */
