@@ -4,20 +4,16 @@ import com.ssafy.globalcc.aop.ApiResponse;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDetailsDto;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingDto;
 import com.ssafy.globalcc.domain.meeting.dto.MeetingListDto;
-import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.exception.NoSuchMeetingException;
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
 import com.ssafy.globalcc.domain.team.exception.NoSuchTeamException;
 import com.ssafy.globalcc.domain.team.exception.NotTeamOwnerException;
 import com.ssafy.globalcc.domain.user.dto.SecurityUser;
-import com.ssafy.globalcc.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
@@ -62,7 +58,7 @@ public class MeetingController {
                                             @RequestParam boolean prev,
                                             @RequestParam boolean next) {
         MeetingListDto dto = new MeetingListDto(teamId,today,prev,next);
-        List<MeetingDetailsDto> list = meetingService.findMEetingListByDto(dto);
+        List<MeetingDetailsDto> list = meetingService.findMeetingListByDto(dto);
         return new ResponseEntity<>(ApiResponse.success(list,"미팅 리스트 조회 성공!"),HttpStatus.OK);
     }
 

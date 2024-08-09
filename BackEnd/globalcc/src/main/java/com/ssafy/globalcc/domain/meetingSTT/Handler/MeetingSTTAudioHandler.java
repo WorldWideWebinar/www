@@ -44,8 +44,8 @@ public class MeetingSTTAudioHandler extends AbstractWebSocketHandler {
 
                @Override
                public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-                   log.info("Connection closed : {}", closeStatus);
-                    if(!clientSocketSession.isOpen()){
+                   log.info("GPU Connection closed : {}", closeStatus);
+                    if(clientSocketSession.isOpen()){
                         clientSocketSession.close(closeStatus);
                     }
                }
@@ -79,5 +79,20 @@ public class MeetingSTTAudioHandler extends AbstractWebSocketHandler {
     public void handleTransportError(WebSocketSession session, Throwable exception) throws IOException {
         log.error("Transport error with client and Java", exception);
 
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        log.info("Client Connection closed : {}", status);
+        if(clientSocketSession != null && gpuSocketSession != null && gpuSocketSession.isOpen()) {
+            gpuSocketSession.close(status);
+        }
+
+    }
+
+    private void  closeGPUSocket() throws IOException {
+        if( gpuSocketSession != null && gpuSocketSession.isOpen()) {
+            gpuSocketSession.close();
+        }
     }
 }

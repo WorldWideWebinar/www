@@ -177,7 +177,7 @@ public class MeetingServiceImpl implements MeetingService{
     }
 
     @Override
-    public List<MeetingDetailsDto> findMEetingListByDto(MeetingListDto dto) {
+    public List<MeetingDetailsDto> findMeetingListByDto(MeetingListDto dto) {
         LocalDate today = dto.getToday().toLocalDate();
         List<Meeting> list = null;
         if(dto.isNext()) list = meetingRepository.findMeetingsByTeamIdAndStartAtAfter(dto.getTeamId(),today);
