@@ -161,7 +161,7 @@ export const useUserStore = defineStore('user', {
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
           errorStore.showError('Log Out Successful')
-          router.push({ name: 'HomeView' })
+          router.replace({ name: 'HomeView' })
         } else {
           return { success: false, message: response.data.message }
         }
