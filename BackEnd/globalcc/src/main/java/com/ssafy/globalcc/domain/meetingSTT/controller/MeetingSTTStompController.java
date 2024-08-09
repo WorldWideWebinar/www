@@ -58,7 +58,6 @@ public class MeetingSTTStompController {
                 redisTemplate.opsForList().rightPush(redisKey, segment.getText());
             }
         }
-        redisTemplate.opsForValue().set("MeetingSTT_lastSegmentTime:" + meetingId, String.valueOf(lastSegmentTime));
 
         redisTemplate.opsForList().rightPush(redisKey, request.getContent());
         log.info("received request: {}", request);
