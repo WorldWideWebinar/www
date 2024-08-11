@@ -30,6 +30,8 @@ public class MeetingSTTStompController {
 
     private static final String EXCHANGE_NAME = "meetingSTT.exchange";
     private static final String ROUTING_KEY = "meetingSTT.key";
+    private final String LAST_SEGMENT_TIME_KEY = "MeetingSTT_lastSegmentTime:";
+    private final String LAST_SEGMENT_KEY = "MeetingSTT_lastSegment:";
     private final MeetingSTTRepository meetingSTTRepository;
     private final MeetingRepository meetingRepository;
     private final RedisTemplate<String, String> redisTemplate;
@@ -41,7 +43,8 @@ public class MeetingSTTStompController {
     ) {
         //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
         String redisKey = "MeetingSTT:" + meetingId;
-        String redisKeyForLastSegmentTime = "MeetingSTT_lastSegmentTime:" + meetingId;
+        String redisKeyForLastSegmentTime = LAST_SEGMENT_TIME_KEY + meetingId;
+        String redisKeyForLastSegment = LAST_SEGMENT_KEY + meetingId;
         String redisLastSegmentTime = redisTemplate.opsForValue().get(redisKeyForLastSegmentTime);
         float lastSegmentTime = MIN_LAST;
         if(redisLastSegmentTime != null) {
@@ -51,9 +54,14 @@ public class MeetingSTTStompController {
         for(int i = 0; i < request.getSegments().size(); i++){
             MeetingSTTSegment segment = request.getSegments().get(i);
             log.info("segment: {}" , segment);
-            redisTemplate.opsForValue().set(redisKey + String.valueOf(segment.getStart()), segment.getText());
+            if(i == request.getSegments().size() - 1){
+                redisTemplate.opsForValue().set(redisKeyForLastSegment, segment.getText());
+            } else if (segment.getStart() >= lastSegmentTime) {
+                redisTemplate.opsForList().rightPush(redisKey, segment.getText());
+                lastSegmentTime = segment.getEnd();
+            }
         }
-
+        redisTemplate.opsForValue().set(redisKeyForLastSegmentTime, String.valueOf(lastSegmentTime));
 //        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
         log.info("received request: {}", request);
         MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent(),request.getSegments());
@@ -83,7 +91,16 @@ public class MeetingSTTStompController {
                             })
                             .toList();
                     meetingSTTRepository.saveAll(meetingSTTList);
-
+//                    Save Last Segment when meeting is end
+//                        String lastKey = LAST_SEGMENT_KEY + meetingId;
+//                    String lastTimeKey = LAST_SEGMENT_TIME_KEY + meetingId;
+//                    String lastSTT = redisTemplate.opsForValue().get(lastKey);
+//                    MeetingSTT stt = new MeetingSTT();
+//                    stt.setMeeting(meeting);
+//                    stt.setContent(lastSTT);
+//                    meetingSTTRepository.save(stt);
+//                    redisTemplate.delete(lastKey);
+//                    redisTemplate.delete(lastTimeKey);
                     redisTemplate.delete(key);
                 }
             }
