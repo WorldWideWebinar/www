@@ -47,13 +47,18 @@ function changeLanguage(event) {
 }
 
 watch(passwordConfirmation, (newVal) => {
-  if (newVal) {
-    if (password.value !== newVal) {
-      errorMessage.value = 'Passwords do not match';
-    } else {
-      errorMessage.value = '';
-    }
+  if (newVal && password.value !== newVal) {
+    errorMessage.value = 'Passwords do not match';
+  } else {
+    errorMessage.value = '';
   }
+});
+
+watch(id, async (newId) => {
+  if (newId) {
+    idCheck.value = false;
+    idCheckMessage.value = ''; 
+    await checkId(); 
 });
 
 async function checkId() {
@@ -86,11 +91,11 @@ async function handleSignUp() {
     id: id.value,
     email: email.value,
     password: password.value,
-    language: selectedLanguage.value
+    language: selectedLanguage.value,
   };
 
   const result = await userStore.signUp(signUpData);
-  if (result.success == true) {
+  if (result.success) {
     alert('Sign up successful');
     router.push({ name: 'HomeView' });
   } else {

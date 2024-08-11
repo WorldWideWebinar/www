@@ -90,16 +90,21 @@ const goingHome = () => {
 
 const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
-    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-      console.log('Teams:', teamStore.teams)
-    }
-    hasFetchedUserInfo.value = true
-  }
-}
+    await userStore.fetchUserInfo(userStore.userId);
+    const userInfo = userStore.userInfo;
 
+    if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
+      // 기존에 없는 팀들만 가져오기
+      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id === teamId));
+
+      // 중복되지 않는 팀만 추가
+      await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
+    }
+
+    hasFetchedUserInfo.value = true;
+    userStore.fetchAllUsers();
+  }
+};
 onMounted(async () => {
   await fetchUserTeams()
 })
