@@ -5,14 +5,7 @@
     </header>
     <main class="main-content">
       <div class="left-side">
-        <div class="participant" v-for="participant in participants" :key="participant.name">
-          <div class="participant-video">
-            <img :src="participant.avatar" alt="participant avatar" />
-          </div>
-          <div class="participant-info">
-            <span>{{ participant.name }}</span>
-          </div>
-        </div>
+        <user-video v-for="participant in participants" :key="participant.id" :stream-manager="participant.streamManager" />
       </div>
       <div class="center">
         <div class="upper-section">
@@ -20,60 +13,20 @@
             <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
           </div>
           <div class="right-side">
-            <div class="participant">
-              <div class="participant-video">
-                <!-- <img src="https://via.placeholder.com/150x110" alt="Your avatar" /> -->
-                <div id="video-container"></div>
-              </div>
-              <div class="participant-info">
-                <span>나</span>
-              </div>
-            </div>
+            <user-video :stream-manager="myStreamManager" />
           </div>
         </div>
         <div class="translation-container">
           <div class="translation-section original">
             <h5>Original Version</h5>
             <div class="translation-content">
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>Robert</strong>
-                  <div class="language"><span>🌐 영어</span></div>
-                </div>
-                <div class="message">
-                  <span>Please brief me on this month’s inventory status.</span>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>Lisa</strong>
-                  <div class="language"><span>🌐 중국어</span></div>
-                </div>
-                <div class="message">
-                  <span>包括预计明天到益山港的400吨在内，共有5600吨。这个季度的生产没有问题。</span>
-                </div>
-              </div>
+              <!-- Original messages -->
             </div>
           </div>
           <div class="translation-section">
             <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
             <div class="translation-content">
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>로버트</strong>
-                </div>
-                <div class="message">
-                  <span>이번달 재고 현황에 대해 브리핑 부탁해.</span>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="speaker-info">
-                  <strong>리사</strong>
-                </div>
-                <div class="message">
-                  <span>내일 부산항에 도착 예정인 400톤을 포함하면 총 5600톤이야. 이번 분기 생산에는 문제 없을 것으로 예상돼.</span>
-                </div>
-              </div>
+              <!-- Translated messages -->
             </div>
           </div>
         </div>
@@ -84,7 +37,7 @@
           </div>
           <div class="footer-center">
             <span style="font-weight: bold;">Attendance</span>
-            <span>4 / 6</span>
+            <span>{{ participants.length }} / 6</span>
           </div>
           <div class="footer-right">
             <span>Invite Alex, Joy</span>
@@ -96,96 +49,163 @@
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
       <button class="btn-icon" @click="leaveSession">🔄</button>
+      <button class="btn-icon" @click="endConference">❌</button>
     </div>
   </div>
 </template>
-<script>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
-import axios from 'axios';
+import { useTeamStore } from '@/stores/teamStore';
+import { useUserStore } from '@/stores/userStore';
+import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 
-export default {
-  name: 'ConferenceView',
-  props: ['sessionId'],
-  data() {
-    return {
-      participants: [
-        { name: 'Robert', avatar: 'https://via.placeholder.com/150x110' },
-        { name: 'Lisa', avatar: 'https://via.placeholder.com/150x110' },
-        { name: 'Kevin', avatar: 'https://via.placeholder.com/150x110' }
-      ],
-      session: null,
-      publisher: null,
-      isAudioEnabled: true,
-      isVideoEnabled: true,
-      userId: 'user_' + Math.floor(Math.random() * 10000)
-    };
-  },
-  computed: {
-    departmentName() {
-      return this.$route.params.name;
-    }
-  },
-  methods: {
-    async joinSession() {
-      const sessionStore = useSessionStore();
-      const OV = new OpenVidu();
-      const session = OV.initSession();
-      sessionStore.setSession(session);
+const route = useRoute();
+const router = useRouter();
+const teamStore = useTeamStore();
+const userStore = useUserStore();
+const sessionStore = useSessionStore();
+const departmentName = computed(() => route.params.name);
 
-      session.on('streamCreated', (event) => {
-        const subscriber = session.subscribe(event.stream, 'video-container');
-        sessionStore.addStream(subscriber.stream);
+const sessionId = route.params.sessionId;
+const token = route.params.token;;
+const session = ref(null);
+const publisher = ref(null);
+const isAudioEnabled = ref(true);
+const isVideoEnabled = ref(true);
+const userId = userStore.userId;
+const participants = ref([]);
+const myStreamManager = ref(null);
+
+const joinSession = async () => {
+  const OV = new OpenVidu();
+  const currentSession = OV.initSession();
+  sessionStore.setSession(currentSession);
+
+  // 스트림 생성 이벤트 핸들러
+  currentSession.on('streamCreated', (event) => {
+    console.log('스트림 생성됨:', event.stream);
+
+    const subscriber = currentSession.subscribe(event.stream, undefined);
+    const participantId = JSON.parse(event.stream.connection.data).clientData;
+
+    console.log('구독된 스트림의 참가자 ID:', participantId);
+
+    const participantInfo = userStore.userInfo;
+    console.log('참가자 정보:', participantInfo);
+
+    if (participantInfo) {
+      participants.value.push({
+        id: participantId,
+        name: participantInfo.name,
+        streamManager: subscriber,
       });
-
-      try {
-        // 백엔드 서버로 요청을 보내어 OpenVidu 세션에 연결하기 위한 토큰 생성
-        const tokenResponse = await axios.post(`http://localhost:5000/api/sessions/${this.sessionId}/connection`);
-        const token = tokenResponse.data.token;
-
-        await session.connect(token, { clientData: 'Participant' });
-
-        this.publisher = OV.initPublisher('video-container', {
-          videoSource: undefined,
-          audioSource: undefined,
-          publishVideo: true,
-          publishAudio: true,
-          resolution: '240x135',
-          frameRate: 30,
-          insertMode: 'APPEND'
-        });
-        session.publish(this.publisher);
-      } catch (error) {
-        console.error('Error connecting to session:', error);
-      }
-    },
-    leaveSession() {
-      if (this.session) {
-        this.session.disconnect();
-        this.session = null;
-      }
-    },
-    toggleAudio() {
-      if (this.publisher) {
-        this.isAudioEnabled = !this.isAudioEnabled;
-        this.publisher.publishAudio(this.isAudioEnabled);
-      }
-    },
-    toggleVideo() {
-      if (this.publisher) {
-        this.isVideoEnabled = !this.isVideoEnabled;
-        this.publisher.publishVideo(this.isVideoEnabled);
-      }
     }
-  },
-  mounted() {
-    this.joinSession();
-  },
-  beforeRouteLeave(to, from, next) {
-    this.leaveSession();
-    next();
+
+    sessionStore.addStream(subscriber.stream);
+  });
+
+  // 스트림 파괴 이벤트 핸들러
+  currentSession.on('streamDestroyed', (event) => {
+    const participantId = JSON.parse(event.stream.connection.data).clientData;
+    participants.value = participants.value.filter(p => p.id !== participantId);
+    console.log('스트림이 파괴됨, 참가자 ID:', participantId);
+  });
+
+  try {
+    await currentSession.connect(token, { clientData: userId });
+
+    // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
+    publisher.value = OV.initPublisher(undefined, {
+      videoSource: undefined,
+      audioSource: undefined,
+      publishVideo: true,
+      publishAudio: true,
+      resolution: '320x240',
+      frameRate: 30,
+      insertMode: 'APPEND'
+    });
+
+    currentSession.publish(publisher.value);
+    myStreamManager.value = publisher.value;
+
+    session.value = currentSession;
+
+    console.log('OpenVidu 세션 객체:', currentSession);
+    console.log('OpenVidu 연결 객체:', currentSession.connection);
+
+    // 새 참가자가 기존 스트림 구독
+    currentSession.streamManagers.forEach(stream => {
+      if (stream.connection.connectionId !== currentSession.connection.connectionId) {
+        const subscriber = currentSession.subscribe(stream, undefined);
+        const participantId = JSON.parse(stream.connection.data).clientData;
+
+        const participantInfo = userStore.userInfo;
+        console.log('참가자 정보:', participantInfo);
+
+        if (participantInfo) {
+          participants.value.push({
+            id: participantId,
+            name: participantInfo.name,
+            streamManager: subscriber,
+          });
+        }
+
+        sessionStore.addStream(subscriber.stream);
+      }
+    });
+
+    const team = teamStore.teams.find(team => team.name === route.params.name);
+    if (team) {
+      participants.value = team.userList.filter(user => user.id !== userId);
+    }
+  } catch (error) {
+    console.error('Error connecting to session:', error);
   }
 };
+
+const leaveSession = async () => {
+  if (session.value) {
+    await sessionStore.endSession(sessionStore.meetingId);
+    session.value.disconnect();
+    session.value = null;
+  }
+};
+
+const endConference = async () => {
+  if (session.value) {
+    await sessionStore.endSession(sessionStore.meetingId);
+    session.value.disconnect();
+    session.value = null;
+    router.push({ name: 'ReadyView' });
+  }
+};
+
+const toggleAudio = () => {
+  if (publisher.value) {
+    isAudioEnabled.value = !isAudioEnabled.value;
+    publisher.value.publishAudio(isAudioEnabled.value);
+  }
+};
+
+const toggleVideo = () => {
+  if (publisher.value) {
+    isVideoEnabled.value = !isVideoEnabled.value;
+    publisher.value.publishVideo(isVideoEnabled.value);
+  }
+};
+
+onMounted(() => {
+  joinSession();
+});
+
+onBeforeRouteLeave(async (to, from, next) => {
+  await leaveSession();
+  next();
+});
 </script>
 
 <style scoped>
@@ -199,7 +219,7 @@ export default {
 .header {
   text-align: center;
   padding: 1rem;
-  background-color: #ffffff;;
+  background-color: #ffffff;
 }
 
 .highlight {

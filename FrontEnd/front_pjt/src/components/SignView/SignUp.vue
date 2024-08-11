@@ -59,6 +59,7 @@ watch(id, async (newId) => {
     idCheck.value = false;
     idCheckMessage.value = ''; 
     await checkId(); 
+}
 });
 
 async function checkId() {
@@ -96,7 +97,6 @@ async function handleSignUp() {
 
   const result = await userStore.signUp(signUpData);
   if (result.success) {
-    alert('Sign up successful');
     router.push({ name: 'HomeView' });
   } else {
     errorMessage.value = `Sign up failed: ${result.message}`;
@@ -133,18 +133,29 @@ a {
 }
 
 button {
+<<<<<<< HEAD
   margin: 0 auto;
   width: 50%;
+=======
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   border-radius: 20px;
-  border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
-  color: #FFFFFF;
   font-size: 12px;
   font-weight: bold;
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
+  width: 40%;
+  margin: 0px auto;
+}
+
+button:hover {
+  background-color: #b380bc;
 }
 
 button:active {

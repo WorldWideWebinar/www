@@ -1,5 +1,6 @@
 <template>
   <Loading v-model="loading" />
+<<<<<<< HEAD
   <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
     <SignUp />
     <SignIn />
@@ -14,6 +15,26 @@
           <h1>Hello, Friend!</h1>
           <p>Enter your personal details and start journey with us</p>
           <button class="ghost" @click="activateSignUp">Sign Up</button>
+=======
+  <div class="container-wrapper">
+    <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
+      <div class="sign">
+        <SignUp />
+        <SignIn />
+      </div>
+      <div class="overlay-container">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+            <h1>Welcome Back!</h1>
+            <p>Please login and stay connected with us</p>
+            <button class="ghost" @click="activateSignIn">Sign In</button>
+          </div>
+          <div class="overlay-panel overlay-right">
+            <h1>Hello, Friend!</h1>
+            <p>Enter your personal details and start journey with us</p>
+            <button class="ghost" @click="activateSignUp">Sign Up</button>
+          </div>
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
         </div>
       </div>
     </div>
@@ -43,17 +64,30 @@ onMounted(() => {
   const mode = route.query.mode
   if (mode === 'signup') {
     activateSignUp()
+<<<<<<< HEAD
     loading.value = false
   } else {
     activateSignIn()
     loading.value = false
   }
+=======
+  } else {
+    activateSignIn()
+  }
+  loading.value = false
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 })
 </script>
+
 
 <style scoped>
 * {
   box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
 }
 
 body {
@@ -61,10 +95,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
   font-family: 'Montserrat', sans-serif;
-  height: 100vh;
-  margin: 0;
 }
 
 h1 {
@@ -100,6 +131,7 @@ button {
   transition: transform 80ms ease-in;
 }
 
+
 button:active {
   transform: scale(0.95);
 }
@@ -111,6 +143,14 @@ button:focus {
 button.ghost {
   background-color: transparent;
   border-color: #ffffff;
+<<<<<<< HEAD
+=======
+}
+
+button.ghost:hover {
+  background-color: #e9adc2;
+  border: 1px solid #e9adc2;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 form {
@@ -132,16 +172,35 @@ input {
   width: 100%;
 }
 
+.container-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
 #container {
+<<<<<<< HEAD
   margin-top: 5%;
+=======
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto; /* 상하좌우 중앙 정렬 */
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .container {
   background-color: #fff;
   border-radius: 10px;
+<<<<<<< HEAD
   box-shadow:
     0 14px 28px rgba(0, 0, 0, 0.25),
     0 10px 10px rgba(0, 0, 0, 0.22);
+=======
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   position: relative;
   overflow: hidden;
   width: 900px; /* 사이즈 키움 */
@@ -247,6 +306,7 @@ input {
 
 .overlay-left {
   transform: translateX(-20%);
+  background: linear-gradient(to right, #f8bbd0, #fcdde4); /* left panel 전용 그라데이션 */
 }
 
 .container.right-panel-active .overlay-left {
@@ -256,9 +316,21 @@ input {
 .overlay-right {
   right: 0;
   transform: translateX(0);
+  background: linear-gradient(to left, #fcdde4, #f8bbd0); /* right panel 전용 그라데이션 */
 }
 
 .container.right-panel-active .overlay-right {
   transform: translateX(20%);
 }
+<<<<<<< HEAD
 </style>
+=======
+
+@media (max-width: 992px) {
+  .container-wrapper {
+    margin: auto 30px;
+  }
+}
+</style>
+
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c

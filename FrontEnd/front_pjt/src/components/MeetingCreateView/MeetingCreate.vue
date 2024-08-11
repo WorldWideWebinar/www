@@ -23,11 +23,19 @@
           <label for="detail">Details</label>
           <textarea v-model="detail" id="detail"></textarea>
         </div>
+<<<<<<< HEAD
         <div>
           <button type="submit" class="btn btn-primary">Create Meeting</button>
         </div>
       </form>
       <button @click="close" class="btn btn-secondary">Close</button>
+=======
+        <div class="button-group">
+          <button type="submit" class="btn btn-primary">Create Meeting</button>
+        </div>
+      </form>
+      <button @click="close" class="btn btn-secondary close-btn">Close</button>
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
     </div>
   </div>
 </template>
@@ -100,12 +108,28 @@ const close = () => {
 }
 
 .meeting-creation-wrap {
+<<<<<<< HEAD
   min-width: 600px;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #fff;
+=======
+  width: 100%;
+  max-width: 600px;
+  margin: 0 20px;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .form-group {
@@ -114,6 +138,7 @@ const close = () => {
 
 .form-group label {
   display: block;
+<<<<<<< HEAD
   margin-bottom: 5px;
 }
 
@@ -124,19 +149,51 @@ const close = () => {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+=======
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .btn {
   padding: 10px 20px;
   border: none;
+<<<<<<< HEAD
   border-radius: 5px;
   cursor: pointer;
+=======
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .btn-primary {
   background-color: #007bff;
   color: #fff;
 }
+<<<<<<< HEAD
 </style>
 
 <style scoped>
@@ -191,4 +248,25 @@ const close = () => {
   background-color: #007bff;
   color: #fff;
 }
+=======
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.close-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 </style>

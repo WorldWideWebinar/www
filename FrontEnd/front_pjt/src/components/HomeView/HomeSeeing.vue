@@ -13,6 +13,7 @@
       </div>
       <div class="main-btn">
         <div v-if="!isLogin">
+<<<<<<< HEAD
           <button @click="router.push({ name: 'SignView' })" style="margin-right: 50px">
             Sign in
           </button>
@@ -23,6 +24,18 @@
             My Page
           </button>
           <button @click="handleSignOut">Log Out</button>
+=======
+          <button @click="navigateToSignVeiw('signin')" style="margin-right: 50px">
+            SIGN IN
+          </button>
+          <button @click="navigateToSignVeiw('signup')">SIGN UP</button>
+        </div>
+        <div v-else>
+          <button @click="router.push({ name: 'ProfileView' })" style="margin-right: 50px">
+            MY PAGE
+          </button>
+          <button @click="handleSignOut">LOG OUT</button>
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
         </div>
       </div>
       <div class="scroll">
@@ -32,7 +45,11 @@
     </div>
 
     <div class="middle">
+<<<<<<< HEAD
       <div class="sub-discription carousel my-meeting">
+=======
+      <div class="sub-discription">
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
         <div class="discription">
           <p class="plus">Easy to manage by team</p>
           <img class="plus-image" src="../../assets/img/team.png" alt="team" />
@@ -94,15 +111,23 @@
           </div>
           <div v-else class="carousel">
             <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
+<<<<<<< HEAD
               <Slide
                 v-for="(item, index) in groupedMeetings"
+=======
+              <Slide                v-for="(item, index) in groupedMeetings"
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
                 :key="index"
                 class="slide"
                 :class="slideClass(index)"
               >
                 <div class="meeting-type">{{ index }} Meetings</div>
                 <div class="meeting-table-container">
+<<<<<<< HEAD
                   <table class="meeting-table">
+=======
+                  <table class="meeting-table" v-if="item.length>0">
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
                     <thead>
                       <tr>
                         <th>Date</th>
@@ -118,6 +143,12 @@
                       </tr>
                     </tbody>
                   </table>
+<<<<<<< HEAD
+=======
+                  <div v-else>
+                    No meeting Day
+                  </div>
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
                 </div>
               </Slide>
               <template #addons>
@@ -140,7 +171,11 @@
 </template>
 
 <script setup>
+<<<<<<< HEAD
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+=======
+import { ref, computed, watch, onMounted } from 'vue'
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
@@ -156,10 +191,14 @@ const teams = computed(() => teamStore.teams)
 const handleSignOut = async () => {
   const result = await userStore.signOut()
   if (result.success) {
+<<<<<<< HEAD
     alert('Successfully logged out')
     router.push({ name: 'HomeView' })
   } else {
     alert(`Logout failed: ${result.message}`)
+=======
+    router.push({ name: 'HomeView' })
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   }
 }
 
@@ -185,7 +224,11 @@ const groupMeetings = () => {
   const groups = {
     TODAY: [],
     NEXT: [],
+<<<<<<< HEAD
     PREV: []
+=======
+    PREV: [],
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   }
   const today = new Date().toISOString().split('T')[0]
   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -215,16 +258,30 @@ const slideClass = (group) => {
   }
 }
 
+<<<<<<< HEAD
+=======
+const navigateToSignVeiw = (mode) => {
+  router.push({ name: 'SignView', query: { mode } })
+}
+
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 onMounted(async () => {
   groupMeetings()
   console.log(groupedMeetings.value.NEXT.key)
   if (userStore.userId != 0) {
+<<<<<<< HEAD
     console.log('소속 팀 목록' , userStore.userInfo.teamList)
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
     await teamStore.fetchTeamById(teamId)
   }
   console.log('Teams:', teams.value)
+=======
+  const teamList = userStore.userInfo.teamList || []
+  for (const teamId of teamList) {
+    await teamStore.fetchTeamById(teamId)
+    }
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   }
 })
 </script>
@@ -252,7 +309,12 @@ onMounted(async () => {
   align-items: center;
   width: 100%;
   margin: 50px auto;
+<<<<<<< HEAD
   padding: 0px 0px; /* WWW 글자 오른쪽으로 밀기*/
+=======
+  padding: 0px 0px;
+  /* WWW 글자 오른쪽으로 밀기*/
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .main-title {
@@ -261,8 +323,15 @@ onMounted(async () => {
   opacity: 0;
   transform: translateX(-50px);
   animation: slideInFromLeft 1s forwards;
+<<<<<<< HEAD
   animation-delay: 1s; /* 1초 후에 애니메이션 시작 */
   margin: 0px 100px; /* 간격 조정 */
+=======
+  animation-delay: 1s;
+  /* 1초 후에 애니메이션 시작 */
+  margin: 0px 100px;
+  /* 간격 조정 */
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .main-image {
@@ -358,7 +427,11 @@ button {
   background-color: #6a1b9a;
   font-size: 12px;
   font-weight: bold;
+<<<<<<< HEAD
   padding: 12px 40px;
+=======
+  padding: 12px 35px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
@@ -400,6 +473,10 @@ button:hover {
   0% {
     transform: translate(-50%, 0);
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   100% {
     transform: translate(-50%, -20px);
   }
@@ -494,22 +571,38 @@ button:hover {
   width: 100%;
   text-align: center;
   margin: 0px auto;
+<<<<<<< HEAD
   padding: 100px 50px;
+=======
+  padding: 100px 30px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 /* carousel */
 .carousel {
+<<<<<<< HEAD
   margin: 50px auto;
+=======
+  padding: auto;
+  margin: 50px auto;
+  padding-right: 0.15%;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   overflow: hidden;
   width: 100%;
 }
 
 .carousel__slide {
   padding: 5px;
+<<<<<<< HEAD
   margin: 0 10px; /* 좌우 간격 추가 */
   background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
   width: 200px; /* 슬라이드의 너비 설정 */
   height: 300px; /* 슬라이드의 높이 설정 */
+=======
+  background-color: rgb(222, 222, 222); /* 기본 배경색 설정 */
+  /* max-width: 32.8%; */
+  height: 300px;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -529,26 +622,39 @@ button:hover {
 }
 
 .carousel__slide--sliding {
+<<<<<<< HEAD
   transition: 0.5s;
+=======
+  transition: 0.5s ease-in-out;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .carousel__slide--active ~ .carousel__slide {
-  transform: rotateY(20deg) scale(0.9);
+  transform: rotateY(20deg) scale(0.95);
+  /* margin-right: 5px; */
+  /* margin-right: 3%; */
 }
 
 .carousel__slide--prev {
   opacity: 1;
   transform: rotateY(-10deg) scale(0.95);
+  /* margin-right: 1%; */
+  /* margin-left: 2%; */
+  /* padding-left: 0; */
 }
 
 .carousel__slide--next {
   opacity: 1;
   transform: rotateY(10deg) scale(0.95);
+  /* margin-right: 1%; */
+  /* margin-left: 1%; */
 }
 
 .carousel__slide--active {
   opacity: 1;
-  transform: rotateY(0) scale(1.1);
+  transform: rotateY(0) scale(1.05);
+  margin-left: 1%;
+  /* margin-right: 1%; */
 }
 
 /* .slide {
@@ -562,6 +668,10 @@ button:hover {
 .meeting-type {
   text-align: center;
   font-weight: bolder;
+<<<<<<< HEAD
+=======
+  margin: auto;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   margin-bottom: 10px;
 }
 
@@ -569,6 +679,7 @@ button:hover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+<<<<<<< HEAD
 }
 
 .meeting-table-container {
@@ -587,6 +698,28 @@ button:hover {
 .meeting-table tbody {
   max-height: 100px;
   overflow-y: scroll;
+=======
+}
+
+.meeting-table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 230px;
+}
+
+.meeting-table {
+  width: 90%; /* 테이블을 가운데로 정렬하기 위해 90%로 설정 */
+  font-size: 0.6rem;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.meeting-table tbody {
+  max-height: 100px;
+  overflow-y: scroll;
+  /* width: 100%; */
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .meeting-table tbody::-webkit-scrollbar {
@@ -598,7 +731,12 @@ button:hover {
 
 .meeting-table tr {
   display: table;
+<<<<<<< HEAD
   width: calc(100% - 1rem);
+=======
+  /* width: calc(100% - 1rem); */
+  width: 100%;
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   /* 테이블 너비를 100%에서 약간 줄임 */
   table-layout: fixed;
 }
@@ -608,6 +746,10 @@ button:hover {
   border: 1px solid #000000;
   padding: 8px;
   text-align: center;
+<<<<<<< HEAD
+=======
+  
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
 }
 
 .meeting-table th:nth-child(1),
@@ -648,6 +790,10 @@ button:hover {
 }
 
 @media (max-width: 992px) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
   .main-image,
   .main-character {
     bottom: 45%;

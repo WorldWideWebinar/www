@@ -4,7 +4,11 @@
         <h2>{{ user.username }}</h2>
         <p>{{ user.email }}</p>
         <p>Other profile information...</p>
+<<<<<<< HEAD
         <button @click="addMember(user)" class="btn btn-primary">추가버튼</button>
+=======
+        <!-- <button @click="addMember(user)" class="btn btn-primary">추가버튼</button> -->
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
         <button @click="close" class="btn btn-secondary">Close</button>
       </div>
     </div>
@@ -30,7 +34,10 @@
 
   const addMember=(user)=>{
     const teamId= 1;
+<<<<<<< HEAD
     console.log(user.id)
+=======
+>>>>>>> f8d0c8f7e0860c78f61a013f2540a96c4c52682c
     teamStore.addMembertoTeam(user.id,teamId);
     close();
   }
