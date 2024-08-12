@@ -16,7 +16,7 @@
           <tbody>
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-              <td class="bold">{{ meeting.name }}</td>
+              <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
                 <button v-if="isOwner" @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
                 <button @click="handleJoinConference(meeting.name)" class="join-button">
@@ -150,13 +150,27 @@ const closeMemberListDropdown = () => {
   showMemberListDropdown.value = false;
 };
 
+const closeInviteInput = () => {
+  showInviteMemberInput.value = false;
+};
+
+let removeMemberDropdownListener;
+let removeInviteInputListener;
+
 onMounted(() => {
-  // handleClickOutside 함수 호출 시, ref를 전달합니다.
-  document.addEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  const memberDropdownHandler = handleClickOutside(memberDropdown, closeMemberListDropdown);
+  const inviteInputHandler = handleClickOutside(inviteInput, closeInviteInput);
+
+  document.addEventListener('click', memberDropdownHandler);
+  document.addEventListener('click', inviteInputHandler);
+
+  removeMemberDropdownListener = () => document.removeEventListener('click', memberDropdownHandler);
+  removeInviteInputListener = () => document.removeEventListener('click', inviteInputHandler);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  if (removeMemberDropdownListener) removeMemberDropdownListener();
+  if (removeInviteInputListener) removeInviteInputListener();
 });
 
 onMounted(async () => {
@@ -242,12 +256,31 @@ template {
 }
 
 .notice-content {
-  max-height: 150px; /* 원하는 최대 높이 설정 */
+  max-height: 125px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 5px 10px;
   background-color: #f9f9f9;
+  font-size: medium;
+}
+
+.notice-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notice-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.notice-content::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.notice-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .notice-table {
@@ -265,6 +298,11 @@ template {
 .notice-table th {
   background-color: #f0f0f0;
   font-weight: bold;
+}
+
+.notice-table .meeting-name {
+  max-width: 200px;
+  min-width: 150px;
 }
 
 .notice-table tr:last-child td {
@@ -287,11 +325,15 @@ template {
 }
 
 .join-btn {
-  width: 200px;
+  width: 185px;
 }
 
 .play-button {
   width: 50px;
+}
+
+.notice-item {
+  margin: 20px 0px 20px 20px;
 }
 
 .department-info {
