@@ -22,23 +22,28 @@ export const useTeamStore = defineStore('team', {
       this.teamUserInfo = [];
     },
     async fetchTeamById(teamId) {
-      this.clearTeamUsers();
+      this.clearTeamUsers()
       const meetingStore = useMeetingStore();
-      
+      const errorStore = useErrorStore();
+
       try {
+        // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
         this.teamInfo = teamData
         this.teamUserList = teamData.userList
-        const teamExists = this.teams.some(team => team.id == teamId);
+        const teamExists = this.teams.some(team => team.id === teamId);
         if (!teamExists) {
           this.teams.push({
-            id: teamId,
+            id: teamId, // 추가된 ID 필드
             ...teamData
           });
+
+          return teamData;
         }
       } catch (error) {
-        console.error(`Failed to fetch team ${teamId}:`, error);
+        errorStore.showError(`Failed to fetch team ${teamId}: ${error.message}`);
+        return null;
       }
     },
 
@@ -100,44 +105,9 @@ export const useTeamStore = defineStore('team', {
     },
 
     async deleteTeam(teamId) {
-
-      const errorStore = useErrorStore(); 
-      const userStore = useUserStore();
-      let token = userStore.accessToken; // 사용자의 액세스 토큰
-    
+      const errorStore = useErrorStore(); // Access the error store
       try {
-        const team = this.teams.find(team => team.id == teamId);
-        console.log('Owner ID:', team.ownerId);
-        console.log('User ID:', userStore.userId);
-    
-        if (!team) {
-          errorStore.showError('Team not found');
-          return { isSuccess: false, message: 'Team not found' };
-        }
-    
-        if (team.ownerId != userStore.userId) {
-          errorStore.showError('You do not have permission to delete this team');
-          return { isSuccess: false, message: 'You do not have permission to delete this team' };
-        }
-    
-        let response = await axiosInstance.delete(`api/teams/${teamId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}` // 토큰을 요청 헤더에 포함
-          }
-        });
-    
-        if (response.status === 403) {
-          // 만약 403 Forbidden 오류가 발생시, 토큰 갱신 후 다시 시도
-          console.log('Attempting to refresh token...');
-          await userStore.refreshToken(); // 새 토큰으로 업뎃
-          token = userStore.accessToken;
-          response = await axiosInstance.delete(`api/teams/${teamId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}` // 갱신된 토큰으로 재시도
-            }
-          });
-        }
-    
+        const response = await axiosInstance.delete(`api/teams/${teamId}`);
         if (response.data.isSuccess) {
           this.teams = this.teams.filter(team => team.id !== teamId);
         } else {
@@ -146,11 +116,7 @@ export const useTeamStore = defineStore('team', {
     
         return response.data;
       } catch (error) {
-        if (error.response && error.response.status === 403) {
-          errorStore.showError('Forbidden: You do not have permission to delete this team.');
-        } else {
-          errorStore.showError(`Failed to delete team ${teamId}: ${error.message}`);
-        }
+        errorStore.showError(`Failed to delete team ${teamId}: ${error.message}`);
         return { isSuccess: false, message: error.message };
       }
     },
@@ -191,25 +157,12 @@ export const useTeamStore = defineStore('team', {
     }
   },
   getters: {
-    getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
-
-     // 팀별로 이전/오늘/다음 미팅 시간 계산
-    prevMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.prevMeetingHoursByTeam(teamId);
+    getTeamById: (state) => (id) => {
+      return state.teams.find(team => team.id === id);
     },
-    todayMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.todayMeetingHoursByTeam(teamId);
-    },
-    nextMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.nextMeetingHoursByTeam(teamId);
-    },
-    totalParticipantsByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.totalParticipantsByTeam(teamId);
-    },
+    getUserTeamsByHostId: (state) => (hostId) => {
+      return state.teams.filter(team => team.ownerId === hostId);
+    }
   },
   persist: {
     key: 'teamStore',

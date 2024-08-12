@@ -3,20 +3,28 @@
     <section class="notice-section">
       <div class="notice-header">
         <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
-        <button @click="checkTodayMeeting(todayMeeting)"></button>
       </div>
       <div class="notice-content">
         <table v-if="todayMeetings.length > 0" class="notice-table">
-          <tr v-for="meeting in todayMeetings" :key="meeting.id">
-            <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-            <td class="bold">{{ meeting.name }}</td>
-            <td>
-              <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
-              <button @click="handleJoinConference(meeting.name)" class="join-button">
-                <img class="play-button" src="@/assets/img/play.png" alt="play">
-              </button>
-            </td>
-          </tr>
+          <!-- <thead>
+            <tr>
+              <th>TIME</th>
+              <th>AGENDA</th>
+              <th>PLAY</th>
+            </tr>
+          </thead> -->
+          <tbody>
+            <tr v-for="meeting in todayMeetings" :key="meeting.id">
+              <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+              <td class="bold">{{ meeting.name }}</td>
+              <td>
+                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
@@ -27,22 +35,22 @@
       <div class="total-meeting-hours">
         <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
-          <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
-          <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
-          <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }" v-if="nextMeetingHours > 0"></div>
+          <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
+          <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
+          <div class="meeting-hours-segment next-meetings" :style="{ width: (nextMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="nextMeetingHours > 0"></div>
         </div>
         <div class="meeting-hours-legend">
           <div class="legend-item">
             <span class="legend-color prev-meetings"></span>
-            <span class="legend-label">Previous {{ prevMeetingHours }}</span>
+            <span class="legend-label">Previous {{ prevMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color today-meetings"></span>
-            <span class="legend-label">Today {{ todayMeetingHours }}</span>
+            <span class="legend-label">Today {{ todayMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color next-meetings"></span>
-            <span class="legend-label">Next {{ nextMeetingHours }}</span>
+            <span class="legend-label">Next {{ nextMeetingHours.toFixed(2) }} hours</span>
           </div>
         </div>
       </div>
@@ -50,7 +58,7 @@
         <table class="department-table">
           <tbody>
             <tr>
-              <td><strong>Name</strong></td>
+              <!-- <td><strong>Info</strong></td> -->
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
@@ -65,7 +73,7 @@
                   <div v-if="showInviteMemberInput" class="invite-member-input" ref="inviteInput">
                     <button @click="cancelInvite" class="btns btn-close"></button>
                     <div class="invite-member-row">
-                      <input class="search-member" v-model="newMemberId" placeholder="Enter member ID" />
+                      <input class="search-member" v-model="newMemberId" placeholder="Enter ID" />
                       <button @click="inviteMember" class="btns btn-invite">Invite</button>
                     </div>
                   </div>
@@ -83,113 +91,33 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useUserStore } from '@/stores/userStore';
-import { useRouter, useRoute } from 'vue-router'
-import { useSessionStore } from '@/stores/sessionStore'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-
-const teamId = computed(() => teamStore.teamInfo?.id);
-
-const prevMeetingHours = computed(() => teamId.value ? teamStore.prevMeetingHoursByTeam(teamId.value) : 0);
-const todayMeetingHours = computed(() => teamId.value ? teamStore.todayMeetingHoursByTeam(teamId.value) : 0);
-const nextMeetingHours = computed(() => teamId.value ? teamStore.nextMeetingHoursByTeam(teamId.value) : 0);
+const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
+const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
+const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-
-const totalParticipants = computed(() => teamId.value ? teamStore.totalParticipantsByTeam(teamId.value) : 0);
 
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const userStore = useUserStore();
-const sessionStore = useSessionStore();
-const router = useRouter();
-const route = useRoute()
 
-const todayMeeting = computed(() => {
-  const teamId = parseInt(route.params.id, 10); 
-  return meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId);
-});
 
-const totalMeetingHours = computed(() => {
-  if (!meetingStore.meetings.length) return 0;
-  return meetingStore.meetings.reduce((total, meeting) => {
-    const start = new Date(meeting.start);
-    const end = new Date(meeting.end);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+const formatTime = (dateTimeString) => {
+  if (!dateTimeString) return '';
 
-const prevMeetingHours = computed(() => {
-  if (!meetingStore.groupedMeetings.PREV.length) return 0;
-  return meetingStore.groupedMeetings.PREV.reduce((total, meeting) => {
-    const start_at = new Date(meeting.start_at);
-    const end_at = new Date(meeting.end_at);
-    return total + (end_at - start_at) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
+  const date = new Date(dateTimeString);
 
-const todayMeetingHours = computed(() => {
-  if (!meetingStore.groupedMeetings.TODAY.length) return 0;
-  return meetingStore.groupedMeetings.TODAY.reduce((total, meeting) => {
-    const start_at = new Date(meeting.start_at);
-    const end_at = new Date(meeting.end_at);
-    return total + (end_at - start_at) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
-
-const nextMeetingHours = computed(() => {
-  if (!meetingStore.groupedMeetings.NEXT.length) return 0;
-  return meetingStore.groupedMeetings.NEXT.reduce((total, meeting) => {
-    const start = new Date(meeting.start);
-    const end = new Date(meeting.end);
-    return total + (end - start) / (1000 * 60 * 60); // 밀리초를 시간으로 변환
-  }, 0);
-});
-
-const prevMeetingHoursPercentage = computed(() => {
-  if (totalMeetingHours.value === 0) return 0;
-  return (prevMeetingHours.value / totalMeetingHours.value) * 100;
-});
-
-const todayMeetingHoursPercentage = computed(() => {
-  if (totalMeetingHours.value === 0) return 0;
-  return (todayMeetingHours.value / totalMeetingHours.value) * 100;
-});
-
-const nextMeetingHoursPercentage = computed(() => {
-  if (totalMeetingHours.value === 0) return 0;
-  return (nextMeetingHours.value / totalMeetingHours.value) * 100;
-});
-
-const departmentName = computed(() => teamStore.currentTeam?.teamName || '');
-const isOwner = computed(() => {
-  const teamId = parseInt(route.params.id, 10); // route.params.id를 정수로 변환
-  const teamData = teamStore.teams.find(team => team.id === teamId); // teamId에 해당하는 팀을 찾음
+  // 로컬 시간대의 시간과 분을 가져옵니다.
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
   
-  return teamData ? teamData.ownerId === userStore.userId : false; // 팀의 ownerId와 현재 user의 userId 비교
-});
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}-${day}`;
-};
-
-const formatTime = (dateString) => {
-  const date = new Date(dateString);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${hours}:${minutes}`;
 };
 
-// const toggleTodayMembersList = () => {
-//   showTodayMembersList.value = !showTodayMembersList.value;
-// };
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
@@ -197,33 +125,6 @@ const toggleMemberListDropdown = () => {
 
 const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
-};
-
-const handleStartConference = async (meetingId) => {
-  const userId = userStore.userId;
-  console.log(meetingId)
-  try {
-    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
-
-    if (!sessionId) {
-      // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId);
-    }
-
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token } });
-  } catch (error) {
-    console.error('Failed to start conference:', error);
-  }
-};
-
-const handleJoinConference = async (sessionName) => {
-  try {
-    const token = await sessionStore.joinConference(sessionName);
-    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
-  } catch (error) {
-    console.error('Failed to join conference:', error);
-  }
 };
 
 const inviteMember = async () => {
@@ -262,11 +163,6 @@ const handleClickOutside = (event) => {
   }
 };
 
-const checkTodayMeeting = () => {
-  console.log("todayMeeting: ", todayMeeting)
-  console.log("group meetings" , meetingStore.groupedMeetings)
-}
-
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
 });
@@ -274,7 +170,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
+
+onMounted(async () => {
+  const teamId = teamStore.teamInfo?.id;
+
+  if (teamId) {
+    const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
+    const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
+
+    await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
+  } else {
+    console.error('Team ID is not available.');
+  }
+});
 </script>
+
 
 <style scoped>
 .container {
@@ -308,7 +218,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .notice-header h5 .icon {
@@ -316,82 +226,62 @@ onBeforeUnmount(() => {
 }
 
 .notice-content {
-  max-height: 100px; /* 원하는 최대 높이 설정 */
+  max-height: 150px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 0px 10px;
+  padding: 20px;
   background-color: #f9f9f9;
 }
 
-.notice-item {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-right: 1rem;
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .notice-table th,
 .notice-table td {
-  padding: 5px;
+  padding: 8px;
   text-align: center;
-  position: relative;
-  margin: 5px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.notice-middle {
-  flex: 2;
+.notice-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 
-.notice-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.notice-table tr:last-child td {
+  border-bottom: none;
 }
 
-.notice-left::after,
-.notice-middle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  border-right: 1px dashed #ccc;
-  transform: translateX(50%);
-}
-
-.notice-right::after {
-  display: none;
-}
-
-.notice-right button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  padding: 0.5rem;
+.notice-table td .join-button {
+  margin: 0 5px;
+  padding: 0.4rem 1rem;
   cursor: pointer;
-  font-size: 1rem;
-  border-radius: 100px;
-  background-color: none;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  background-color: #a571c4;
+  color: white;
+  border: none;
 }
 
-.notice-right {
-  font-size: 1.2rem;
-  padding: 5px;
+.notice-table td .join-button img {
+  width: 20px;
 }
 
 .play-button {
   width: 50px;
 }
 
+.department-info {
+  margin: 0 auto;
+}
+
 .department-table {
   width: 100%;
   border-collapse: collapse;
+  margin: 0 auto;
 }
 
 .department-table td {
@@ -507,6 +397,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .add-member-btn {
@@ -525,8 +417,8 @@ onBeforeUnmount(() => {
 .invite-member-input {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: -40%;
+  width: 180%;
   padding: 10px;
   background: #fff;
   border: 1px solid #ddd;
@@ -570,7 +462,7 @@ onBeforeUnmount(() => {
 
 .search-member {
   /* flex: 1; */
-  padding: 8px;
+  padding: 7.3px;
   border-radius: 4px 0 0 4px;
   border: 1px solid #ddd;
   width: 100%;
