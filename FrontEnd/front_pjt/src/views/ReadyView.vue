@@ -1,5 +1,13 @@
 <template>
-  <div v-if="!inConference" class="ready-page-container">
+  <div v-if="isLoading" class="loading-container">
+    <div class="spinner">
+      <svg class="spinner-icon" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+      <p>Loading...</p>
+    </div>
+  </div>
+  <div v-else-if="!inConference" class="ready-page-container">
     <header class="header">
       <span>
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
@@ -39,8 +47,8 @@
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ meeting.start.split('T')[0] }}</td>
-                  <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td>
+                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ meeting.start_at.split('T')[1] }} - {{ meeting.end_at.split('T')[1] }}</td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
                     @click="selectMeeting(meeting)">
                     {{ meeting.name }}
@@ -67,11 +75,11 @@
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.start.split('T')[0] }}</td>
+                  <td>{{ selectedMeeting?.start_at.split('T')[0] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td>
+                  <td>{{ selectedMeeting?.start_at.split('T')[1] }} - {{ selectedMeeting?.end_at.split('T')[1] }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -138,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
@@ -161,6 +169,7 @@ const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
 const meetingCreateModal = ref(false);
+const isLoading = ref(true);
 
 const members = computed(() => teamStore.teamUserInfo);
 
@@ -230,21 +239,32 @@ const selectTab = async (tab) => {
   await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
-onMounted(async () => {
-  const teamId = parseInt(route.params.id, 10);
+const loadData = async (teamId) => {
   try {
     await teamStore.fetchTeamById(teamId);
     await teamStore.fetchTeamUsers();
+    await selectTab('TODAY');
   } catch (error) {
-    console.error('Failed to load initial data:', error);
+    console.error('Failed to load data:', error);
   }
-  selectTab('TODAY');
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+  const teamId = parseInt(route.params.id, 10);
+  await loadData(teamId);
+  isLoading.value = false;
+});
+
+watch(() => route.params.id, async (newId) => {
+  isLoading.value = true;
+  await loadData(newId);
+  isLoading.value = false;
 });
 
 const selectMeeting = (meeting) => {
   console.log(meeting);
 
-  // meeting이 속한 그룹을 확인하고 detailType 설정
   if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
     detailType.value = 'PREV';
   } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
@@ -591,6 +611,34 @@ button {
   margin: 0;
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  text-align: center;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+  width: 50px;
+  height: 50px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner p {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
 @media (max-width: 992px) {
   .intro-section,
   .chat-section,
@@ -607,4 +655,6 @@ button {
     margin: auto;
   }
 }
+
+
 </style>

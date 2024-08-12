@@ -116,16 +116,17 @@ export const useUserStore = defineStore('user', {
       const meetingStore = useMeetingStore()
       try {
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
-
-        if (response.data.success) {
-          // 사용자 정보를 초기화
-          this.userId = 0
+                  this.userId = 0
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
           this.userList = []
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
+
+        if (response.data.success) {
+          // 사용자 정보를 초기화
+
           errorStore.showError('Log Out Successful')
           router.replace({ name: 'HomeView' })
         } else {
