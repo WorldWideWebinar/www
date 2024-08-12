@@ -146,8 +146,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
@@ -155,7 +155,6 @@ import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
-const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
@@ -188,28 +187,24 @@ const filteredMeetings = computed(() => {
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
+  const teamData = teamStore.getTeamById(teamId);
   return teamData ? teamData.teamName : '';
 });
-
 const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
-  return teamData && teamData.ownerId == userStore.userId;
+  const teamData = teamStore.getTeamById(teamId);
+  return teamData && teamData.ownerId === userStore.userId;
 });
 
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
 
-const buttonClass = (type, status) => {
-  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
-  if (type === 'PREV') return 'btn-gray';
-  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
-  return '';
+const buttonClass = (status) => {
+  return status === 'IN' ? 'btn-green' : 'btn-red';
 };
 
-const buttonText = (type, status) => status;
+const buttonText = (status) => status;
 
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
@@ -316,6 +311,7 @@ const formatTime = (dateString) => {
 };
 </script>
 
+
 <style scoped>
 .ready-page-container {
   display: flex;
@@ -339,12 +335,13 @@ const formatTime = (dateString) => {
 
 .sub-container {
   width: 82%;
+  box-sizing: border-box;
+  padding: 0;
   margin: 0 auto;
 }
 
 .main-section {
   display: flex;
-  padding: 1rem;
   justify-content: space-between;
   width: 100%;
   gap: 2rem;

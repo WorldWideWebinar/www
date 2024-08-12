@@ -13,14 +13,15 @@ export const useMeetingStore = defineStore('meeting', {
     },
     async addMeeting(meeting) {
       try {
-        const response = await axiosInstance.post('api/meetings', meeting)
+        const response = await axiosInstance.post('api/meetings', meeting);
         if (response.data.success) {
-          this.meetings.push(meeting)
+          this.meetings.push(meeting);
+          this.groupMeetings();
         } else {
-          console.error('Failed to add meeting:', response.data.message)
+          console.error('Failed to add meeting:', response.data.message);
         }
       } catch (error) {
-        console.error('Error adding meeting:', error)
+        console.error('Error adding meeting:', error);
       }
     },
     async fetchMeetingById(meetingId) {
@@ -32,17 +33,7 @@ export const useMeetingStore = defineStore('meeting', {
           this.meetings.push(meeting)
         }
       } catch (error) {
-        console.error(`Failed to fetch meeting ${meetingId}:`, error)
-      }
-    },
-
-    async fetchMeetingsByIds(meetingList) {
-      try {
-        for (const meetingId of meetingList) {
-          await this.fetchMeetingById(meetingId)
-        }
-      } catch (error) {
-        console.error('Failed to fetch meetings:', error)
+        console.error(`Failed to fetch meeting ${meetingId}:`, error);
       }
     },
 
@@ -52,7 +43,6 @@ export const useMeetingStore = defineStore('meeting', {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
     },
-
     prevMeetingHoursByTeam: (state) => (teamId) => {
       return state.groupedMeetings.PREV
         .filter(meeting => meeting.team_id == teamId)
