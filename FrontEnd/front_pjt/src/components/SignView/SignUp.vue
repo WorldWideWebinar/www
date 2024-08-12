@@ -174,7 +174,7 @@ form {
 }
 
 .form-title {
-  margin-top: 10%;
+  margin-top: 4%;
 }
 
 .id-check-container {
@@ -280,13 +280,13 @@ form {
 
 .error-message {
   color: red;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 
 .id-check-message {
   color: green;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 

@@ -4,8 +4,7 @@ import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
-    meetings: [
-    ],
+    meetings: [],
     groupedMeetings: {
       PREV: [],
       TODAY: [],
@@ -55,20 +54,21 @@ export const useMeetingStore = defineStore('meeting', {
     async fetchMeetings(teamId, prev = false, next = false) {
       try {
         const today = new Date().toISOString();
-
         const params = {
           today: today,
           prev: prev,
           next: next,
           teamId: teamId
         };
-
+    
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
-
+    
+        console.log('서버로부터 받은 회의 데이터:', newMeetings);
+    
         const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
         const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
-
+    
         this.meetings.push(...filteredMeetings);
 
         this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
@@ -76,6 +76,22 @@ export const useMeetingStore = defineStore('meeting', {
         if (error.response && error.response.status !== 404) {
           console.error('Failed to fetch meetings:', error)
         }
+      }
+    },
+
+    groupMeetings(prev, next) {
+      if (prev) {
+        this.groupedMeetings.PREV = [...this.meetings];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [];
+      } else if (next) {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [...this.meetings];
+      } else {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [...this.meetings];
+        this.groupedMeetings.NEXT = [];
       }
     },
 
@@ -94,31 +110,36 @@ export const useMeetingStore = defineStore('meeting', {
         return { isSuccess: false, message: error.message };
       }
     },
-
-
-    groupMeetings(prev, next) {
-      if (prev) {
-        this.groupedMeetings.PREV = [...this.meetings];
-        this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [];
-      } else if (next) {
-        this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [...this.meetings];
-      } else {
-        this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [...this.meetings];
-        this.groupedMeetings.NEXT = [];
-      }
-    }
+     
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
-      return state.meetings.filter((meeting) => meeting.team_id === teamId)
+      return state.meetings.filter(meeting => meeting.team_id === teamId);
+    },
+    prevMeetingHours(state) {
+      return state.groupedMeetings.PREV.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
+      }, 0);
+    },
+    todayMeetingHours(state) {
+      return state.groupedMeetings.TODAY.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
+    },
+    nextMeetingHours(state) {
+      return state.groupedMeetings.NEXT.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
     }
   },
-  // persist: {
-  //   key: 'meetingStore',
-  //   storage: sessionStorage,
-  // },
+  persist: {
+    key: 'meetingStore',
+    storage: sessionStorage,
+  },
 })

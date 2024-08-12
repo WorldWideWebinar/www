@@ -6,6 +6,7 @@
         <button @click="checkTodayMeeting(todayMeeting)"></button>
       </div>
       <div class="notice-content">
+<<<<<<< HEAD
         <div v-if="todayMeeting" class="notice-item">
           <div class="notice-left">
             <p class="bold">{{ todayMeeting.name }}</p>
@@ -31,6 +32,29 @@
             </button>
           </div>
         </div>
+=======
+        <table v-if="todayMeetings.length > 0" class="notice-table">
+          <!-- <thead>
+            <tr>
+              <th>TIME</th>
+              <th>AGENDA</th>
+              <th>PLAY</th>
+            </tr>
+          </thead> -->
+          <tbody>
+            <tr v-for="meeting in todayMeetings" :key="meeting.id">
+              <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+              <td class="bold">{{ meeting.name }}</td>
+              <td>
+                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+>>>>>>> 384af403331c63ec373562bb577606b7c9ee2363
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
         </div>
@@ -38,24 +62,24 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-        <p>We have meetings for {{ totalMeetingHours }} hours</p>
+        <p>We have meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
-          <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
-          <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
-          <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }" v-if="nextMeetingHours > 0"></div>
+          <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
+          <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
+          <div class="meeting-hours-segment next-meetings" :style="{ width: (nextMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="nextMeetingHours > 0"></div>
         </div>
         <div class="meeting-hours-legend">
           <div class="legend-item">
             <span class="legend-color prev-meetings"></span>
-            <span class="legend-label">Previous {{ prevMeetingHours }}</span>
+            <span class="legend-label">Previous {{ prevMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color today-meetings"></span>
-            <span class="legend-label">Today {{ todayMeetingHours }}</span>
+            <span class="legend-label">Today {{ todayMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color next-meetings"></span>
-            <span class="legend-label">Next {{ nextMeetingHours }}</span>
+            <span class="legend-label">Next {{ nextMeetingHours.toFixed(2) }} hours</span>
           </div>
         </div>
       </div>
@@ -63,7 +87,7 @@
         <table class="department-table">
           <tbody>
             <tr>
-              <td><strong>Name</strong></td>
+              <!-- <td><strong>Info</strong></td> -->
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
@@ -78,7 +102,7 @@
                   <div v-if="showInviteMemberInput" class="invite-member-input" ref="inviteInput">
                     <button @click="cancelInvite" class="btns btn-close"></button>
                     <div class="invite-member-row">
-                      <input class="search-member" v-model="newMemberId" placeholder="Enter member ID" />
+                      <input class="search-member" v-model="newMemberId" placeholder="Enter ID" />
                       <button @click="inviteMember" class="btns btn-invite">Invite</button>
                     </div>
                   </div>
@@ -96,11 +120,21 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+<<<<<<< HEAD
 import { useUserStore } from '@/stores/userStore';
 import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore'
+=======
+>>>>>>> 384af403331c63ec373562bb577606b7c9ee2363
 
 const teamStore = useTeamStore();
+const meetingStore = useMeetingStore();
+const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
+const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
+const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
+const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
@@ -193,6 +227,20 @@ const toggleTodayMembersList = () => {
   showTodayMembersList.value = !showTodayMembersList.value;
 };
 
+
+const formatTime = (dateTimeString) => {
+  if (!dateTimeString) return '';
+
+  const date = new Date(dateTimeString);
+
+  // 로컬 시간대의 시간과 분을 가져옵니다.
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+};
+
+
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
 };
@@ -276,6 +324,19 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
+
+onMounted(async () => {
+  const teamId = teamStore.teamInfo?.id;
+
+  if (teamId) {
+    const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
+    const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
+
+    await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
+  } else {
+    console.error('Team ID is not available.');
+  }
+});
 </script>
 
 
@@ -319,89 +380,62 @@ onBeforeUnmount(() => {
 }
 
 .notice-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  max-height: 150px; /* 원하는 최대 높이 설정 */
+  overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px 0;
+  padding: 20px;
   background-color: #f9f9f9;
 }
 
-.notice-item {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-right: 1rem;
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.no-meeting {
-  margin: auto;
-  padding: 0 20px;
-}
-
-.notice-left,
-.notice-middle,
-.notice-right {
-  flex: 1;
+.notice-table th,
+.notice-table td {
+  padding: 8px;
   text-align: center;
-  position: relative;
-  margin: 5px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.notice-middle {
-  flex: 2;
+.notice-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 
-.notice-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.notice-table tr:last-child td {
+  border-bottom: none;
 }
 
-.notice-left::after,
-.notice-middle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  border-right: 1px dashed #ccc;
-  transform: translateX(50%);
-}
-
-.notice-right::after {
-  display: none;
-}
-
-.notice-right button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  padding: 0.5rem;
+.notice-table td .join-button {
+  margin: 0 5px;
+  padding: 0.4rem 1rem;
   cursor: pointer;
-  font-size: 1rem;
-  border-radius: 100px;
-  background-color: none;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  background-color: #a571c4;
+  color: white;
+  border: none;
 }
 
-.notice-right {
-  font-size: 1.2rem;
-  padding: 5px;
+.notice-table td .join-button img {
+  width: 20px;
 }
 
 .play-button {
   width: 50px;
 }
 
+.department-info {
+  margin: 0 auto;
+}
+
 .department-table {
   width: 100%;
   border-collapse: collapse;
+  margin: 0 auto;
 }
 
 .department-table td {
@@ -517,6 +551,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .add-member-btn {
@@ -535,8 +571,8 @@ onBeforeUnmount(() => {
 .invite-member-input {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: -40%;
+  width: 180%;
   padding: 10px;
   background: #fff;
   border: 1px solid #ddd;
@@ -580,7 +616,7 @@ onBeforeUnmount(() => {
 
 .search-member {
   /* flex: 1; */
-  padding: 8px;
+  padding: 7.3px;
   border-radius: 4px 0 0 4px;
   border: 1px solid #ddd;
   width: 100%;
