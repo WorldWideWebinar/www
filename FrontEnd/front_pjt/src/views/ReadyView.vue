@@ -173,18 +173,18 @@ const isLoading = ref(true);
 
 const members = computed(() => teamStore.teamUserInfo);
 
-// const filteredMeetings = computed(() => {
-//   const teamId = parseInt(route.params.id, 10);
+const filteredMeetings = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
 
-//   if (activeTab.value === 'PREV') {
-//     return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
-//   } else if (activeTab.value === 'TODAY') {
-//     return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
-//   } else if (activeTab.value === 'NEXT') {
-//     return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
-//   }
-//   return [];
-// });
+  if (activeTab.value === 'PREV') {
+    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'TODAY') {
+    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
+  } else if (activeTab.value === 'NEXT') {
+    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
+  }
+  return [];
+});
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);

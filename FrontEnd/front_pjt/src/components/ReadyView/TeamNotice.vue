@@ -5,7 +5,7 @@
         <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
       </div>
       <div class="notice-content">
-        <table v-if="todayMeetings.length > 0" class="notice-table">
+        <table v-if="todayMeetings" class="notice-table">
           <!-- <thead>
             <tr>
               <th>TIME</th>
@@ -91,29 +91,19 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useUserStore } from '@/stores/userStore';
-import { useSessionStore } from '@/stores/sessionStore';
-import { useRoute, useRouter } from 'vue-router'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
+const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
 const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
 const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
 const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const userStore = useUserStore();
-const sessionStore = useSessionStore();
-const router = useRouter();
-const route = useRoute()
-
-const todayMeetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10); 
-  return meetingStore.groupedMeetings.TODAY.find(meeting => meeting.team_id === teamId);
-});
 
 
 const formatTime = (dateTimeString) => {
@@ -135,33 +125,6 @@ const toggleMemberListDropdown = () => {
 
 const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
-};
-
-const handleStartConference = async (meetingId, sessionName) => {
-  const userId = userStore.userId;
-  console.log(meetingId)
-  try {
-    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
-
-    if (!sessionId) {
-      // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
-    }
-
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token } });
-  } catch (error) {
-    console.error('Failed to start conference:', error);
-  }
-};
-
-const handleJoinConference = async (sessionName) => {
-  try {
-    const token = await sessionStore.joinConference(sessionName);
-    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
-  } catch (error) {
-    console.error('Failed to join conference:', error);
-  }
 };
 
 const inviteMember = async () => {
@@ -200,10 +163,6 @@ const handleClickOutside = (event) => {
   }
 };
 
-const checkTodayMeeting = () => {
-  console.log("group meetings" , meetingStore.groupedMeetings)
-}
-
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
 });
@@ -212,20 +171,19 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 
-onMounted(async () => {
-  const teamId = teamStore.teamInfo?.id;
+// onMounted(async () => {
+//   const teamId = teamStore.teamInfo?.id;
 
-  if (teamId) {
-    const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
-    const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
+//   if (teamId) {
+//     const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
+//     const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
 
-    await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
-  } else {
-    console.error('Team ID is not available.');
-  }
-});
+//     await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
+//   } else {
+//     console.error('Team ID is not available.');
+//   }
+// });
 </script>
-
 
 <style scoped>
 .container {
