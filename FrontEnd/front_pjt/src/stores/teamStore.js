@@ -179,7 +179,7 @@ export const useTeamStore = defineStore('team', {
     },
 
     addMembertoTeam(userId, teamId) {
-      const team = this.teams.find(team => team.id === teamId);
+      const team = this.teams.find(team => team.id == teamId);
       if (team) {
         if (!team.userList.includes(userId)) {
           team.userList.push(userId);

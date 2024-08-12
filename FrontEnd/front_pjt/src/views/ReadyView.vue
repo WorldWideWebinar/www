@@ -25,13 +25,13 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="selectTab('PREV')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'PREV' }" aria-current="page" href="#">PREV</a>
             </li>
             <li class="nav-item" @click="selectTab('TODAY')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'TODAY' }" aria-current="page" href="#">TODAY</a>
             </li>
             <li class="nav-item" @click="selectTab('NEXT')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
           <!-- Meeting List -->
@@ -151,8 +151,9 @@ import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils';
+import { formatTime, handleClickOutside } from '@/utils.js';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
+import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
 
 const route = useRoute();
 const teamStore = useTeamStore();
@@ -172,6 +173,18 @@ const isLoading = ref(true);
 
 const members = computed(() => teamStore.teamUserInfo);
 
+const filteredMeetings = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+
+  if (activeTab.value === 'PREV') {
+    return teamStore.groupedMeetings.PREV;
+  } else if (activeTab.value === 'TODAY') {
+    return teamStore.groupedMeetings.TODAY;
+  } else if (activeTab.value === 'NEXT') {
+    return teamStore.groupedMeetings.NEXT;
+  }
+  return [];
+});
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
@@ -182,24 +195,6 @@ const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.getTeamById(teamId);
   return teamData && teamData.ownerId === userStore.userId;
-});
-
-const filteredMeetings = computed(() => {
-  const now = new Date();
-  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
-  if (activeTab.value === 'PREV') {
-    return meetingStore.meetings.filter(meeting => new Date(meeting.end_at) < startOfDay);
-  } else if (activeTab.value === 'TODAY') {
-    return meetingStore.meetings.filter(meeting => {
-      const startDate = new Date(meeting.start_at);
-      return startDate >= startOfDay && startDate <= endOfDay;
-    });
-  } else if (activeTab.value === 'NEXT') {
-    return meetingStore.meetings.filter(meeting => new Date(meeting.start_at) > endOfDay);
-  }
-  return [];
 });
 
 const toggleStatus = (meeting) => {
@@ -234,11 +229,6 @@ const closeDropdowns = () => {
 
 const selectTab = async (tab) => {
   activeTab.value = tab;
-  console.log(teamStore.groupedMeetings)
-  const teamId = parseInt(route.params.id, 10);
-  const prev = tab === 'PREV' ? 1 : 0;
-  const next = tab === 'NEXT' ? 1 : 0;
-  await teamStore.fetchMeetings(teamId, prev, next);
 };
 
 const loadData = async (teamId) => {
@@ -268,6 +258,7 @@ onMounted(async () => {
 watch(() => route.params.id, async (newId) => {
   isLoading.value = true;
   teamStore.clearTeamMeetings();
+  console.log(newId)
   await loadData(newId);
   isLoading.value = false;
 });
