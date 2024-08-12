@@ -6,33 +6,6 @@
         <button @click="checkTodayMeeting(todayMeeting)"></button>
       </div>
       <div class="notice-content">
-<<<<<<< HEAD
-        <div v-if="todayMeeting" class="notice-item">
-          <div class="notice-left">
-            <p class="bold">{{ todayMeeting.name }}</p>
-          </div>
-          <div class="notice-middle">
-            <p>
-              {{ formatDate(todayMeeting.start_at) }} {{ formatTime(todayMeeting.start_at) }} - {{ formatDate(todayMeeting.end_at) }} {{ formatTime(todayMeeting.end_at) }}
-            </p>
-            <p class="before-dropdown" @click="toggleTodayMembersList">
-              <!-- {{ todayMeeting.members.length }} members will join! -->
-            </p>
-            <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-              <li v-for="member in members" :key="member.name" class="member">
-                {{ member.name }}
-              </li>
-            </ul>
-          </div>
-          <div class="notice-right" >
-            
-            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id)" class="join-button">Start</button>
-            <button v-else @click="handleJoinConference(todayMeeting.meeting_id)" class="join-button">
-              <img class="play-button" src="@/assets/img/play.png" alt="play">
-            </button>
-          </div>
-        </div>
-=======
         <table v-if="todayMeetings.length > 0" class="notice-table">
           <tr v-for="meeting in todayMeetings" :key="meeting.id">
             <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
@@ -45,7 +18,6 @@
             </td>
           </tr>
         </table>
->>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
         </div>
@@ -53,11 +25,7 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-<<<<<<< HEAD
-        <p>We have meetings for {{ totalMeetingHours }} hours</p>
-=======
         <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
->>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
         <div class="meeting-hours-bar">
           <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
           <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
@@ -135,7 +103,6 @@ const totalParticipants = computed(() => teamId.value ? teamStore.totalParticipa
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
-const meetingStore =useMeetingStore()
 const members = computed(() => teamStore.teamUserInfo);
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
