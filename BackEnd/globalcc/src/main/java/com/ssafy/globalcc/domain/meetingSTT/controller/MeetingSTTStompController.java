@@ -24,7 +24,6 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
-
     private static final Logger log = LoggerFactory.getLogger(MeetingSTTStompController.class);
     private final RabbitTemplate rabbitTemplate;
 
@@ -42,6 +41,7 @@ public class MeetingSTTStompController {
             @Payload final MeetingSTTRequest request
     ) {
         //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
+
         String redisKey = "MeetingSTT:" + meetingId;
         String redisKeyForLastSegmentTime = LAST_SEGMENT_TIME_KEY + meetingId;
         String redisKeyForLastSegment = LAST_SEGMENT_KEY + meetingId;
@@ -50,10 +50,8 @@ public class MeetingSTTStompController {
         if(redisLastSegmentTime != null) {
             lastSegmentTime = Float.parseFloat(redisLastSegmentTime);
         }
-        log.info("lastSegmentTime : {}", lastSegmentTime);
         for(int i = 0; i < request.getSegments().size(); i++){
             MeetingSTTSegment segment = request.getSegments().get(i);
-            log.info("segment: {}" , segment);
             if(i == request.getSegments().size() - 1){
                 redisTemplate.opsForValue().set(redisKeyForLastSegment, segment.getText());
             } else if (segment.getStart() >= lastSegmentTime) {
@@ -62,8 +60,6 @@ public class MeetingSTTStompController {
             }
         }
         redisTemplate.opsForValue().set(redisKeyForLastSegmentTime, String.valueOf(lastSegmentTime));
-//        redisTemplate.opsForList().rightPush(redisKey, request.getContent());
-        log.info("received request: {}", request);
         MeetingSTTResponse response = MeetingSTTResponse.of(request.getMeetingId(), request.getContent(),request.getSegments());
         rabbitTemplate.convertAndSend(
                 EXCHANGE_NAME, ROUTING_KEY + meetingId, response
@@ -76,34 +72,47 @@ public class MeetingSTTStompController {
         Set<String> keys = redisTemplate.keys("MeetingSTT:*");
         if (keys != null) {
             for (String key : keys) {
-                List<String> messageList = redisTemplate.opsForList().range(key, 0, -1);
-                if (messageList != null && !messageList.isEmpty()) {
-                    Integer meetingId = extractMeetingId(key);
-                    Meeting meeting = meetingRepository.findById(meetingId)
-                            .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
-
-                    List<MeetingSTT> meetingSTTList = messageList.stream()
-                            .map(content -> {
-                                MeetingSTT meetingSTT = new MeetingSTT();
-                                meetingSTT.setMeeting(meeting);
-                                meetingSTT.setContent(content);
-                                return meetingSTT;
-                            })
-                            .toList();
-                    meetingSTTRepository.saveAll(meetingSTTList);
-//                    Save Last Segment when meeting is end
-//                        String lastKey = LAST_SEGMENT_KEY + meetingId;
-//                    String lastTimeKey = LAST_SEGMENT_TIME_KEY + meetingId;
-//                    String lastSTT = redisTemplate.opsForValue().get(lastKey);
-//                    MeetingSTT stt = new MeetingSTT();
-//                    stt.setMeeting(meeting);
-//                    stt.setContent(lastSTT);
-//                    meetingSTTRepository.save(stt);
-//                    redisTemplate.delete(lastKey);
-//                    redisTemplate.delete(lastTimeKey);
-                    redisTemplate.delete(key);
-                }
+                saveListFromRedisToDatabase(key);
             }
+        }
+    }
+    public void saveFinishedMeeting(int meetingId){
+        String redisKey = "MeetingSTT:" + meetingId;
+        saveListFromRedisToDatabase(redisKey);
+
+        String redisKeyForLastSegmentTime = LAST_SEGMENT_TIME_KEY + meetingId;
+        String redisKeyForLastSegment = LAST_SEGMENT_KEY + meetingId;
+        String lastSegment = redisTemplate.opsForValue().get(redisKeyForLastSegment);
+        MeetingSTT last = new MeetingSTT();
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
+        last.setMeetingSttId(meetingId);
+        last.setMeeting(meeting);
+        last.setContent(lastSegment);
+        meetingSTTRepository.save(last);
+
+        redisTemplate.delete(redisKeyForLastSegment);
+        redisTemplate.delete(redisKeyForLastSegmentTime);
+
+    }
+    private void saveListFromRedisToDatabase(String key){
+        List<String> messageList = redisTemplate.opsForList().range(key, 0, -1);
+        if (messageList != null && !messageList.isEmpty()) {
+            Integer meetingId = extractMeetingId(key);
+            Meeting meeting = meetingRepository.findById(meetingId)
+                    .orElseThrow(() -> new IllegalArgumentException("Meeting not found"));
+
+            List<MeetingSTT> meetingSTTList = messageList.stream()
+                    .map(content -> {
+                        MeetingSTT meetingSTT = new MeetingSTT();
+                        meetingSTT.setMeeting(meeting);
+                        meetingSTT.setContent(content);
+                        return meetingSTT;
+                    })
+                    .toList();
+            meetingSTTRepository.saveAll(meetingSTTList);
+
+            redisTemplate.delete(key);
         }
     }
 

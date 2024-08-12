@@ -44,16 +44,21 @@ public class TeamController {
     }
 
 
-    @DeleteMapping("{teamId}")
+    @DeleteMapping("/{teamId}")
     public ResponseEntity<?> deleteTeam(@PathVariable int teamId, @AuthenticationPrincipal SecurityUser user) {
         teamService.deleteTeam(teamId, user.getUsername());
         return new ResponseEntity<>(ApiResponse.success(teamId,"팀 삭제 성공"),HttpStatus.OK);
     }
 
-    @PutMapping("{teamId}")
+    @PutMapping("/{teamId}")
     public ResponseEntity<?> updateTeamInfo(@PathVariable int teamId, @RequestBody TeamDto teamDto, @AuthenticationPrincipal SecurityUser user) {
         teamService.updateTeam(teamId, teamDto, user.getUsername());
         return new ResponseEntity<>(ApiResponse.success(teamId, "팀 정보 수정 성공"), HttpStatus.OK);
+    }
+
+    @GetMapping("/emojis")
+    public ResponseEntity<?> getEmojis() {
+        return teamService.getEmojis();
     }
 
     @ExceptionHandler(TeamCreationFailException.class)

@@ -18,8 +18,12 @@ import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +37,10 @@ public class TeamServiceImpl implements TeamService{
     private final UserRepository userRepository;
     private final UserTeamRepository userTeamRepository;
     private final MeetingRepository meetingRepository;
-
+    @Value("${emoji.base}")
+    private String baseEmojiURL;
+    @Value("${emoji.api.key}")
+    private String accessKey;
     @Override
     @Transactional
     public int addTeam(TeamDto dto) {
@@ -170,6 +177,14 @@ public class TeamServiceImpl implements TeamService{
         userTeamRepository.saveAll(newUserTeams);
 
         teamRepository.save(team);
+    }
+
+    @Override
+    public ResponseEntity<?> getEmojis() {
+        RestClient client = RestClient.builder()
+                .baseUrl("https://emoji-api.com/emojis?access_key=" + accessKey)
+                .build();
+        return client.get().retrieve().toEntity(String.class);
     }
 
 }
