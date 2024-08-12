@@ -217,7 +217,8 @@ export const useTeamStore = defineStore('team', {
   
         meetingStore.meetings.push(newMeetings);
         console.log('서버로부터 받은 회의 데이터:', newMeetings);
-        this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
+        this.groupMeetings(prev, next, newMeetings);
+
         console.log('현재 store의 groupedMeetings:', this.groupedMeetings)
       } catch (error) {
         if (error.response && error.response.status !== 404) {
@@ -226,18 +227,18 @@ export const useTeamStore = defineStore('team', {
       }
     },
 
-    groupMeetings(prev, next) {
+    groupMeetings(prev, next, meetings) {
       if (prev) {
-        this.groupedMeetings.PREV = [...this.meetings];
+        this.groupedMeetings.PREV = [...meetings];
         this.groupedMeetings.TODAY = [];
         this.groupedMeetings.NEXT = [];
       } else if (next) {
         this.groupedMeetings.PREV = [];
         this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [...this.meetings];
+        this.groupedMeetings.NEXT = [...meetings];
       } else {
         this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [...this.meetings];
+        this.groupedMeetings.TODAY = [...meetings];
         this.groupedMeetings.NEXT = [];
       }
     },
