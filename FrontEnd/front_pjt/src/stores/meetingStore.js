@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useErrorStore } from './errorStore';
 import axiosInstance from '@/axios'
+import { useTeamStore } from '@/stores/teamStore.js'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
@@ -15,13 +16,17 @@ export const useMeetingStore = defineStore('meeting', {
       try {
         const response = await axiosInstance.post('api/meetings', meeting);
         if (response.data.success) {
-          this.meetings.push(meeting);
-          this.groupMeetings();
+          // await useTeamStore().fetchTeamById()
+          // this.meetings.push(meeting);
+          // this.groupMeetings();
+          return true;
         } else {
           console.error('Failed to add meeting:', response.data.message);
+          return false;
         }
       } catch (error) {
         console.error('Error adding meeting:', error);
+        return false
       }
     },
     async fetchMeetingById(meetingId) {

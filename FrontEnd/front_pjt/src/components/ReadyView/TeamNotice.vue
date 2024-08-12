@@ -90,8 +90,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
-import { useRouter, useRoute } from 'vue-router'
-import { useSessionStore } from '@/stores/sessionStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils';
 import { useUserStore } from '@/stores/userStore.js'
@@ -159,10 +157,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
 });
 
-// onMounted(async () => {
-//   const teamId = teamStore.teamInfo?.id;
-//   await teamStore.fetchMeetings(teamId);
-// });
 </script>
 
 
