@@ -111,7 +111,7 @@ const createMeeting = async () => {
       meetingStore.meetings.push(savedMeeting);
       router.replace({name: 'ReadyView', id:teamId})
     }
-    
+
     close();
   } catch (error) {
     errorStore.showError('미팅 생성 중 오류 발생:', error);
@@ -135,7 +135,7 @@ const setupFlatpickrStart = () => {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        start.value = adjustedDate.toISOString().slice(0, 16);
+        start.value = adjustedDate.toISOString();
         console.log("Start Date for display:", start.value);
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
@@ -156,7 +156,7 @@ const setupFlatpickrEnd = () => {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        end.value = adjustedDate.toISOString().slice(0, 16);
+        end.value = adjustedDate.toISOString();
         console.log("End Date for display:", end.value);
         displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
