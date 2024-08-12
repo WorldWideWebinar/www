@@ -94,11 +94,11 @@ import { useMeetingStore } from '@/stores/meetingStore';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
-const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
-const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
-const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY || []);
+// const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
+// const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
+// const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
+// const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
 
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
