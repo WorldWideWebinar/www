@@ -25,4 +25,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Integer> {
     List<Meeting> findMeetingsByTeamIdAndStartAtAfter(@Param("teamId") Integer teamId, @Param("today") LocalDate today);
     @Query("select m from  Meeting m where m.team.teamId = :teamId and DATE(m.startAt) = :today")
     List<Meeting> findMeetingsByTeamIdAndStartAt(@Param("teamId") Integer teamId, @Param("today") LocalDate today);
+    @Query("SELECT m.meetingId FROM Meeting m WHERE m.sessionId = :sessionId")
+    String findMeetingIdBySessionId(String sessionId);
 }
