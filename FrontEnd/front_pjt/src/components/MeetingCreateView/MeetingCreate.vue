@@ -12,12 +12,12 @@
           <input type="text" v-model="name" id="name" required />
         </div>
         <div class="form-group">
-          <label for="start">Start Time</label>
-          <input type="datetime-local" v-model="start" id="start" required />
+          <label for="startPicker">Start Time</label>
+          <input type="text" v-model="selectedStartDate" id="startPicker" required />
         </div>
         <div class="form-group">
-          <label for="end">End Time</label>
-          <input type="datetime-local" v-model="end" id="end" required />
+          <label for="endPicker">End Time</label>
+          <input type="text" v-model="selectedEndDate" id="endPicker" required />
         </div>
         <div class="form-group">
           <label for="detail">Details</label>
@@ -33,7 +33,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.css';
 import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
@@ -53,6 +55,8 @@ const name = ref('');
 const start = ref('');
 const end = ref('');
 const detail = ref('');
+const selectedStartDate = ref('');
+const selectedEndDate = ref('');
 
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
@@ -79,10 +83,46 @@ const createMeeting = async () => {
 };
 
 const emits = defineEmits(['close']);
-  
+
 const close = () => {
   emits('close');
 };
+
+const setupFlatpickrStart = () => {
+  flatpickr("#startPicker", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    time_24hr: true,
+    minuteIncrement: 1,
+    onChange: (selectedDates) => {
+      if (selectedDates.length > 0) {
+        start.value = selectedDates[0].toISOString().slice(0, 16);
+        console.log("Start Date for display:", selectedStartDate.value);
+      }
+    }
+  });
+};
+
+// Setup flatpickr for end date
+const setupFlatpickrEnd = () => {
+  flatpickr("#endPicker", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    time_24hr: true,
+    minuteIncrement: 1,
+    onChange: (selectedDates) => {
+      if (selectedDates.length > 0) {
+        end.value = selectedDates[0].toISOString().slice(0, 16);
+        console.log("End Date for display:", selectedEndDate.value);
+      }
+    }
+  });
+};
+
+onMounted(() => {
+  setupFlatpickrStart();
+  setupFlatpickrEnd();
+})
 </script>
 
 <style scoped>

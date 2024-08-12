@@ -123,6 +123,7 @@ export const useUserStore = defineStore('user', {
           this.userInfo = {}
           this.accessToken = null
           this.refreshToken = null
+          this.userList = []
           teamStore.clearTeams()
           teamStore.clearTeamUsers()
           errorStore.showError('Log Out Successful')
