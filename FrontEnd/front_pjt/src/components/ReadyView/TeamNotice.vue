@@ -318,62 +318,89 @@ onBeforeUnmount(() => {
 }
 
 .notice-content {
-  max-height: 150px; /* 원하는 최대 높이 설정 */
-  overflow-y: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 20px 0;
   background-color: #f9f9f9;
 }
 
-.notice-table {
-  width: 100%;
-  border-collapse: collapse;
+.notice-item {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 1rem;
 }
 
-.notice-table th,
-.notice-table td {
-  padding: 8px;
+.no-meeting {
+  margin: auto;
+  padding: 0 20px;
+}
+
+.notice-left,
+.notice-middle,
+.notice-right {
+  flex: 1;
   text-align: center;
-  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+  margin: 5px;
 }
 
-.notice-table th {
-  background-color: #f0f0f0;
-  font-weight: bold;
+.notice-middle {
+  flex: 2;
 }
 
-.notice-table tr:last-child td {
-  border-bottom: none;
+.notice-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.notice-table td .join-button {
-  margin: 0 5px;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border-radius: 20px;
-  background-color: #a571c4;
-  color: white;
+.notice-left::after,
+.notice-middle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  border-right: 1px dashed #ccc;
+  transform: translateX(50%);
+}
+
+.notice-right::after {
+  display: none;
+}
+
+.notice-right button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
+  border-radius: 50%;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 100px;
+  background-color: none;
 }
 
-.notice-table td .join-button img {
-  width: 20px;
+.notice-right {
+  font-size: 1.2rem;
+  padding: 5px;
 }
 
 .play-button {
   width: 50px;
 }
 
-.department-info {
-  margin: 0 auto;
-}
-
 .department-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0 auto;
 }
 
 .department-table td {
@@ -489,8 +516,6 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin: 0 auto;
-  text-align: center;
 }
 
 .add-member-btn {
@@ -509,8 +534,8 @@ onBeforeUnmount(() => {
 .invite-member-input {
   position: absolute;
   top: 100%;
-  left: -40%;
-  width: 180%;
+  left: 0;
+  width: 100%;
   padding: 10px;
   background: #fff;
   border: 1px solid #ddd;
@@ -554,7 +579,7 @@ onBeforeUnmount(() => {
 
 .search-member {
   /* flex: 1; */
-  padding: 7.3px;
+  padding: 8px;
   border-radius: 4px 0 0 4px;
   border: 1px solid #ddd;
   width: 100%;
