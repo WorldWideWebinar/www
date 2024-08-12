@@ -43,7 +43,7 @@ export const useTeamStore = defineStore('team', {
         const teamData = response.data.result;
         this.teamInfo = teamData
         this.teamUserList = teamData.userList
-        const teamExists = this.teams.some(team => team.id === teamId);
+        const teamExists = this.teams.some(team => team.id == teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드
@@ -114,7 +114,7 @@ export const useTeamStore = defineStore('team', {
       try {
         const response = await axiosInstance.delete(`api/teams/${teamId}`);
         if (response.data.isSuccess) {
-          this.teams = this.teams.filter(team => team.id !== teamId);
+          this.teams = this.teams.filter(team => team.id != teamId);
         } else {
           errorStore.showError(`Failed to delete team: ${response.data.message}`);
         }
@@ -134,7 +134,7 @@ export const useTeamStore = defineStore('team', {
       try {
         const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
         if (response.data.isSuccess) {
-          const team = this.teams.find(team => team.id === teamId);
+          const team = this.teams.find(team => team.id == teamId);
           if (team) {
             team.userList = team.userList.filter(user => user !== userId);
           }
@@ -149,7 +149,7 @@ export const useTeamStore = defineStore('team', {
     },
 
     addMembertoTeam(userId, teamId) {
-      const team = this.teams.find(team => team.id === teamId);
+      const team = this.teams.find(team => team.id == teamId);
       if (team) {
         if (!team.userList.includes(userId)) {
           team.userList.push(userId);
