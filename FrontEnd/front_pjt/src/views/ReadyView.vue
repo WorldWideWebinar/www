@@ -25,13 +25,13 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="selectTab('PREV')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'PREV' }" aria-current="page" href="#">PREV</a>
             </li>
             <li class="nav-item" @click="selectTab('TODAY')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'TODAY' }" aria-current="page" href="#">TODAY</a>
             </li>
             <li class="nav-item" @click="selectTab('NEXT')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
           <!-- Meeting List -->
@@ -142,20 +142,20 @@
     </div>
   </div>
   <router-view v-else></router-view>
-  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" />
+  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" @created="(teamId) => loadData(teamId)"/>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
+import { formatTime, handleClickOutside } from '@/utils.js';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
+import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
 
 const route = useRoute();
-const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
@@ -174,42 +174,37 @@ const isLoading = ref(true);
 const members = computed(() => teamStore.teamUserInfo);
 
 const filteredMeetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-
+  console.log(teamStore.groupedMeetings)
   if (activeTab.value === 'PREV') {
-    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
-    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.TODAY;
   } else if (activeTab.value === 'NEXT') {
-    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.NEXT;
   }
   return [];
 });
 
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
+  const teamData = teamStore.getTeamById(teamId);
   return teamData ? teamData.teamName : '';
 });
-
 const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
-  return teamData && teamData.ownerId == userStore.userId;
+  const teamData = teamStore.getTeamById(teamId);
+  return teamData && teamData.ownerId === userStore.userId;
 });
 
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
 
-const buttonClass = (type, status) => {
-  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
-  if (type === 'PREV') return 'btn-gray';
-  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
-  return '';
+const buttonClass = (status) => {
+  return status === 'IN' ? 'btn-green' : 'btn-red';
 };
 
-const buttonText = (type, status) => status;
+const buttonText = (status) => status;
 
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
@@ -233,16 +228,19 @@ const closeDropdowns = () => {
 
 const selectTab = async (tab) => {
   activeTab.value = tab;
-  const teamId = parseInt(route.params.id, 10);
-  const prev = tab === 'PREV' ? 1 : 0;
-  const next = tab === 'NEXT' ? 1 : 0;
-  await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
-const loadData = async (teamId) => {
+const loadData = async () => {
+  const teamId = route.params.id
   try {
-    await teamStore.fetchTeamById(teamId);
-    await teamStore.fetchTeamUsers();
+    await Promise.all([
+      teamStore.fetchTeamById(teamId),
+      teamStore.fetchTeamUsers(),
+      teamStore.fetchMeetings(teamId, false, false), // TODAY
+      teamStore.fetchMeetings(teamId, false, true), // NEXT
+      teamStore.fetchMeetings(teamId, true, false), // PREV
+    ]);
+
     await selectTab('TODAY');
   } catch (error) {
     console.error('Failed to load data:', error);
@@ -251,25 +249,27 @@ const loadData = async (teamId) => {
 
 onMounted(async () => {
   isLoading.value = true;
-  meetingStore.clearMeetings();
   const teamId = parseInt(route.params.id, 10);
+
   await loadData(teamId);
   isLoading.value = false;
 });
 
 watch(() => route.params.id, async (newId) => {
   isLoading.value = true;
+  teamStore.clearTeamMeetings();
+  console.log(newId)
   await loadData(newId);
   isLoading.value = false;
 });
 
 const selectMeeting = (meeting) => {
 
-  if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
+  if (teamStore.groupedMeetings.PREV.includes(meeting)) {
     detailType.value = 'PREV';
-  } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
+  } else if (teamStore.groupedMeetings.TODAY.includes(meeting)) {
     detailType.value = 'TODAY';
-  } else if (meetingStore.groupedMeetings.NEXT.includes(meeting)) {
+  } else if (teamStore.groupedMeetings.NEXT.includes(meeting)) {
     detailType.value = 'NEXT';
   }
 
@@ -289,24 +289,25 @@ const closeMeetingDetails = () => {
   showOverlay.value = false;
 };
 
-const CreateMeeting = () => {
+const CreateMeeting = async () => {
   meetingCreateModal.value = true;
 };
 
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${month}-${day}`;
 };
-
-const formatTime = (dateString) => {
-  const date = new Date(dateString);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
 </script>
+
 
 <style scoped>
 .ready-page-container {
@@ -331,17 +332,22 @@ const formatTime = (dateString) => {
 
 .sub-container {
   width: 82%;
+  box-sizing: border-box;
+  padding: 0;
   margin: 0 auto;
 }
 
 .main-section {
   display: flex;
-  padding: 1rem;
   justify-content: space-between;
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  height: 385px;
+  min-height: 400px;
+  margin-top: 30px;
+  /* padding: 0 1.7rem; */
+  /* margin: 0 auto; */
+  /* height: 385px; */
 }
 
 .meeting-list-section {
@@ -666,7 +672,7 @@ button {
 
   .main-section {
     width: 90%;
-    margin: auto;
+    margin: 20px auto 0px auto;
   }
 }
 

@@ -17,8 +17,8 @@
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold">{{ meeting.name }}</td>
-              <td>
-                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+              <td class="join-td">
+                <button v-if="isOwner" @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
                 <button @click="handleJoinConference(meeting.name)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
@@ -58,7 +58,6 @@
         <table class="department-table">
           <tbody>
             <tr>
-              <!-- <td><strong>Info</strong></td> -->
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
@@ -87,37 +86,39 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { formatTime, handleClickOutside } from '@/utils';
+import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
-const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
-const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
-const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-
+const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY);
+const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
+const isOwner = ref(false);
+isOwner.value = teamStore.teamInfo.ownerId === userStore.userId;
 
-
-const formatTime = (dateTimeString) => {
-  if (!dateTimeString) return '';
-
-  const date = new Date(dateTimeString);
-
-  // 로컬 시간대의 시간과 분을 가져옵니다.
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  
-  return `${hours}:${minutes}`;
-};
-
+function formatDate(meetingList) {
+    return meetingList.reduce((total, meeting) => {
+      const start = new Date(meeting.start_at);
+      const end = new Date(meeting.end_at);
+      return total + (end - start) / (1000 * 60 * 60);
+    }, 0)
+}
+const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PREV))
+const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
+const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+// 여기서 각 요소에 대한 ref를 설정합니다.
+const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
+const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
@@ -130,7 +131,6 @@ const toggleInviteMemberInput = () => {
 const inviteMember = async () => {
   if (newMemberId.value) {
     try {
-      // 초대 멤버 로직
       showInviteMemberInput.value = false;
       newMemberId.value = '';
     } catch (error) {
@@ -148,51 +148,33 @@ const closeMemberListDropdown = () => {
   showMemberListDropdown.value = false;
 };
 
-const handleClickOutside = (event) => {
-  const inviteInputElement = document.querySelector('.invite-member-input');
-  const memberDropdownElement = document.querySelector('.members-dropdown');
-  
-  // 초대 입력 창 외부 클릭 시 닫기
-  if (inviteInputElement && !inviteInputElement.contains(event.target)) {
-    cancelInvite();
-  }
-
-  // 멤버 리스트 드롭다운 외부 클릭 시 닫기
-  if (memberDropdownElement && !memberDropdownElement.contains(event.target) && !event.target.closest('.members-row')) {
-    closeMemberListDropdown();
-  }
-};
-
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+  // handleClickOutside 함수 호출 시, ref를 전달합니다.
+  document.addEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
 });
 
-onMounted(async () => {
-  const teamId = teamStore.teamInfo?.id;
-
-  if (teamId) {
-    const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
-    const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
-
-    await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
-  } else {
-    console.error('Team ID is not available.');
-  }
-});
 </script>
 
 
 <style scoped>
+template {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
 .container {
   display: flex;
   justify-content: space-between;
-  gap: 2rem;
   width: 100%;
-  border-radius: 8px 8px 0 0;
+  gap: 2rem;
+  box-sizing: border-box;
+  padding: 0rem;
+  margin: 0 auto;
 }
 
 .notice-section {
@@ -200,6 +182,7 @@ onMounted(async () => {
   background-color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
+  box-sizing: border-box;
 }
 
 .intro-section {
@@ -211,6 +194,7 @@ onMounted(async () => {
   flex-direction: column;
   border: 2px dashed rgb(232, 231, 234);
   font-size: small;
+  box-sizing: border-box;
 }
 
 .notice-header,
@@ -268,6 +252,10 @@ onMounted(async () => {
 
 .notice-table td .join-button img {
   width: 20px;
+}
+
+.join-btn {
+  width: 200px;
 }
 
 .play-button {
@@ -583,6 +571,10 @@ onMounted(async () => {
 
   .notice-content {
     max-height: 150px;
+  }
+
+  .intro-section {
+    display: none;
   }
 }
 </style>

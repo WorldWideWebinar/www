@@ -99,27 +99,15 @@ const createMeeting = async () => {
     const response = await meetingStore.addMeeting(newMeeting);
 
     if (response) {
-      // 응답을 받은 후 start, end를 start_at, end_at으로 변경
-      const savedMeeting = {
-        ...newMeeting,
-        meeting_id: response.data.result,
-        start_at: newMeeting.start,
-        end_at: newMeeting.end,
-      };
-      delete savedMeeting.start;
-      delete savedMeeting.end;
-
-      meetingStore.meetings.push(savedMeeting);
-      router.replace({name: 'ReadyView', id:teamId})
+      emits('created', teamId.value)
     }
-    
     close();
   } catch (error) {
     errorStore.showError('미팅 생성 중 오류 발생:', error);
   }
 };
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close','created']);
 
 const close = () => {
   emits('close');
@@ -137,8 +125,8 @@ const setupFlatpickrStart = () => {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        start.value = adjustedDate.toISOString();
-        // console.log("Start Date for display:", start.value);
+        start.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("Start Date for display:", start.value);
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
@@ -159,8 +147,8 @@ const setupFlatpickrEnd = () => {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        end.value = adjustedDate.toISOString();
-        // console.log("End Date for display:", end.value);
+        end.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("End Date for display:", end.value);
         displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
       }
