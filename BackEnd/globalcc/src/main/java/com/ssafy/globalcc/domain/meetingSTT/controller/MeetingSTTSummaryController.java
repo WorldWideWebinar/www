@@ -2,6 +2,13 @@ package com.ssafy.globalcc.domain.meetingSTT.controller;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import com.ssafy.globalcc.domain.meeting.entity.Meeting;
+import com.ssafy.globalcc.domain.meeting.service.MeetingService;
+import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
+import com.ssafy.globalcc.domain.team.entity.Team;
+import com.ssafy.globalcc.domain.team.service.TeamService;
+import com.ssafy.globalcc.domain.user.entity.User;
+import com.ssafy.globalcc.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -12,18 +19,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/summary")
 @RequiredArgsConstructor
 public class MeetingSTTSummaryController {
 
-    @GetMapping("/{meetingId}")
-    public ResponseEntity<InputStreamResource> generateSummary(@PathVariable("meetingId") String meetingId) throws DocumentException, IOException {
+    private final MeetingService meetingService;
+    private final UserService userService;
+    private final TeamService teamService;
+
+    @GetMapping("/{teamId}/{meetingId}")
+    public ResponseEntity<InputStreamResource> generateSummary(@PathVariable("meetingId") Integer meetingId, @PathVariable("teamId") Integer teamId) throws DocumentException, IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        createMeetingSTTSummary(outputStream);
+
+        createMeetingSTTSummary(outputStream, teamId, meetingId);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
@@ -37,7 +47,11 @@ public class MeetingSTTSummaryController {
                 .body(new InputStreamResource(inputStream));
     }
 
-    public void createMeetingSTTSummary(ByteArrayOutputStream outputStream) throws DocumentException, IOException {
+    public void createMeetingSTTSummary(ByteArrayOutputStream outputStream, Integer teamId, Integer meetingId) throws DocumentException, IOException {
+
+        Meeting meetingDto = meetingService.findMeetingById(meetingId);
+        TeamDetailDto teamDetailDto = teamService.getTeamDetails(teamId);
+
         Document document = new Document(PageSize.A4, 36, 36, 72, 108); // Margins: left, right, top, bottom
         PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
@@ -57,15 +71,20 @@ public class MeetingSTTSummaryController {
         Paragraph title = new Paragraph("회  의  록", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
-        document.add(new Paragraph("날짜: " + LocalDate.now(), normalFont));
-        document.add(new Paragraph("시간: " + LocalDateTime.now(), normalFont));
+
+        // info
+        Paragraph infoHeader = new Paragraph("회의 정보:", headerFont);
+        document.add(infoHeader);
+        document.add(new Paragraph("회의명: " + meetingDto.getName(), normalFont));
+        document.add(new Paragraph("날짜: " + meetingDto.getStartAt() + " ~ " + meetingDto.getEndAt(), normalFont));
+        document.add(new Paragraph("주제: " + meetingDto.getDetail(), normalFont));
         document.add(Chunk.NEWLINE);
 
         // Participants
         Paragraph participantsHeader = new Paragraph("참여자:", headerFont);
         document.add(participantsHeader);
 
-        PdfPTable table = new PdfPTable(2); // Two columns: No, Name
+        PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         table.setSpacingAfter(10f);
@@ -81,10 +100,11 @@ public class MeetingSTTSummaryController {
         table.addCell(cell);
 
         // Adding participant data
-        addTableRow(table, "1", "김수빈", tableNormalFont);
-        addTableRow(table, "2", "주연수", tableNormalFont);
-        addTableRow(table, "3", "이주영", tableNormalFont);
-
+        for(int i = 0; i < teamDetailDto.getUserList().size(); i++) {
+            int idx = teamDetailDto.getUserList().get(i);
+            System.out.println("--------------------" + idx);
+            addTableRow(table, String.valueOf(i + 1), userService.getUserDetails(idx).getName(), tableNormalFont);
+        }
         document.add(table);
         document.add(Chunk.NEWLINE);
 
