@@ -219,7 +219,6 @@ template {
   padding: 5px 10px;
   background-color: #f9f9f9;
   font-size: medium;
-  
 }
 
 .notice-content::-webkit-scrollbar {
