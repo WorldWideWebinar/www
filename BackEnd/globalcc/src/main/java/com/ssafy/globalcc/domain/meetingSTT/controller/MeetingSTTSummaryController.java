@@ -2,17 +2,20 @@ package com.ssafy.globalcc.domain.meetingSTT.controller;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
-import com.ssafy.globalcc.domain.chat.entity.Chat;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
+import com.ssafy.globalcc.domain.meetingSTT.dto.request.OpenAIRequest;
+import com.ssafy.globalcc.domain.meetingSTT.dto.response.OpenAIResponse;
 import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
 import com.ssafy.globalcc.domain.meetingSTT.service.MeetingSTTService;
 import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
-import com.ssafy.globalcc.domain.team.entity.Team;
 import com.ssafy.globalcc.domain.team.service.TeamService;
-import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import okhttp3.*;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.util.List;
@@ -34,10 +38,16 @@ public class MeetingSTTSummaryController {
     private final UserService userService;
     private final TeamService teamService;
 
+    @Value("${openai.model}")
+    private String model;
+    @Value("${openai.api.url}")
+    private String apiURL;
+    @Autowired
+    private RestTemplate template;
+
     @GetMapping("/{teamId}/{meetingId}")
     public ResponseEntity<InputStreamResource> generateSummary(@PathVariable("meetingId") Integer meetingId, @PathVariable("teamId") Integer teamId) throws DocumentException, IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        loadSummary(meetingId);
         createMeetingSTTSummary(outputStream, teamId, meetingId);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
@@ -132,13 +142,28 @@ public class MeetingSTTSummaryController {
         addWatermark(new ByteArrayInputStream(outputStream.toByteArray()), outputStream);
     }
 
-    public void loadSummary(int meetingId) {
+    @GetMapping("/12345")
+    public String chat(){
+        return loadSummary(1);
+    }
+
+    public String loadSummary(int meetingId) {
         List<MeetingSTT> meetingSTTList = meetingSTTService.getMeetingSTTsByMeetingId(meetingId);
-        System.out.println("----------------------------");
-        for(int i = 0; i < meetingSTTList.size(); i++) {
-            System.out.println(meetingSTTList.get(i).getContent());
+        StringBuilder summaryBuilder = new StringBuilder();
+        for (MeetingSTT stt : meetingSTTList) {
+            summaryBuilder.append(stt.getContent()).append("\n");
         }
-        System.out.println("----------------------------");
+
+        String meetingContent = summaryBuilder.toString();
+        String summary = callOpenAIApiForSummary(meetingContent);
+        return summary;
+    }
+
+    private String callOpenAIApiForSummary(String text) {
+        String prompt = "다음 회의 내용에서, 3가지 주요 안건을 추출하고 앞에 번호를 붙여줘." + text;
+        OpenAIRequest request = new OpenAIRequest(model, prompt);
+        OpenAIResponse response =  template.postForObject(apiURL, request, OpenAIResponse.class);
+        return response.getChoices().get(0).getMessage().getContent();
     }
 
     private void addWatermark(InputStream pdfInputStream, ByteArrayOutputStream outputStream) throws IOException, DocumentException {
