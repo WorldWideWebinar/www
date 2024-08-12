@@ -91,12 +91,12 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils.js';
+import { formatTime, handleClickOutside } from '@/utils';
 import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY || []);
+const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY);
 const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
@@ -116,7 +116,7 @@ const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PRE
 const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
 const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-
+// 여기서 각 요소에 대한 ref를 설정합니다.
 const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
 const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
 
@@ -171,10 +171,6 @@ onBeforeUnmount(() => {
   if (removeInviteInputListener) removeInviteInputListener();
 });
 
-onMounted(async () => {
-  const teamId = teamStore.teamInfo?.id;
-  await meetingStore.fetchMeetings(teamId);
-});
 </script>
 
 

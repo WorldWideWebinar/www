@@ -142,7 +142,7 @@
     </div>
   </div>
   <router-view v-else></router-view>
-  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" />
+  <MeetingCreate v-if="meetingCreateModal" @close="meetingCreateModal=false" @created="(teamId) => loadData(teamId)"/>
 </template>
 
 <script setup>
@@ -174,8 +174,7 @@ const isLoading = ref(true);
 const members = computed(() => teamStore.teamUserInfo);
 
 const filteredMeetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-
+  console.log(teamStore.groupedMeetings)
   if (activeTab.value === 'PREV') {
     return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
@@ -231,12 +230,13 @@ const selectTab = async (tab) => {
   activeTab.value = tab;
 };
 
-const loadData = async (teamId) => {
+const loadData = async () => {
+  const teamId = route.params.id
   try {
     await Promise.all([
       teamStore.fetchTeamById(teamId),
       teamStore.fetchTeamUsers(),
-      teamStore.fetchMeetings(teamId, 0, 0), // TODAY
+      teamStore.fetchMeetings(teamId, false, false), // TODAY
       teamStore.fetchMeetings(teamId, false, true), // NEXT
       teamStore.fetchMeetings(teamId, true, false), // PREV
     ]);
@@ -289,7 +289,7 @@ const closeMeetingDetails = () => {
   showOverlay.value = false;
 };
 
-const CreateMeeting = () => {
+const CreateMeeting = async () => {
   meetingCreateModal.value = true;
 };
 
