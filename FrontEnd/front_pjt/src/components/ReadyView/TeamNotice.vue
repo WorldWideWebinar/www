@@ -6,6 +6,7 @@
         <button @click="checkTodayMeeting(todayMeeting)"></button>
       </div>
       <div class="notice-content">
+<<<<<<< HEAD
         <div v-if="todayMeeting" class="notice-item">
           <div class="notice-left">
             <p class="bold">{{ todayMeeting.name }}</p>
@@ -25,12 +26,26 @@
           </div>
           <div class="notice-right" >
             
-            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-            <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
+            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id)" class="join-button">Start</button>
+            <button v-else @click="handleJoinConference(todayMeeting.meeting_id)" class="join-button">
               <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
           </div>
         </div>
+=======
+        <table v-if="todayMeetings.length > 0" class="notice-table">
+          <tr v-for="meeting in todayMeetings" :key="meeting.id">
+            <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+            <td class="bold">{{ meeting.name }}</td>
+            <td>
+              <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+              <button @click="handleJoinConference(meeting.name)" class="join-button">
+                <img class="play-button" src="@/assets/img/play.png" alt="play">
+              </button>
+            </td>
+          </tr>
+        </table>
+>>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
         </div>
@@ -38,7 +53,11 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
+<<<<<<< HEAD
         <p>We have meetings for {{ totalMeetingHours }} hours</p>
+=======
+        <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
+>>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
         <div class="meeting-hours-bar">
           <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
           <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
@@ -101,6 +120,18 @@ import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore'
 
 const teamStore = useTeamStore();
+const meetingStore = useMeetingStore();
+const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
+
+const teamId = computed(() => teamStore.teamInfo?.id);
+
+const prevMeetingHours = computed(() => teamId.value ? teamStore.prevMeetingHoursByTeam(teamId.value) : 0);
+const todayMeetingHours = computed(() => teamId.value ? teamStore.todayMeetingHoursByTeam(teamId.value) : 0);
+const nextMeetingHours = computed(() => teamId.value ? teamStore.nextMeetingHoursByTeam(teamId.value) : 0);
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
+const totalParticipants = computed(() => teamId.value ? teamStore.totalParticipantsByTeam(teamId.value) : 0);
+
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
@@ -201,7 +232,7 @@ const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
-const handleStartConference = async (meetingId, sessionName) => {
+const handleStartConference = async (meetingId) => {
   const userId = userStore.userId;
   console.log(meetingId)
   try {
@@ -209,7 +240,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, userId);
     }
 
     const token = await sessionStore.joinConference(sessionId);
@@ -310,7 +341,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .notice-header h5 .icon {
@@ -318,12 +349,11 @@ onBeforeUnmount(() => {
 }
 
 .notice-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  max-height: 100px; /* 원하는 최대 높이 설정 */
+  overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px 0;
+  padding: 0px 10px;
   background-color: #f9f9f9;
 }
 
@@ -335,15 +365,9 @@ onBeforeUnmount(() => {
   margin-right: 1rem;
 }
 
-.no-meeting {
-  margin: auto;
-  padding: 0 20px;
-}
-
-.notice-left,
-.notice-middle,
-.notice-right {
-  flex: 1;
+.notice-table th,
+.notice-table td {
+  padding: 5px;
   text-align: center;
   position: relative;
   margin: 5px;
@@ -696,6 +720,10 @@ onBeforeUnmount(() => {
   .container {
     width: 90%;
     margin: auto;
+  }
+
+  .notice-content {
+    max-height: 150px;
   }
 }
 </style>
