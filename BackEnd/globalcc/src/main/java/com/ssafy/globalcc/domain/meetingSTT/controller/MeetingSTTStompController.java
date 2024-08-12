@@ -24,7 +24,6 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class MeetingSTTStompController {
-
     private static final Logger log = LoggerFactory.getLogger(MeetingSTTStompController.class);
     private final RabbitTemplate rabbitTemplate;
 
@@ -42,6 +41,7 @@ public class MeetingSTTStompController {
             @Payload final MeetingSTTRequest request
     ) {
         //meetingSTTRepository.save(meetingSTT); //성능 개선 위해 Redis 연결
+
         String redisKey = "MeetingSTT:" + meetingId;
         String redisKeyForLastSegmentTime = LAST_SEGMENT_TIME_KEY + meetingId;
         String redisKeyForLastSegment = LAST_SEGMENT_KEY + meetingId;
@@ -91,16 +91,7 @@ public class MeetingSTTStompController {
                             })
                             .toList();
                     meetingSTTRepository.saveAll(meetingSTTList);
-//                    Save Last Segment when meeting is end
-//                        String lastKey = LAST_SEGMENT_KEY + meetingId;
-//                    String lastTimeKey = LAST_SEGMENT_TIME_KEY + meetingId;
-//                    String lastSTT = redisTemplate.opsForValue().get(lastKey);
-//                    MeetingSTT stt = new MeetingSTT();
-//                    stt.setMeeting(meeting);
-//                    stt.setContent(lastSTT);
-//                    meetingSTTRepository.save(stt);
-//                    redisTemplate.delete(lastKey);
-//                    redisTemplate.delete(lastTimeKey);
+
                     redisTemplate.delete(key);
                 }
             }
