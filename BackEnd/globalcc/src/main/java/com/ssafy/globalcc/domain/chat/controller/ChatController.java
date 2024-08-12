@@ -6,6 +6,7 @@ import com.ssafy.globalcc.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class ChatController {
                         .teamId(chat.getTeamId().getTeamId())
                         .content(chat.getContent())
                         .contentType(chat.getContentType().name())
-                        .createdAt(chat.getCreatedAt().toString())
+                        .createdAt(ZonedDateTime.parse(chat.getCreatedAt().toString()))
                         .senderProfile(chat.getSenderId().getProfileImage())
                         .build())
                 .collect(Collectors.toList());
