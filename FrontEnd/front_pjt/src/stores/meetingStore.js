@@ -5,11 +5,7 @@ import axiosInstance from '@/axios'
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
     meetings: [],
-    groupedMeetings: {
-      PREV: [],
-      TODAY: [],
-      NEXT: []
-    },
+
   }),
   actions: {
     clearMeetings() {
@@ -92,12 +88,14 @@ export const useMeetingStore = defineStore('meeting', {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
     },
-    prevMeetingHours(state) {
-      return state.groupedMeetings.PREV.reduce((total, meeting) => {
-        const start = new Date(meeting.start_at);
-        const end = new Date(meeting.end_at);
-        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
-      }, 0);
+    prevMeetingHoursByTeam: (state) => (teamId) => {
+      return state.groupedMeetings.PREV
+        .filter(meeting => meeting.team_id == teamId)
+        .reduce((total, meeting) => {
+          const start = new Date(meeting.start_at);
+          const end = new Date(meeting.end_at);
+          return total + (end - start) / (1000 * 60 * 60);
+        }, 0);
     },
     todayMeetingHours(state) {
       return state.groupedMeetings.TODAY.reduce((total, meeting) => {

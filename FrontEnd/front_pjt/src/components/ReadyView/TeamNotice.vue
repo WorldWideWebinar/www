@@ -92,20 +92,28 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils';
+import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
-const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
-const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
-const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-
+const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY || []);
+const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 
+function formatDate(meetingList) {
+    return meetingList.reduce((total, meeting) => {
+      const start = new Date(meeting.start_at);
+      const end = new Date(meeting.end_at);
+      return total + (end - start) / (1000 * 60 * 60);
+    }, 0)
+}
+const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PREV))
+const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
+const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
 // 여기서 각 요소에 대한 ref를 설정합니다.
 const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
 const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
