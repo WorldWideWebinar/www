@@ -13,13 +13,17 @@
         </div>
         <div class="form-group">
           <label for="startPicker">Start Time</label>
-          <input type="text" v-model="displayStartDate" id="startPicker" required />
-          <input type="checkbox" id="startChecked" v-model="startChecked" />
+          <div class="time-input-zone">
+            <input type="text" v-model="displayStartDate" id="startPicker" required />
+            <input type="checkbox" id="startChecked" v-model="startChecked" />
+          </div>
         </div>
         <div class="form-group">
           <label for="endPicker">End Time</label>
-          <input type="text" v-model="displayEndDate" id="endPicker" required />
-          <input type="checkbox" id="endChecked" v-model="endChecked" />
+          <div class="time-input-zone">
+            <input type="text" v-model="displayEndDate" id="endPicker" required />
+            <input type="checkbox" id="endChecked" v-model="endChecked" />
+          </div>
         </div>
         <div class="form-group">
           <label for="detail">Details</label>
@@ -68,6 +72,11 @@ const endChecked = ref(false);
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
     errorStore.showError('필수 필드를 모두 입력해주세요.');
+    return;
+  }
+
+  if (!startChecked.value || !endChecked.value) {
+    alert('Please confirm the start and end times');
     return;
   }
 
@@ -149,7 +158,7 @@ const setupFlatpickrEnd = () => {
         console.log("End Date for display:", end.value);
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+        displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
       }
     }
@@ -227,6 +236,28 @@ h2 {
   outline: none;
 }
 
+.time-input-zone {
+  /* flex-grow:1; */
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 체크박스와 입력 필드 사이의 간격 조정 */
+}
+
+.time-input-zone input[type="text"] {
+  flex-grow: 1; /* 입력 필드가 가능한 모든 너비를 차지하도록 설정 */
+}
+
+.time-input-zone input[type="checkbox"] {
+  width: 20px; /* 체크박스 크기 조정 */
+  height: 20px; /* 체크박스 크기 조정 */
+  margin-left: 10px; /* 체크박스와 입력 필드 사이의 간격 조정 */
+}
+
+.time-input-zone input[type="checkbox"]:checked {
+  background-color: #007bff; /* 체크된 상태의 배경 색상 조정 */
+  border-color: #007bff; /* 체크박스의 경계 색상 조정 */
+}
+
 .button-group {
   display: flex;
   justify-content: center;
@@ -282,4 +313,6 @@ h2 {
   border: none;
   box-shadow: none;
 }
+
+
 </style>
