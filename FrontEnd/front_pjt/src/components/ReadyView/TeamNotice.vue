@@ -16,7 +16,7 @@
           <tbody>
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-              <td class="bold">{{ meeting.name }}</td>
+              <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
                 <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
                 <button @click="handleJoinConference(meeting.name)" class="join-button">
@@ -212,7 +212,7 @@ template {
 }
 
 .notice-content {
-  max-height: 100px; /* 원하는 최대 높이 설정 */
+  max-height: 125px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -256,6 +256,11 @@ template {
   font-weight: bold;
 }
 
+.notice-table .meeting-name {
+  max-width: 200px;
+  min-width: 150px;
+}
+
 .notice-table tr:last-child td {
   border-bottom: none;
 }
@@ -276,7 +281,7 @@ template {
 }
 
 .join-btn {
-  width: 200px;
+  width: 185px;
 }
 
 .play-button {
