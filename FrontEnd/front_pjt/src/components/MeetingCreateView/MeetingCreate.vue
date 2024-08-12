@@ -42,12 +42,13 @@
 import { ref, computed, onMounted } from 'vue';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useErrorStore } from '@/stores/errorStore'
 
 const route = useRoute();
+const router = useRouter();
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const errorStore = useErrorStore();
@@ -70,7 +71,12 @@ const endChecked = ref(false);
 
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
-    alert('필수 필드를 모두 입력해주세요.');
+    errorStore.showError('필수 필드를 모두 입력해주세요.');
+    return;
+  }
+
+  if (!startChecked.value || !endChecked.value) {
+    alert('Please confirm the start and end times');
     return;
   }
 
@@ -87,8 +93,6 @@ const createMeeting = async () => {
     detail: detail.value,
   };
 
-  console.log(newMeeting);
-
   try {
     // Backend에 미팅 생성 요청 보내기
     const response = await meetingStore.addMeeting(newMeeting);
@@ -104,7 +108,8 @@ const createMeeting = async () => {
       delete savedMeeting.start;
       delete savedMeeting.end;
 
-      meetingStore.meetings.push(savedMeeting); // 수정된 미팅을 store에 추가
+      meetingStore.meetings.push(savedMeeting);
+      router.replace({name: 'ReadyView', id:teamId})
     }
     
     close();

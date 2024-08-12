@@ -58,7 +58,6 @@ watch(id, async (newId) => {
   if (newId) {
     idCheck.value = false; 
     idCheckMessage.value = ''; 
-    await checkId(); 
   }
 });
 
@@ -174,7 +173,7 @@ form {
 }
 
 .form-title {
-  margin-top: 10%;
+  margin-top: 4%;
 }
 
 .id-check-container {
@@ -218,9 +217,9 @@ select {
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
       0 10px 10px rgba(0,0,0,0.22);
   position: relative;
-  width: 1000px; /* Increased width */
+  width: 1000px;
   max-width: 100%;
-  min-height: 600px; /* Increased height */
+  min-height: 600px;
 }
 
 .form-container {
@@ -280,23 +279,17 @@ form {
 
 .error-message {
   color: red;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 
 .id-check-message {
   color: green;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 
-<<<<<<< HEAD
-/* .submit-btn {
-  margin-top: 5%;
-} */
-=======
 .submit-btn {
   margin-top: 5%;
 }
->>>>>>> 956b71d6042fbaa3920d65f6fffbf34189742b94
 </style>
