@@ -189,9 +189,9 @@ const formatTime = (dateString) => {
   return `${hours}:${minutes}`;
 };
 
-const toggleTodayMembersList = () => {
-  showTodayMembersList.value = !showTodayMembersList.value;
-};
+// const toggleTodayMembersList = () => {
+//   showTodayMembersList.value = !showTodayMembersList.value;
+// };
 
 const toggleMemberListDropdown = () => {
   showMemberListDropdown.value = !showMemberListDropdown.value;
@@ -277,7 +277,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 </script>
-
 
 <style scoped>
 .container {

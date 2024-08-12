@@ -6,9 +6,7 @@ import axiosInstance from '@/axios';
 
 export const useTeamStore = defineStore('team', {
   state: () => ({
-    teams: [
-
-    ],
+    teams: [],
     teamInfo : null,
     isOwner: false,
     teamUserList: [],
@@ -25,8 +23,8 @@ export const useTeamStore = defineStore('team', {
     },
     async fetchTeamById(teamId) {
       this.clearTeamUsers()
-      const meetingStore = useMeetingStore(); // Access the meeting store
-      const errorStore = useErrorStore(); // Access the error store
+      const meetingStore = useMeetingStore();
+      const errorStore = useErrorStore();
       
       try {
         // 초기화 로직
