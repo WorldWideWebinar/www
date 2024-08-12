@@ -26,18 +26,63 @@ export const useMeetingStore = defineStore('meeting', {
     },
     async fetchMeetingById(meetingId) {
       try {
-        const response = await axiosInstance.get(`api/meetings/${meetingId}`)
-        const meeting = response.data.result
-        if (!this.meetings.find((m) => m.id == meetingId)) {
-          console.log("Meeting fetched", response.data.result)
-          this.meetings.push(meeting)
+        const response = await axiosInstance.get(`api/meetings/${meetingId}`);
+        const meeting = response.data.result;
+        if (!this.meetings.find((m) => m.id === meetingId)) {
+          this.meetings.push(meeting);
+          this.groupMeetings();
         }
       } catch (error) {
         console.error(`Failed to fetch meeting ${meetingId}:`, error);
       }
     },
 
-     
+    async fetchMeetings(teamId, prev = false, next = false) {
+      try {
+        const today = new Date().toISOString();
+        const params = {
+          today: today,
+          prev: prev,
+          next: next,
+          teamId: teamId
+        };
+
+        const response = await axiosInstance.get('/api/meetings', { params });
+        const newMeetings = response.data.result;
+    
+        console.log('서버로부터 받은 회의 데이터:', newMeetings);
+        console.log('현재 store의 groupedMeetings:', this.groupedMeetings)
+        const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
+        const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
+
+        this.meetings.push(...filteredMeetings);
+        this.groupMeetings();
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          console.error('Failed to fetch meetings:', error)
+        }
+      }
+    },
+    groupMeetings() {
+      const today = new Date(); // 현재 시간을 포함한 오늘 날짜
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // 자정으로 설정된 오늘의 시작
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // 오늘의 끝
+
+      this.groupedMeetings.PREV = this.meetings.filter(meeting => {
+        const endDate = new Date(meeting.end_at);
+        return endDate < startOfDay;
+      });
+
+      this.groupedMeetings.TODAY = this.meetings.filter(meeting => {
+        const startDate = new Date(meeting.start_at);
+        return startDate >= startOfDay && startDate <= endOfDay;
+      });
+
+      this.groupedMeetings.NEXT = this.meetings.filter(meeting => {
+        const startDate = new Date(meeting.start_at);
+        return startDate > endOfDay;
+      });
+    }
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
