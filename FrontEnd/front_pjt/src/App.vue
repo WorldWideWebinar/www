@@ -66,7 +66,7 @@ const fetchUserTeams = async () => {
       const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id == teamId));
       await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
-    console.log("Teams: ", teams)
+
     hasFetchedUserInfo.value = true;
     userStore.fetchAllUsers();
   }
@@ -75,7 +75,6 @@ const fetchUserTeams = async () => {
 onMounted(async () => {
   await fetchUserTeams()
   await userStore.fetchAllUsers()
-  console.log("teams: ", teamStore.teams)
 })
 
 const teams = computed(() => teamStore.teams)
