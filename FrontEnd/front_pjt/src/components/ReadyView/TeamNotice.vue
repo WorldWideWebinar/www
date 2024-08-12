@@ -26,7 +26,7 @@
           <div class="notice-right" >
             
             <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id)" class="join-button">Start</button>
-            <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
+            <button v-else @click="handleJoinConference(todayMeeting.meeting_id)" class="join-button">
               <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
           </div>

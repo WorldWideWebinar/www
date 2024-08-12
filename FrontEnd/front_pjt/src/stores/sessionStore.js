@@ -21,9 +21,10 @@ export const useSessionStore = defineStore('session', {
     removeStream(streamId) {
       this.streams = this.streams.filter(stream => stream.id !== streamId);
     },
+    
     async startConference(meetingId, userId) {
       try {
-        const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { meetingId });
+        const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { customSessionId: String(meetingId) });
 
         this.sessionId = response.data.result;
         this.meetingId = meetingId;
@@ -55,6 +56,7 @@ export const useSessionStore = defineStore('session', {
     async endSession(meetingId) {
       try {
         const response = await axiosInstance.delete(`/api/sessions/${meetingId}`);
+        console.log(meetingId)
         if (response.data.success) {
           console.log('Session ended successfully');
           this.sessionId = null;
