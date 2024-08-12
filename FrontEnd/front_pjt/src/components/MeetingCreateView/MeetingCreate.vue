@@ -128,10 +128,10 @@ const setupFlatpickrStart = () => {
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
-        start.value = selectedDate.toISOString().slice(0, 16);
-        console.log("Start Date for display:", start.value);
-        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000; // 분 단위의 오프셋을 밀리초로 변환
+        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        start.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("Start Date for display:", start.value);
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
@@ -149,10 +149,10 @@ const setupFlatpickrEnd = () => {
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
-        end.value = selectedDate.toISOString().slice(0, 16);
-        console.log("End Date for display:", end.value);
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        end.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("End Date for display:", end.value);
         displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
       }
