@@ -22,26 +22,28 @@ export const useTeamStore = defineStore('team', {
       this.teamUserInfo = [];
     },
     async fetchTeamById(teamId) {
-      this.clearTeamUsers();
+      this.clearTeamUsers()
       const meetingStore = useMeetingStore();
-      
+      const errorStore = useErrorStore();
+
       try {
+        // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
-        this.teamInfo = teamData;
-        this.teamUserList = teamData.userList;
-
-        await meetingStore.fetchMeetings(teamId);
-        meetingStore.groupMeetings();
-
-        if (!this.teams.some(team => team.id === teamId)) {
+        this.teamInfo = teamData
+        this.teamUserList = teamData.userList
+        const teamExists = this.teams.some(team => team.id === teamId);
+        if (!teamExists) {
           this.teams.push({
-            id: teamId,
+            id: teamId, // 추가된 ID 필드
             ...teamData
           });
+
+          return teamData;
         }
       } catch (error) {
-        console.error(`Failed to fetch team ${teamId}:`, error);
+        errorStore.showError(`Failed to fetch team ${teamId}: ${error.message}`);
+        return null;
       }
     },
 
@@ -75,6 +77,9 @@ export const useTeamStore = defineStore('team', {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
+        }else {
+          const teamId = response.data.result;
+          await this.fetchTeamById(teamId)
         }
       } catch (error) {
         errorStore.showError(`Error creating team: ${error.message}`);
@@ -135,11 +140,7 @@ export const useTeamStore = defineStore('team', {
 
         return response.data;
       } catch (error) {
-        if (error.response && error.response.status === 403) {
-          errorStore.showError('Forbidden: You do not have permission to delete this team.');
-        } else {
-          errorStore.showError(`Failed to delete team ${teamId}: ${error.message}`);
-        }
+        errorStore.showError(`Failed to delete team ${teamId}: ${error.message}`);
         return { isSuccess: false, message: error.message };
       }
     },
@@ -179,23 +180,12 @@ export const useTeamStore = defineStore('team', {
     }
   },
   getters: {
-    getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
-    prevMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.prevMeetingHoursByTeam(teamId);
+    getTeamById: (state) => (id) => {
+      return state.teams.find(team => team.id === id);
     },
-    todayMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.todayMeetingHoursByTeam(teamId);
-    },
-    nextMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.nextMeetingHoursByTeam(teamId);
-    },
-    totalParticipantsByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.totalParticipantsByTeam(teamId);
-    },
+    getUserTeamsByHostId: (state) => (hostId) => {
+      return state.teams.filter(team => team.ownerId === hostId);
+    }
   },
   persist: {
     key: 'teamStore',

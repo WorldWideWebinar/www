@@ -36,7 +36,8 @@
                 </div>
                 <div class="message-body">{{ message.content }}</div>
               </div>
-              <img :src="message.senderProfile" class="profile-image" />
+              <img :src="message.senderProfile" class="profile-image" v-if="message.senderProfile!=null"/>
+              <img src="https://i11a501.p.ssafy.io/api/images/default_profile.png" class="profile-image" v-else/>
             </div>
           </div>
         </div>
@@ -71,11 +72,27 @@ const teamStore = useTeamStore();
 const messageStore = useMessageStore();
 const token = userStore.accessToken;
 const currentUserId = userStore.userId;
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
 
-const messages = ref([]); // 애는 그냥 받는다.
+// date.setHours(date.getHours() + 9);
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+
+
+  let formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  formattedTime = formattedTime.replace('AM', 'a.m.').replace('PM', 'p.m.');
+  if (date >= today) {
+    return `${formattedTime}`;
+  } else {
+    const formattedDate = today.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+    return `${formattedDate} ${formattedTime}`;
+  }
+};
 
 const handleSelectTeam = async (teamId) => {
   // 팀 입장 시점
@@ -95,6 +112,8 @@ const setupWebSocket = (teamId) => {
 
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
+  socket.debug = null;
+  stompClient.debug = null;
   stompClient.connect(
     {
       Authorization: `Bearer ${token}`
@@ -165,10 +184,6 @@ const getTeamName = (teamId) => {
   return team ? team.teamName : '';
 };
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
 
 const closeChat = () => {
   console.log("Closing chat...");

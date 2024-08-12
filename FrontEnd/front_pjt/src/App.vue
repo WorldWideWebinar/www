@@ -12,7 +12,6 @@
           class="nav-item" 
           v-for="team in teams" 
           :key="team.id"
-          @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
           >
             <RouterLink 
               class="nav-link" 
@@ -22,9 +21,6 @@
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
-            <div v-if="showDeleteButton === team.id" class="dropdown">
-              <button @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
-            </div>
           </li>
         </ul>
       </div>
@@ -41,14 +37,14 @@
       <RouterView />
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId"/>
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId" />
     <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, onBeforeUnmount, computed, ref, watch, nextTick } from 'vue'
+import { onMounted, computed, ref, watch, nextTick } from 'vue'
 import { useUserStore } from './stores/userStore'
 import { useTeamStore } from './stores/teamStore'
 import router from './router'
@@ -64,8 +60,6 @@ const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
 const selectedTeamId = ref(null)
 const showScrollIndicator = ref(false)
-const showDeleteButton = ref(null)
-const deleteButtonStyle = ref({})
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -73,62 +67,22 @@ const goingHome = () => {
 
 const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
+    await userStore.fetchUserInfo(userStore.userId);
+    const userInfo = userStore.userInfo;
+
     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id === teamId));
+      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id == teamId));
       await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
+
     hasFetchedUserInfo.value = true;
-    userStore.fetchAllUsers();
-  }
-}
-
-const showDeleteButtonAt = (event, teamId) => {
-  deleteButtonStyle.value = {
-    position: 'fixed',
-    zIndex: 1000,
-  };
-  showDeleteButton.value = teamId;
-};
-
-const deleteTeam = async (teamId) => {
-  const currentRoute = router.currentRoute.value; // 현재 라우터 경로를 가져옵니다.
-  const response = await teamStore.deleteTeam(teamId); // 팀 삭제 시도
-
-  if (response.isSuccess) {
-    showDeleteButton.value = null; // 삭제 성공 시 버튼 숨김
-
-    // 현재 접속 중인 팀이 삭제된 팀인지 확인
-    if (currentRoute.params.id == teamId) {
-      // 메인 화면으로 리다이렉트
-      router.push({ name: 'HomeView' });
-    }
-  } else {
-    console.error(response.message); // 오류 발생 시 콘솔에 메시지 출력
   }
 };
 
-const handleClickOutside = (event) => {
-  if (showDeleteButton.value) {
-    const dropdown = document.querySelector('.dropdown');
-    if (dropdown && !dropdown.contains(event.target)) {
-      showDeleteButton.value = null; // 외부 클릭 시 삭제 버튼 숨김
-    }
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-
-  fetchUserTeams().then(() => {
-    userStore.fetchAllUsers();
-  });
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+onMounted(async () => {
+  await fetchUserTeams()
+  await userStore.fetchAllUsers()
+})
 
 const teams = computed(() => teamStore.teams)
 
@@ -166,6 +120,12 @@ onMounted(() => {
   watch(teams, checkScroll, { immediate: true })
   window.addEventListener('resize', checkScroll)
 })
+
+watch(isLogin, (newValue, oldValue) => {
+  if (oldValue && !newValue) {
+    isChatOpen.value = false;
+  }
+});
 </script>
 
 <style scoped>
@@ -208,11 +168,13 @@ onMounted(() => {
 
 .sidebar .btn-home {
   margin: 0px auto;
-  padding: 0px 5px; /* 간격 조정 */
+  padding: 0px 5px;
+  /* 간격 조정 */
 }
 
 .sidebar .btn-home img {
-  width: 60px; /* 크기 조정 */
+  width: 60px;
+  /* 크기 조정 */
   margin: 5px auto;
 }
 
@@ -226,7 +188,8 @@ onMounted(() => {
 /* 팀 목록 */
 .nav-container {
   flex-grow: 1;
-  overflow-y: auto; /* 세로 스크롤 가능 */
+  overflow-y: auto;
+  /* 세로 스크롤 가능 */
   position: relative;
 }
 
@@ -271,17 +234,23 @@ li.nav-item {
 .sidebar .link-text {
   margin-top: 0.2rem;
   font-size: 0.7rem;
-  word-wrap: break-word; /* 길면 줄바꿈 */
-  overflow: hidden; /* 넘치는 부분 숨기기 */
-  text-overflow: ellipsis; /* 넘치는 부분을 생략(...)으로 표시 */
-  max-width: 85%; /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
+  word-wrap: break-word;
+  /* 길면 줄바꿈 */
+  overflow: hidden;
+  /* 넘치는 부분 숨기기 */
+  text-overflow: ellipsis;
+  /* 넘치는 부분을 생략(...)으로 표시 */
+  max-width: 85%;
+  /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
   display: block;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 표시할 최대 줄 수 */
+  -webkit-line-clamp: 2;
+  /* 표시할 최대 줄 수 */
   -webkit-box-orient: vertical;
   line-clamp: 2;
   box-orient: vertical;
-  white-space: normal; /* 두 줄로 표시 */
+  white-space: normal;
+  /* 두 줄로 표시 */
 }
 
 .btn-icon {
@@ -290,28 +259,6 @@ li.nav-item {
   justify-content: center;
 }
 
-/* 팀 삭제 */
-.dropdown {
-  position: fixed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  left: 80px;
-  margin-top: -75px;
-}
-
-.btn-delete {
-  background-color: #e1bee7;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.btn-delete:hover {
-  background-color: #8c8593;
-}
 /* 팀 추가 */
 .add-team {
   margin: 0px auto;

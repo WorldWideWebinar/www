@@ -21,13 +21,11 @@
             <h5>Original Version</h5>
             <div class="translation-content">
               <!-- Original messages -->
+              <TranscriptionText/>
             </div>
           </div>
           <div class="translation-section">
-            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
-            <div class="translation-content">
-              <!-- Translated messages -->
-            </div>
+            <TranslatedText/>
           </div>
         </div>
         <div class="footer">
@@ -39,9 +37,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <div class="footer-right">
+          <!-- <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
@@ -62,6 +60,8 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
+import TranscriptionText from '@/components/ConferenceView/TranscriptionText.vue'
+import TranslatedText from '@/components/ConferenceView/TranslatedText.vue'
 
 const route = useRoute();
 const router = useRouter();
@@ -85,6 +85,8 @@ let socket = null;
 let audioContext = null;
 let processor = null;
 
+// const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+const isOwner = computed(() => sessionStore.meetingId != null);
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
@@ -133,31 +135,17 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
+      console.log("내가 팀 주인인가?", isOwner.value)
+      if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
+      createWebsocketConnection()
       captureAudioStream(mediaStream)
     });
     console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
-
-    if (publisher.value) {
-      var pub;
-      pub = await currentSession.publish(publisher.value);
-      myStreamManager.value = publisher.value;
-
-      session.value = currentSession;
-
-      console.log('OpenVidu 세션 객체:', currentSession);
-      console.log('OpenVidu 연결 객체:', currentSession.connection);
-
-      // const mediaStream = publisher.value.stream.getMediaStream();
-      // const mediaStream = pub.getMediaStream();
-      // captureAudioStream(mediaStream);
-    } else {
-      console.error('Failed to initialize publisher');
-    }
 
     // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
@@ -177,6 +165,7 @@ const joinSession = async () => {
         }
 
         sessionStore.addStream(subscriber.stream);
+        if(isOwner.value) captureAudioStream(subscriber.stream.getMediaStream());
       }
     });
 
@@ -188,8 +177,7 @@ const joinSession = async () => {
     console.error('Error connecting to session:', error);
   }
 };
-
-const captureAudioStream = (mediaStream) => {
+const createWebsocketConnection = ()=>{
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
@@ -206,6 +194,8 @@ const captureAudioStream = (mediaStream) => {
     console.error('WebSocket error:', error);
     socket.close()
   };
+}
+const captureAudioStream = (mediaStream) => {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
@@ -215,7 +205,6 @@ const captureAudioStream = (mediaStream) => {
     const resampledData = resampleTo16kHz(inputData, audioContext.sampleRate);
     sendDataToBackend(resampledData);
   };
-
   source.connect(processor);
   processor.connect(audioContext.destination);
 };
@@ -252,12 +241,12 @@ const sendDataToBackend = (data) => {
 
 const leaveSession = async () => {
   if (session.value) {
-    router.push({ name: 'HomeView' })
     await sessionStore.endSession(sessionStore.meetingId);
     console.log(meetingId)
-    session.value.disconnect();   
+    session.value.disconnect();
     socket.close()
     session.value = null;
+    router.push({ name: 'HomeView' })
   }
 };
 

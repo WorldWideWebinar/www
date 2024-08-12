@@ -1,6 +1,6 @@
-// meetingStore.js
-import { defineStore } from 'pinia';
-import axiosInstance from '@/axios';
+import { defineStore } from 'pinia'
+import { useErrorStore } from './errorStore';
+import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
@@ -12,6 +12,9 @@ export const useMeetingStore = defineStore('meeting', {
     },
   }),
   actions: {
+    clearMeetings() {
+      this.meetings = [];
+    },
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('api/meetings', meeting);
@@ -38,7 +41,7 @@ export const useMeetingStore = defineStore('meeting', {
       }
     },
 
-    async fetchMeetings(teamId, prev = 0, next = 0) {
+    async fetchMeetings(teamId, prev = false, next = false) {
       try {
         const today = new Date().toISOString();
         const params = {
@@ -50,20 +53,24 @@ export const useMeetingStore = defineStore('meeting', {
 
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
-
+    
+        console.log('서버로부터 받은 회의 데이터:', newMeetings);
+        console.log('현재 store의 groupedMeetings:', this.groupedMeetings)
         const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
         const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
 
         this.meetings.push(...filteredMeetings);
         this.groupMeetings();
       } catch (error) {
-        console.error('Failed to fetch meetings:', error);
+        if (error.response && error.response.status !== 404) {
+          console.error('Failed to fetch meetings:', error)
+        }
       }
     },
     groupMeetings() {
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+      const today = new Date(); // 현재 시간을 포함한 오늘 날짜
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // 자정으로 설정된 오늘의 시작
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // 오늘의 끝
 
       this.groupedMeetings.PREV = this.meetings.filter(meeting => {
         const endDate = new Date(meeting.end_at);
@@ -85,50 +92,26 @@ export const useMeetingStore = defineStore('meeting', {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
     },
-    prevMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.PREV
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60);
-        }, 0);
+    prevMeetingHours(state) {
+      return state.groupedMeetings.PREV.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
+      }, 0);
     },
-    todayMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.TODAY
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60);
-        }, 0);
+    todayMeetingHours(state) {
+      return state.groupedMeetings.TODAY.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
     },
-    nextMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.NEXT
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60);
-        }, 0);
-    },
-    totalParticipantsByTeam: (state) => (teamId) => {
-      return state.meetings
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          return total + (meeting.participants?.length || 0);
-        }, 0);
-    },
-    meetingDuration: (state) => (meetingId) => {
-      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
-      if (!meeting) return 0;
-      const start = new Date(meeting.start_at);
-      const end = new Date(meeting.end_at);
-      return (end - start) / (1000 * 60 * 60);
-    },
-    meetingParticipantsCount: (state) => (meetingId) => {
-      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
-      return meeting ? (meeting.participants?.length || 0) : 0;
-    },
+    nextMeetingHours(state) {
+      return state.groupedMeetings.NEXT.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
+    }
   }
 });

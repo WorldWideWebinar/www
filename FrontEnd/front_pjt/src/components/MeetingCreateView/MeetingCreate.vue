@@ -12,12 +12,18 @@
           <input type="text" v-model="name" id="name" required />
         </div>
         <div class="form-group">
-          <label for="start">Start Time</label>
-          <input type="datetime-local" v-model="start" id="start" required />
+          <label for="startPicker">Start Time</label>
+          <div class="time-input-zone">
+            <input type="text" v-model="displayStartDate" id="startPicker" required />
+            <input type="checkbox" id="startChecked" v-model="startChecked" />
+          </div>
         </div>
         <div class="form-group">
-          <label for="end">End Time</label>
-          <input type="datetime-local" v-model="end" id="end" required />
+          <label for="endPicker">End Time</label>
+          <div class="time-input-zone">
+            <input type="text" v-model="displayEndDate" id="endPicker" required />
+            <input type="checkbox" id="endChecked" v-model="endChecked" />
+          </div>
         </div>
         <div class="form-group">
           <label for="detail">Details</label>
@@ -33,15 +39,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.css';
+import { useRoute, useRouter } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useErrorStore } from '@/stores/errorStore'
 
 const route = useRoute();
+const router = useRouter();
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-
+const errorStore = useErrorStore();
 const teamId = computed(() => parseInt(route.params.id, 10));
 const teamName = computed(() => {
   const team = teamStore.teams.find(team => team.id === teamId.value);
@@ -52,38 +62,113 @@ const name = ref('');
 const start = ref('');
 const end = ref('');
 const detail = ref('');
+// const selectedStartDate = ref('');
+// const selectedEndDate = ref('');
+const displayStartDate = ref('');
+const displayEndDate = ref('');
+const startChecked = ref(false);
+const endChecked = ref(false);
 
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
-    alert('Please fill out all required fields');
+    errorStore.showError('필수 필드를 모두 입력해주세요.');
+    return;
+  }
+
+  if (!startChecked.value || !endChecked.value) {
+    alert('Please confirm the start and end times');
+    return;
+  }
+
+  if (!startChecked.value || !endChecked.value) {
+    alert('Please confirm the start and end times');
     return;
   }
 
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
-    start: new Date(start.value).toISOString(),
-    end: new Date(end.value).toISOString(),
+    start: start.value,
+    end: end.value,
     detail: detail.value,
   };
 
-  console.log(newMeeting);
-
   try {
-    await meetingStore.addMeeting(newMeeting);
-    alert('Meeting created successfully');
+    // Backend에 미팅 생성 요청 보내기
+    const response = await meetingStore.addMeeting(newMeeting);
+
+    if (response) {
+      // 응답을 받은 후 start, end를 start_at, end_at으로 변경
+      const savedMeeting = {
+        ...newMeeting,
+        meeting_id: response.data.result,
+        start_at: newMeeting.start,
+        end_at: newMeeting.end,
+      };
+      delete savedMeeting.start;
+      delete savedMeeting.end;
+
+      meetingStore.meetings.push(savedMeeting);
+      router.replace({name: 'ReadyView', id:teamId})
+    }
+    
     close();
   } catch (error) {
-    console.error('Error creating meeting:', error);
-    alert('Error creating meeting');
+    errorStore.showError('미팅 생성 중 오류 발생:', error);
   }
 };
 
 const emits = defineEmits(['close']);
-  
+
 const close = () => {
   emits('close');
 };
+
+const setupFlatpickrStart = () => {
+  flatpickr("#startPicker", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    time_24hr: true,
+    minuteIncrement: 1,
+    onChange: (selectedDates) => {
+      if (selectedDates.length > 0) {
+        const selectedDate = selectedDates[0];
+        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        start.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("Start Date for display:", start.value);
+        displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+        document.getElementById("startPicker").value = displayStartDate.value;
+      }
+    }
+  });
+};
+
+// Setup flatpickr for end date
+const setupFlatpickrEnd = () => {
+  flatpickr("#endPicker", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    time_24hr: true,
+    minuteIncrement: 1,
+    onChange: (selectedDates) => {
+      if (selectedDates.length > 0) {
+        const selectedDate = selectedDates[0];
+        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        end.value = adjustedDate.toISOString().slice(0, 16);
+        console.log("End Date for display:", end.value);
+        displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+        document.getElementById("endPicker").value = displayEndDate.value;
+      }
+    }
+  });
+};
+
+onMounted(() => {
+  setupFlatpickrStart();
+  setupFlatpickrEnd();
+})
 </script>
 
 <style scoped>
@@ -151,6 +236,28 @@ h2 {
   outline: none;
 }
 
+.time-input-zone {
+  /* flex-grow:1; */
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 체크박스와 입력 필드 사이의 간격 조정 */
+}
+
+.time-input-zone input[type="text"] {
+  flex-grow: 1; /* 입력 필드가 가능한 모든 너비를 차지하도록 설정 */
+}
+
+.time-input-zone input[type="checkbox"] {
+  width: 20px; /* 체크박스 크기 조정 */
+  height: 20px; /* 체크박스 크기 조정 */
+  margin-left: 10px; /* 체크박스와 입력 필드 사이의 간격 조정 */
+}
+
+.time-input-zone input[type="checkbox"]:checked {
+  background-color: #007bff; /* 체크된 상태의 배경 색상 조정 */
+  border-color: #007bff; /* 체크박스의 경계 색상 조정 */
+}
+
 .button-group {
   display: flex;
   justify-content: center;
@@ -206,4 +313,6 @@ h2 {
   border: none;
   box-shadow: none;
 }
+
+
 </style>

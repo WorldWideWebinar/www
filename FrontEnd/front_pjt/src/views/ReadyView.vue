@@ -1,5 +1,13 @@
 <template>
-  <div v-if="!inConference" class="ready-page-container">
+  <div v-if="isLoading" class="loading-container">
+    <div class="spinner">
+      <svg class="spinner-icon" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+      <p>Loading...</p>
+    </div>
+  </div>
+  <div v-else-if="!inConference" class="ready-page-container">
     <header class="header">
       <span>
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
@@ -39,7 +47,7 @@
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ meeting.start_at.split('T')[0] }}</td>
+                  <td>{{ formatDate(meeting.start_at) }} </td>
                   <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
                     @click="selectMeeting(meeting)">
@@ -56,6 +64,7 @@
           </div>
         </section>
 
+        <!-- Meeting Details -->
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
@@ -66,11 +75,11 @@
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.start_at.split('T')[0] }}</td>
+                  <td>{{ formatDate(selectedMeeting?.start_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ formatTime(selectedMeeting.start_at) }} - {{ formatTime(selectedMeeting.end_at) }}</td>
+                  <td>{{ formatTime(selectedMeeting?.start_at) }} - {{ formatTime(selectedMeeting?.end_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -137,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
@@ -159,8 +168,11 @@ const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
 const meetingCreateModal = ref(false);
+const isLoading = ref(true);
 
 const members = computed(() => teamStore.teamUserInfo);
+
+
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.getTeamById(teamId);
@@ -228,27 +240,47 @@ const selectTab = async (tab) => {
   await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
-onMounted(async () => {
-  const teamId = parseInt(route.params.id, 10);
+const loadData = async (teamId) => {
   try {
     await teamStore.fetchTeamById(teamId);
     await teamStore.fetchTeamUsers();
+    await selectTab('TODAY');
   } catch (error) {
-    console.error('Failed to load initial data:', error);
+    console.error('Failed to load data:', error);
   }
-  selectTab('TODAY');
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+  meetingStore.clearMeetings();
+  const teamId = parseInt(route.params.id, 10);
+  await loadData(teamId);
+  isLoading.value = false;
+});
+
+watch(() => route.params.id, async (newId) => {
+  isLoading.value = true;
+  await loadData(newId);
+  isLoading.value = false;
 });
 
 const selectMeeting = (meeting) => {
+
+  if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
+    detailType.value = 'PREV';
+  } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
+    detailType.value = 'TODAY';
+  } else if (meetingStore.groupedMeetings.NEXT.includes(meeting)) {
+    detailType.value = 'NEXT';
+  }
+
   selectedMeeting.value = meeting;
-  detailType.value = computeDetailType(meeting.start_at);
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
   previewUrl.value = null;
   showOverlay.value = true;
 };
-
 const closeMeetingDetails = () => {
   selectedMeeting.value = null;
   selectedMeetingMembers.value = [];
@@ -256,13 +288,6 @@ const closeMeetingDetails = () => {
   showFilesList.value = false;
   previewUrl.value = null;
   showOverlay.value = false;
-};
-
-const computeDetailType = (start_at) => {
-  const today = new Date().toISOString().split('T')[0];
-  if (start_at.split('T')[0] === today) return 'TODAY';
-  if (start_at.split('T')[0] > today) return 'NEXT';
-  return 'PREV';
 };
 
 const CreateMeeting = () => {
@@ -276,6 +301,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
 });
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}-${day}`;
+};
 </script>
 
 
@@ -314,8 +345,10 @@ onBeforeUnmount(() => {
   gap: 2rem;
   box-sizing: border-box;
   min-height: 400px;
-  /* padding: 1.7rem;
-  margin: 0 auto; */
+  margin-top: 30px;
+  /* padding: 0 1.7rem; */
+  /* margin: 0 auto; */
+  /* height: 385px; */
 }
 
 .meeting-list-section {
@@ -599,6 +632,34 @@ button {
   margin: 0;
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  text-align: center;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+  width: 50px;
+  height: 50px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner p {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
 @media (max-width: 992px) {
   .intro-section,
   .chat-section,
@@ -612,7 +673,9 @@ button {
 
   .main-section {
     width: 90%;
-    margin: auto;
+    margin: 20px auto 0px auto;
   }
 }
+
+
 </style>

@@ -6,16 +6,25 @@
       </div>
       <div class="notice-content">
         <table v-if="todayMeetings.length > 0" class="notice-table">
-          <tr v-for="meeting in todayMeetings" :key="meeting.id">
-            <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-            <td class="bold">{{ meeting.name }}</td>
-            <td>
-              <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
-              <button @click="handleJoinConference(meeting.name)" class="join-button">
-                <img class="play-button" src="@/assets/img/play.png" alt="play">
-              </button>
-            </td>
-          </tr>
+          <!-- <thead>
+            <tr>
+              <th>TIME</th>
+              <th>AGENDA</th>
+              <th>PLAY</th>
+            </tr>
+          </thead> -->
+          <tbody>
+            <tr v-for="meeting in todayMeetings" :key="meeting.id">
+              <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+              <td class="bold">{{ meeting.name }}</td>
+              <td class="join-td">
+                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
@@ -24,7 +33,7 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-        <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
+        <p>We have meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
           <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
           <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
@@ -87,15 +96,10 @@ import { formatTime, handleClickOutside } from '@/utils';
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-
-const teamId = computed(() => teamStore.teamInfo?.id);
-
-const prevMeetingHours = computed(() => teamId.value ? teamStore.prevMeetingHoursByTeam(teamId.value) : 0);
-const todayMeetingHours = computed(() => teamId.value ? teamStore.todayMeetingHoursByTeam(teamId.value) : 0);
-const nextMeetingHours = computed(() => teamId.value ? teamStore.nextMeetingHoursByTeam(teamId.value) : 0);
+const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
+const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
+const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-
-const totalParticipants = computed(() => teamId.value ? teamStore.totalParticipantsByTeam(teamId.value) : 0);
 
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
@@ -152,12 +156,8 @@ onMounted(async () => {
 
 <style scoped>
 template {
-  display: flex;
-  justify-content: space-between;
   width: 100%;
   box-sizing: border-box;
-  min-height: 400px;
-  padding: 0rem;
   margin: 0 auto;
 }
 
@@ -167,8 +167,8 @@ template {
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  /* padding: 0rem;
-  margin: 0 auto; */
+  padding: 0rem;
+  margin: 0 auto;
 }
 
 .notice-section {
@@ -196,7 +196,7 @@ template {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .notice-header h5 .icon {
@@ -204,11 +204,11 @@ template {
 }
 
 .notice-content {
-  max-height: 100px; /* 원하는 최대 높이 설정 */
+  max-height: 150px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 0px 10px;
+  padding: 20px;
   background-color: #f9f9f9;
 }
 
@@ -219,7 +219,7 @@ template {
 
 .notice-table th,
 .notice-table td {
-  padding: 5px;
+  padding: 8px;
   text-align: center;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -246,6 +246,10 @@ template {
 
 .notice-table td .join-button img {
   width: 20px;
+}
+
+.join-btn {
+  width: 200px;
 }
 
 .play-button {
