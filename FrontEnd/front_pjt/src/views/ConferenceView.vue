@@ -241,7 +241,6 @@ const sendDataToBackend = (data) => {
 
 const leaveSession = async () => {
   if (session.value) {
-    await sessionStore.endSession(sessionStore.meetingId);
     console.log(meetingId)
     session.value.disconnect();
     socket.close()
@@ -255,7 +254,7 @@ const endConference = async () => {
     await sessionStore.endSession(sessionStore.meetingId);
     session.value.disconnect();
     session.value = null;
-    router.push({ name: 'ReadyView' });
+    router.replace({ name: 'ReadyView' });
   }
 };
 

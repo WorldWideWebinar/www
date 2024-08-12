@@ -173,6 +173,7 @@ const isLoading = ref(true);
 const members = computed(() => teamStore.teamUserInfo);
 
 const filteredMeetings = computed(() => {
+  console.log(teamStore.groupedMeetings)
   if (activeTab.value === 'PREV') {
     return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
@@ -228,7 +229,8 @@ const selectTab = async (tab) => {
   activeTab.value = tab;
 };
 
-const loadData = async (teamId) => {
+const loadData = async () => {
+  const teamId = route.params.id
   try {
     await Promise.all([
       teamStore.fetchTeamById(teamId),
