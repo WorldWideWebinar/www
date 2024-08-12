@@ -18,8 +18,8 @@
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
-                <button v-if="isOwner" @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
-                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.meeting_id)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
               </td>
@@ -180,14 +180,14 @@ onMounted(async () => {
   await meetingStore.fetchMeetings(teamId);
 });
 
-const handleStartConference = async (meetingId, sessionName) => {
+const handleStartConference = async (meetingId) => {
   const userId = userStore.userId;
   try {
     let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, userId);
     }
 
     const token = await sessionStore.joinConference(sessionId);
