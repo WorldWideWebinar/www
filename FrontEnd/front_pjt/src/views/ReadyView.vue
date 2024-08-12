@@ -153,6 +153,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
+import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
 
 const route = useRoute();
 const teamStore = useTeamStore();
