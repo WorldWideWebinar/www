@@ -204,12 +204,31 @@ template {
 }
 
 .notice-content {
-  max-height: 150px; /* 원하는 최대 높이 설정 */
+  max-height: 100px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 5px 10px;
   background-color: #f9f9f9;
+  font-size: medium;
+}
+
+.notice-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notice-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.notice-content::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.notice-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .notice-table {
