@@ -42,15 +42,15 @@
         <div class="meeting-hours-legend">
           <div class="legend-item">
             <span class="legend-color prev-meetings"></span>
-            <span class="legend-label">Previous {{ prevMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Previous <br> {{ prevMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color today-meetings"></span>
-            <span class="legend-label">Today {{ todayMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Today <br> {{ todayMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color next-meetings"></span>
-            <span class="legend-label">Next {{ nextMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Next <br> {{ nextMeetingHours.toFixed(2) }} hours</span>
           </div>
         </div>
       </div>
@@ -91,7 +91,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils';
+import { formatTime, handleClickOutside } from '@/utils.js';
 import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
@@ -617,6 +617,10 @@ template {
 
   .intro-section {
     display: none;
+  }
+
+  .notice-table .meeting-name {
+    width: 150px;
   }
 }
 </style>

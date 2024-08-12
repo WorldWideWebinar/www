@@ -68,7 +68,11 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
-const departmentName = computed(() => route.params.name);
+const departmentName = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+  const teamData = teamStore.getTeamById(teamId);
+  return teamData ? teamData.teamName : '';
+});
 
 const sessionId = route.params.sessionId;
 const token = route.params.token;;
