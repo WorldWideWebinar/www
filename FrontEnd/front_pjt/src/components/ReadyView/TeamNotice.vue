@@ -94,6 +94,7 @@ import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils';
 import { useUserStore } from '@/stores/userStore.js'
 import { useRouter } from 'vue-router'
+import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
@@ -105,6 +106,7 @@ const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const isOwner = ref(false);
 const router = useRouter();
+const sessionStore = useSessionStore()
 isOwner.value = teamStore.teamInfo.ownerId === userStore.userId;
 
 function formatDate(meetingList) {
