@@ -68,7 +68,6 @@ const fetchUserTeams = async () => {
     }
 
     hasFetchedUserInfo.value = true;
-    userStore.fetchAllUsers();
   }
 };
 
