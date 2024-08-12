@@ -13,11 +13,13 @@
         </div>
         <div class="form-group">
           <label for="startPicker">Start Time</label>
-          <input type="text" v-model="selectedStartDate" id="startPicker" required />
+          <input type="text" v-model="displayStartDate" id="startPicker" required />
+          <input type="checkbox" id="startChecked" v-model="startChecked" />
         </div>
         <div class="form-group">
           <label for="endPicker">End Time</label>
-          <input type="text" v-model="selectedEndDate" id="endPicker" required />
+          <input type="text" v-model="displayEndDate" id="endPicker" required />
+          <input type="checkbox" id="endChecked" v-model="endChecked" />
         </div>
         <div class="form-group">
           <label for="detail">Details</label>
@@ -55,8 +57,12 @@ const name = ref('');
 const start = ref('');
 const end = ref('');
 const detail = ref('');
-const selectedStartDate = ref('');
-const selectedEndDate = ref('');
+// const selectedStartDate = ref('');
+// const selectedEndDate = ref('');
+const displayStartDate = ref('');
+const displayEndDate = ref('');
+const startChecked = ref(false);
+const endChecked = ref(false);
 
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
@@ -64,7 +70,11 @@ const createMeeting = async () => {
     return;
   }
 
-  // 요청을 보낼 때 사용할 객체 생성 (start, end 사용)
+  if (!startChecked.value || !endChecked.value) {
+    alert('Please confirm the start and end times');
+    return;
+  }
+
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
@@ -113,8 +123,13 @@ const setupFlatpickrStart = () => {
     minuteIncrement: 1,
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
-        start.value = selectedDates[0].toISOString().slice(0, 16);
-        console.log("Start Date for display:", selectedStartDate.value);
+        const selectedDate = selectedDates[0];
+        start.value = selectedDate.toISOString().slice(0, 16);
+        console.log("Start Date for display:", start.value);
+        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000; // 분 단위의 오프셋을 밀리초로 변환
+        const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+        document.getElementById("startPicker").value = displayStartDate.value;
       }
     }
   });
@@ -129,8 +144,13 @@ const setupFlatpickrEnd = () => {
     minuteIncrement: 1,
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
-        end.value = selectedDates[0].toISOString().slice(0, 16);
-        console.log("End Date for display:", selectedEndDate.value);
+        const selectedDate = selectedDates[0];
+        end.value = selectedDate.toISOString().slice(0, 16);
+        console.log("End Date for display:", end.value);
+        const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
+        displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+        document.getElementById("endPicker").value = displayEndDate.value;
       }
     }
   });

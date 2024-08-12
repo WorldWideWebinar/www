@@ -78,11 +78,11 @@ const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 const teams = computed(() => teamStore.teams);
 const users = computed(() => userStore.userList);
 
+// date.setHours(date.getHours() + 9);
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
 
-  date.setHours(date.getHours() + 9);
 
   let formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   formattedTime = formattedTime.replace('AM', 'a.m.').replace('PM', 'p.m.');
@@ -112,6 +112,8 @@ const setupWebSocket = (teamId) => {
 
   const socket = new WebSocket('https://i11a501.p.ssafy.io/api/stomp/chat');
   stompClient = Stomp.over(socket);
+  socket.debug = null;
+  stompClient.debug = null;
   stompClient.connect(
     {
       Authorization: `Bearer ${token}`
