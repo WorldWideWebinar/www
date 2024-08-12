@@ -151,7 +151,7 @@ import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
+import { formatTime, handleClickOutside } from '@/utils';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
@@ -228,11 +228,6 @@ const closeDropdowns = () => {
 
 const selectTab = async (tab) => {
   activeTab.value = tab;
-  console.log(teamStore.groupedMeetings)
-  const teamId = parseInt(route.params.id, 10);
-  const prev = tab === 'PREV' ? 1 : 0;
-  const next = tab === 'NEXT' ? 1 : 0;
-  await teamStore.fetchMeetings(teamId, prev, next);
 };
 
 const loadData = async (teamId) => {
@@ -262,6 +257,7 @@ onMounted(async () => {
 watch(() => route.params.id, async (newId) => {
   isLoading.value = true;
   teamStore.clearTeamMeetings();
+  console.log(newId)
   await loadData(newId);
   isLoading.value = false;
 });
@@ -296,18 +292,18 @@ const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
 
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${month}-${day}`;
-};
-
-const formatTime = (dateString) => {
-  const date = new Date(dateString);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
 };
 </script>
 
@@ -346,7 +342,11 @@ const formatTime = (dateString) => {
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  height: 385px;
+  min-height: 400px;
+  margin-top: 30px;
+  /* padding: 0 1.7rem; */
+  /* margin: 0 auto; */
+  /* height: 385px; */
 }
 
 .meeting-list-section {
@@ -671,7 +671,7 @@ button {
 
   .main-section {
     width: 90%;
-    margin: auto;
+    margin: 20px auto 0px auto;
   }
 }
 

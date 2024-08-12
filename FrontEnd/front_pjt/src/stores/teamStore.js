@@ -110,9 +110,39 @@ export const useTeamStore = defineStore('team', {
     },
 
     async deleteTeam(teamId) {
-      const errorStore = useErrorStore(); // Access the error store
+      const errorStore = useErrorStore();
+      const userStore = useUserStore();
+      let token = userStore.accessToken;
+
       try {
-        const response = await axiosInstance.delete(`api/teams/${teamId}`);
+        const team = this.teams.find(team => team.id == teamId);
+
+        if (!team) {
+          errorStore.showError('Team not found');
+          return { isSuccess: false, message: 'Team not found' };
+        }
+
+        if (team.ownerId != userStore.userId) {
+          errorStore.showError('You do not have permission to delete this team');
+          return { isSuccess: false, message: 'You do not have permission to delete this team' };
+        }
+
+        let response = await axiosInstance.delete(`api/teams/${teamId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 403) {
+          await userStore.refreshToken();
+          token = userStore.accessToken;
+          response = await axiosInstance.delete(`api/teams/${teamId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+        }
+
         if (response.data.isSuccess) {
           this.teams = this.teams.filter(team => team.id != teamId);
         } else {

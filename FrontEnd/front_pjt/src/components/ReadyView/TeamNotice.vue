@@ -17,9 +17,9 @@
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold">{{ meeting.name }}</td>
-              <td>
-                <button @click="handleStartConference(meeting.id)" class="join-button">Start</button>
-                <button @click="handleJoinConference(meeting.id)" class="join-button">
+              <td class="join-td">
+                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.name)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
               </td>
@@ -93,24 +93,29 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useUserStore } from '@/stores/userStore';
 import { formatTime, handleClickOutside } from '@/utils';
+import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY || []);
-// const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
-// const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
-// const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
-// const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
 const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const sessionStore = useSessionStore();
-const router = useRouter();
-const route = useRoute();
+
+function formatDate(meetingList) {
+    return meetingList.reduce((total, meeting) => {
+      const start = new Date(meeting.start_at);
+      const end = new Date(meeting.end_at);
+      return total + (end - start) / (1000 * 60 * 60);
+    }, 0)
+}
+const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PREV))
+const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
+const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
 // 여기서 각 요소에 대한 ref를 설정합니다.
 const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
 const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
@@ -143,32 +148,6 @@ const closeMemberListDropdown = () => {
   showMemberListDropdown.value = false;
 };
 
-const handleStartConference = async (meetingId) => {
-  const userId = userStore.userId;
-  try {
-    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
-
-    if (!sessionId) {
-      // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId);
-    }
-
-    const token = await sessionStore.joinConference(sessionId);
-    router.push({ name: 'ConferenceView', params: { sessionId, token} });
-  } catch (error) {
-    console.error('Failed to start conference:', error);
-  }
-};
-
-const handleJoinConference = async (sessionName) => {
-  try {
-    const token = await sessionStore.joinConference(sessionName);
-    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
-  } catch (error) {
-    console.error('Failed to join conference:', error);
-  }
-};
-
 onMounted(() => {
   // handleClickOutside 함수 호출 시, ref를 전달합니다.
   document.addEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
@@ -187,12 +166,8 @@ onMounted(async () => {
 
 <style scoped>
 template {
-  display: flex;
-  justify-content: space-between;
   width: 100%;
   box-sizing: border-box;
-  min-height: 400px;
-  padding: 0rem;
   margin: 0 auto;
 }
 
@@ -202,8 +177,8 @@ template {
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
-  /* padding: 0rem;
-  margin: 0 auto; */
+  padding: 0rem;
+  margin: 0 auto;
 }
 
 .notice-section {
@@ -281,6 +256,10 @@ template {
 
 .notice-table td .join-button img {
   width: 20px;
+}
+
+.join-btn {
+  width: 200px;
 }
 
 .play-button {
