@@ -16,7 +16,7 @@
 
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
-      <TeamNotice />
+      <!-- <TeamNotice /> -->
       <main class="main-section">
         <section class="meeting-list-section">
           <div class="meeting-header">
@@ -25,13 +25,13 @@
           </div>
           <ul class="nav nav-tabs">
             <li class="nav-item" @click="selectTab('PREV')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'PREV' }" aria-current="page" href="#">PREV</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'PREV' }" aria-current="page" href="#">PREV</a>
             </li>
             <li class="nav-item" @click="selectTab('TODAY')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'TODAY' }" aria-current="page" href="#">TODAY</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'TODAY' }" aria-current="page" href="#">TODAY</a>
             </li>
             <li class="nav-item" @click="selectTab('NEXT')">
-              <a :class="{ 'nav-link': true, active: activeTab === 'NEXT' }" aria-current="page" href="#">NEXT</a>
+              <a :class="{ 'nav-link': true, active: activeTab == 'NEXT' }" aria-current="page" href="#">NEXT</a>
             </li>
           </ul>
           <!-- Meeting List -->
