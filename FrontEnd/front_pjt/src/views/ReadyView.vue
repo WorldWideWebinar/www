@@ -263,7 +263,6 @@ watch(() => route.params.id, async (newId) => {
 });
 
 const selectMeeting = (meeting) => {
-  console.log(meeting);
 
   if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
     detailType.value = 'PREV';

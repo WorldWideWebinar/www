@@ -15,10 +15,10 @@
                 <td class="label">Name</td>
                 <td>{{ userInfo.name }}</td>
               </tr>
-              <tr>
+              <!-- <tr>
                 <td class="label">ID</td>
                 <td>{{ userInfo.userId }}</td>
-              </tr>
+              </tr> -->
               <tr>
                 <td class="label">Email</td>
                 <td><input v-model="email" type="email" placeholder="Email" required /></td>
