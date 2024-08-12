@@ -16,7 +16,7 @@
 
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
-      <!-- <TeamNotice /> -->
+      <TeamNotice />
       <main class="main-section">
         <section class="meeting-list-section">
           <div class="meeting-header">
