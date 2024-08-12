@@ -161,6 +161,32 @@ onMounted(async () => {
   const teamId = teamStore.teamInfo?.id;
   await meetingStore.fetchMeetings(teamId);
 });
+
+onst handleStartConference = async (meetingId, sessionName) => {
+  const userId = userStore.userId;
+  try {
+    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
+
+    if (!sessionId) {
+      // sessionId가 없는 경우 새로운 세션 시작
+      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+    }
+
+    const token = await sessionStore.joinConference(sessionId);
+    router.push({ name: 'ConferenceView', params: { sessionId, token } });
+  } catch (error) {
+    console.error('Failed to start conference:', error);
+  }
+};
+
+const handleJoinConference = async (sessionName) => {
+  try {
+    const token = await sessionStore.joinConference(sessionName);
+    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
+  } catch (error) {
+    console.error('Failed to join conference:', error);
+  }
+};
 </script>
 
 
