@@ -200,4 +200,9 @@ public class MeetingServiceImpl implements MeetingService{
                         .build()))
                 .toList();
     }
+
+    @Override
+    public String findMeetingIdBySessionId(String sessionId) {
+        return meetingRepository.findMeetingIdBySessionId(sessionId);
+    }
 }
