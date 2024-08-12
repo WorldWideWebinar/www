@@ -18,7 +18,7 @@
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold">{{ meeting.name }}</td>
               <td class="join-td">
-                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button v-if="isOwner" @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
                 <button @click="handleJoinConference(meeting.name)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
@@ -104,6 +104,8 @@ const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
+const isOwner = ref(false);
+isOwner.value = teamStore.teamInfo.ownerId === userStore.userId;
 
 function formatDate(meetingList) {
     return meetingList.reduce((total, meeting) => {
