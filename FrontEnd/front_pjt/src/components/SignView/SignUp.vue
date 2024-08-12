@@ -290,13 +290,7 @@ form {
   font-size: 12px;
 }
 
-<<<<<<< HEAD
-/* .submit-btn {
-  margin-top: 5%;
-} */
-=======
 .submit-btn {
   margin-top: 5%;
 }
->>>>>>> 956b71d6042fbaa3920d65f6fffbf34189742b94
 </style>
