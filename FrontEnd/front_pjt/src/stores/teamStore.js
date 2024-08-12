@@ -7,13 +7,7 @@ import axiosInstance from '@/axios';
 export const useTeamStore = defineStore('team', {
   state: () => ({
     teams: [
-      // {
-      //   "id": 1,
-      //   "ownerId": 44,
-      //   "teamName": "R&D",
-      //   "userList": ["1", "3"],
-      //   "meetingList": ["2", "5", "7"],
-      // }
+
     ],
     teamInfo : null,
     isOwner: false,
@@ -40,7 +34,7 @@ export const useTeamStore = defineStore('team', {
         const teamData = response.data.result;
         this.teamInfo = teamData
         this.teamUserList = teamData.userList
-        const teamExists = this.teams.some(team => team.id === teamId);
+        const teamExists = this.teams.some(team => team.id == teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드
@@ -91,6 +85,9 @@ export const useTeamStore = defineStore('team', {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
+        }else {
+          const teamId = response.data.result;
+          await this.fetchTeamById(teamId)
         }
       } catch (error) {
         errorStore.showError(`Error creating team: ${error.message}`);

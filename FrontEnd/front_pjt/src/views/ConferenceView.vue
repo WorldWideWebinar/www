@@ -21,13 +21,11 @@
             <h5>Original Version</h5>
             <div class="translation-content">
               <!-- Original messages -->
+              <TranscriptionText/>
             </div>
           </div>
           <div class="translation-section">
-            <h5>Translated Version <span class="language-icon">🌐 한국어</span></h5>
-            <div class="translation-content">
-              <!-- Translated messages -->
-            </div>
+            <TranslatedText/>
           </div>
         </div>
         <div class="footer">
@@ -39,9 +37,9 @@
             <span style="font-weight: bold;">Attendance</span>
             <span>{{ participants.length }} / 6</span>
           </div>
-          <div class="footer-right">
+          <!-- <div class="footer-right">
             <span>Invite Alex, Joy</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
@@ -62,6 +60,8 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
+import TranscriptionText from '@/components/ConferenceView/TranscriptionText.vue'
+import TranslatedText from '@/components/ConferenceView/TranslatedText.vue'
 
 const route = useRoute();
 const router = useRouter();
@@ -241,12 +241,12 @@ const sendDataToBackend = (data) => {
 
 const leaveSession = async () => {
   if (session.value) {
-    router.push({ name: 'HomeView' })
     await sessionStore.endSession(sessionStore.meetingId);
     console.log(meetingId)
-    session.value.disconnect();   
+    session.value.disconnect();
     socket.close()
     session.value = null;
+    router.push({ name: 'HomeView' })
   }
 };
 

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useErrorStore } from './errorStore';
 import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
@@ -12,6 +13,10 @@ export const useMeetingStore = defineStore('meeting', {
     },
   }),
   actions: {
+
+    clearMeetings() {
+      this.meetings = [];
+    },
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('api/meetings', meeting)
@@ -28,7 +33,7 @@ export const useMeetingStore = defineStore('meeting', {
       try {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`)
         const meeting = response.data.result
-        if (!this.meetings.find((m) => m.id === meetingId)) {
+        if (!this.meetings.find((m) => m.id == meetingId)) {
           console.log("Meeting fetched", response.data.result)
           this.meetings.push(meeting)
         }
@@ -68,11 +73,28 @@ export const useMeetingStore = defineStore('meeting', {
 
         this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
       } catch (error) {
-        console.error('Failed to fetch meetings:', error);
+        if (error.response && error.response.status !== 404) {
+          console.error('Failed to fetch meetings:', error)
+        }
       }
     },
 
-    // async deleteMeeting()
+    async deleteMeeting(meetingId) {
+      const errorStore = useErrorStore(); // Access the error store
+      try {
+        const response = await axiosInstance.delete(`api/meetings/${meetingId}`);
+        if (response.data.isSuccess) {
+          this.meetings = this.meetings.filter(meeting => meeting.id !== meetingId);
+        } else {
+          errorStore.showError(`Failed to delete team: ${response.data.message}`);
+        }
+        return response.data;
+      } catch (error) {
+        errorStore.showError(`Failed to delete team ${meetingId}: ${error.message}`);
+        return { isSuccess: false, message: error.message };
+      }
+    },
+
 
     groupMeetings(prev, next) {
       if (prev) {
@@ -95,8 +117,8 @@ export const useMeetingStore = defineStore('meeting', {
       return state.meetings.filter((meeting) => meeting.team_id === teamId)
     }
   },
-  persist: {
-    key: 'meetingStore',
-    storage: sessionStorage,
-  },
+  // persist: {
+  //   key: 'meetingStore',
+  //   storage: sessionStorage,
+  // },
 })

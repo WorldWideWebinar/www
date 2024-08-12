@@ -82,7 +82,9 @@ import { useTeamStore } from '@/stores/teamStore'
 import { useErrorStore } from '@/stores/errorStore'
 import ProfileModal from '@/components/ProfileModal.vue'
 import ErrorModal from '@/components/ErrorModal.vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const userStore = useUserStore()
 const teamStore = useTeamStore()
 const errorStore = useErrorStore()
@@ -176,6 +178,7 @@ const handleCreateTeam = async () => {
       teamName.value = ''
       selectedUsers.value = []
       selectedIcon.value = '🚀'
+      await router.replace({ name: 'HomeView' })
     } catch (error) {
       errorStore.showError('Failed to create team.')
     }
