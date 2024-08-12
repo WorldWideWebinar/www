@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/summary")
@@ -42,23 +43,26 @@ public class MeetingSTTSummaryController {
 
         document.open();
 
+        String fontPath = "NanumSquareB.ttf";
+        BaseFont baseFont = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
         // Fonts
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.BLUE);
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.DARK_GRAY);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
-        Font tableHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
-        Font tableNormalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        Font titleFont = new Font(baseFont, 20, Font.BOLD, BaseColor.BLUE);
+        Font headerFont = new Font(baseFont, 16, Font.BOLD, BaseColor.DARK_GRAY);
+        Font normalFont = new Font(baseFont, 12, Font.NORMAL);
+        Font tableHeaderFont = new Font(baseFont, 12, Font.BOLD, BaseColor.WHITE);
+        Font tableNormalFont = new Font(baseFont, 12, Font.NORMAL);
 
         // Title
-        Paragraph title = new Paragraph("Meeting Minutes", titleFont);
+        Paragraph title = new Paragraph("회  의  록", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
-        document.add(new Paragraph("Meeting ID: " + 1, normalFont));
-        document.add(new Paragraph("Date: " + LocalDate.now(), normalFont));
+        document.add(new Paragraph("날짜: " + LocalDate.now(), normalFont));
+        document.add(new Paragraph("시간: " + LocalDateTime.now(), normalFont));
         document.add(Chunk.NEWLINE);
 
         // Participants
-        Paragraph participantsHeader = new Paragraph("Participants:", headerFont);
+        Paragraph participantsHeader = new Paragraph("참여자:", headerFont);
         document.add(participantsHeader);
 
         PdfPTable table = new PdfPTable(2); // Two columns: No, Name
@@ -66,26 +70,26 @@ public class MeetingSTTSummaryController {
         table.setSpacingBefore(10f);
         table.setSpacingAfter(10f);
 
-        PdfPCell cell = new PdfPCell(new Phrase("No", tableHeaderFont));
+        PdfPCell cell = new PdfPCell(new Phrase("번호", tableHeaderFont));
         cell.setBackgroundColor(BaseColor.GRAY);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
 
-        cell = new PdfPCell(new Phrase("Name", tableHeaderFont));
+        cell = new PdfPCell(new Phrase("이름", tableHeaderFont));
         cell.setBackgroundColor(BaseColor.GRAY);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
 
         // Adding participant data
-        addTableRow(table, "1", "John Doe", tableNormalFont);
-        addTableRow(table, "2", "Jane Smith", tableNormalFont);
-        addTableRow(table, "3", "Bob Johnson", tableNormalFont);
+        addTableRow(table, "1", "김수빈", tableNormalFont);
+        addTableRow(table, "2", "주연수", tableNormalFont);
+        addTableRow(table, "3", "이주영", tableNormalFont);
 
         document.add(table);
         document.add(Chunk.NEWLINE);
 
         // Main Discussion Points
-        Paragraph discussionHeader = new Paragraph("Main Discussion Points:", headerFont);
+        Paragraph discussionHeader = new Paragraph("회의 주요 안건:", headerFont);
         document.add(discussionHeader);
         document.add(new Paragraph("1. Project timeline review", normalFont));
         document.add(new Paragraph("2. Budget allocation", normalFont));
@@ -93,7 +97,7 @@ public class MeetingSTTSummaryController {
         document.add(Chunk.NEWLINE);
 
         // Conclusions and Action Items
-        Paragraph conclusionsHeader = new Paragraph("Conclusions and Action Items:", headerFont);
+        Paragraph conclusionsHeader = new Paragraph("회의 결론:", headerFont);
         document.add(conclusionsHeader);
         document.add(new Paragraph("1. Finalize the project plan by next week", normalFont));
         document.add(new Paragraph("2. Prepare a budget report by end of month", normalFont));
@@ -118,7 +122,7 @@ public class MeetingSTTSummaryController {
             canvas.setGState(gs);
 
             // Load the watermark image
-            Image watermarkImage = Image.getInstance("image.png");
+            Image watermarkImage = Image.getInstance("logo.png");
             watermarkImage.setAbsolutePosition(150, 300); // Position (x, y) on the page
             //watermarkImage.setRotationDegrees(45); // Rotate if necessary
 
