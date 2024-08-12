@@ -25,7 +25,7 @@
           </div>
           <div class="notice-right" >
             
-            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
+            <button v-if="isOwner" @click="handleStartConference(todayMeeting.meeting_id)" class="join-button">Start</button>
             <button v-else @click="handleJoinConference(todayMeeting.name)" class="join-button">
               <img class="play-button" src="@/assets/img/play.png" alt="play">
             </button>
@@ -201,7 +201,7 @@ const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
-const handleStartConference = async (meetingId, sessionName) => {
+const handleStartConference = async (meetingId) => {
   const userId = userStore.userId;
   console.log(meetingId)
   try {
@@ -209,7 +209,7 @@ const handleStartConference = async (meetingId, sessionName) => {
 
     if (!sessionId) {
       // sessionId가 없는 경우 새로운 세션 시작
-      sessionId = await sessionStore.startConference(meetingId, userId, sessionName);
+      sessionId = await sessionStore.startConference(meetingId, userId);
     }
 
     const token = await sessionStore.joinConference(sessionId);

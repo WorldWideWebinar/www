@@ -64,7 +64,7 @@ export const useMeetingStore = defineStore('meeting', {
         const newMeetings = response.data.result;
     
         console.log('서버로부터 받은 회의 데이터:', newMeetings);
-    
+        console.log('현재 store의 groupedMeetings:', this.groupedMeetings)
         const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
         const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
     
