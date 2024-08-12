@@ -273,11 +273,11 @@ watch(() => route.params.id, async (newId) => {
 
 const selectMeeting = (meeting) => {
 
-  if (meetingStore.groupedMeetings.PREV.includes(meeting)) {
+  if (teamStore.groupedMeetings.PREV.includes(meeting)) {
     detailType.value = 'PREV';
-  } else if (meetingStore.groupedMeetings.TODAY.includes(meeting)) {
+  } else if (teamStore.groupedMeetings.TODAY.includes(meeting)) {
     detailType.value = 'TODAY';
-  } else if (meetingStore.groupedMeetings.NEXT.includes(meeting)) {
+  } else if (teamStore.groupedMeetings.NEXT.includes(meeting)) {
     detailType.value = 'NEXT';
   }
 
