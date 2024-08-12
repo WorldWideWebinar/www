@@ -40,10 +40,6 @@ public class MeetingSTTSummaryController {
         Document document = new Document(PageSize.A4, 36, 36, 72, 108); // Margins: left, right, top, bottom
         PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
-        // Header and Footer
-        HeaderFooterPageEvent event = new HeaderFooterPageEvent();
-        writer.setPageEvent(event);
-
         document.open();
 
         // Fonts
@@ -124,7 +120,7 @@ public class MeetingSTTSummaryController {
             // Load the watermark image
             Image watermarkImage = Image.getInstance("image.png");
             watermarkImage.setAbsolutePosition(150, 300); // Position (x, y) on the page
-            watermarkImage.setRotationDegrees(45); // Rotate if necessary
+            //watermarkImage.setRotationDegrees(45); // Rotate if necessary
 
             // Add watermark image to the content
             canvas.addImage(watermarkImage);
@@ -142,25 +138,4 @@ public class MeetingSTTSummaryController {
         cell = new PdfPCell(new Phrase(name, font));
         table.addCell(cell);
     }
-
-    class HeaderFooterPageEvent extends PdfPageEventHelper {
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
-        Font footerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
-
-        @Override
-        public void onEndPage(PdfWriter writer, Document document) {
-            PdfPTable header = new PdfPTable(1);
-            header.setTotalWidth(527); // Width of A4 page minus margins
-            header.setLockedWidth(true);
-            header.addCell(new PdfPCell(new Phrase("Meeting Minutes Summary", headerFont)));
-            header.writeSelectedRows(0, -1, document.leftMargin(), document.top() + 20, writer.getDirectContent());
-
-            PdfPTable footer = new PdfPTable(1);
-            footer.setTotalWidth(527);
-            footer.setLockedWidth(true);
-            footer.addCell(new PdfPCell(new Phrase("Page " + writer.getPageNumber(), footerFont)));
-            footer.writeSelectedRows(0, -1, document.leftMargin(), document.bottom() - 10, writer.getDirectContent());
-        }
-    }
-
 }
