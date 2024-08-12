@@ -191,7 +191,6 @@ export const useTeamStore = defineStore('team', {
     },
 
     async fetchMeetings(teamId, prev = false, next = false) {
-      
       try {
         const today = new Date().toISOString();
         const params = {
@@ -203,7 +202,7 @@ export const useTeamStore = defineStore('team', {
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
         const meetingStore = useMeetingStore();
-  
+
         meetingStore.meetings.push(newMeetings);
         this.groupMeetings(prev, next, newMeetings);
       } catch (error) {
@@ -216,16 +215,12 @@ export const useTeamStore = defineStore('team', {
     groupMeetings(prev, next, meetings) {
       if (prev) {
         this.groupedMeetings.PREV = [...meetings];
-        this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [];
-      } else if (next) {
-        this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [];
+      }
+      if (next) {
         this.groupedMeetings.NEXT = [...meetings];
-      } else {
-        this.groupedMeetings.PREV = [];
+      }
+      if(!prev && !next){
         this.groupedMeetings.TODAY = [...meetings];
-        this.groupedMeetings.NEXT = [];
       }
     },
   },

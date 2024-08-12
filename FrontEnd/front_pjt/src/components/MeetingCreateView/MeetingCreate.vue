@@ -80,11 +80,6 @@ const createMeeting = async () => {
     return;
   }
 
-  if (!startChecked.value || !endChecked.value) {
-    alert('Please confirm the start and end times');
-    return;
-  }
-
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
@@ -98,27 +93,15 @@ const createMeeting = async () => {
     const response = await meetingStore.addMeeting(newMeeting);
 
     if (response) {
-      // 응답을 받은 후 start, end를 start_at, end_at으로 변경
-      const savedMeeting = {
-        ...newMeeting,
-        meeting_id: response.data.result,
-        start_at: newMeeting.start,
-        end_at: newMeeting.end,
-      };
-      delete savedMeeting.start;
-      delete savedMeeting.end;
-
-      meetingStore.meetings.push(savedMeeting);
-      router.replace({name: 'ReadyView', id:teamId})
+      emits('created', teamId.value)
     }
-
     close();
   } catch (error) {
     errorStore.showError('미팅 생성 중 오류 발생:', error);
   }
 };
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close','created']);
 
 const close = () => {
   emits('close');
