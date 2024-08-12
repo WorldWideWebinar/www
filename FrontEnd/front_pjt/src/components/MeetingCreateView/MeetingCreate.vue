@@ -69,6 +69,7 @@ const displayEndDate = ref('');
 const startChecked = ref(false);
 const endChecked = ref(false);
 
+
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
     errorStore.showError('필수 필드를 모두 입력해주세요.');
@@ -80,8 +81,8 @@ const createMeeting = async () => {
     return;
   }
 
-  if (!startChecked.value || !endChecked.value) {
-    alert('Please confirm the start and end times');
+  if (start.value > end.value) {
+    alert('The end time cannot be earlier than the start time.');
     return;
   }
 
@@ -130,13 +131,14 @@ const setupFlatpickrStart = () => {
     dateFormat: "Y-m-d\\TH:i",
     time_24hr: true,
     minuteIncrement: 1,
+    minDate :'today',
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        start.value = adjustedDate.toISOString().slice(0, 16);
-        console.log("Start Date for display:", start.value);
+        start.value = adjustedDate.toISOString();
+        // console.log("Start Date for display:", start.value);
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
@@ -151,13 +153,14 @@ const setupFlatpickrEnd = () => {
     dateFormat: "Y-m-d\\TH:i",
     time_24hr: true,
     minuteIncrement: 1,
+    minDate :'today',
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
-        end.value = adjustedDate.toISOString().slice(0, 16);
-        console.log("End Date for display:", end.value);
+        end.value = adjustedDate.toISOString();
+        // console.log("End Date for display:", end.value);
         displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
       }
@@ -168,6 +171,9 @@ const setupFlatpickrEnd = () => {
 onMounted(() => {
   setupFlatpickrStart();
   setupFlatpickrEnd();
+  const nineHoursLater = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+  document.getElementById("startPicker").value =  nineHoursLater.toISOString().slice(0, 16).replace('T', ' ');
+  document.getElementById("endPicker").value = nineHoursLater.toISOString().slice(0, 16).replace('T', ' ');
 })
 </script>
 
