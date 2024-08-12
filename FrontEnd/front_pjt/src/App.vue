@@ -12,6 +12,7 @@
           class="nav-item" 
           v-for="team in teams" 
           :key="team.id"
+          @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
           >
             <RouterLink 
               class="nav-link" 
@@ -21,6 +22,9 @@
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
+            <div v-show="showDeleteButton === team.id" ref="dropdownRef" class="dropdown">
+              <button @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
+            </div>
           </li>
         </ul>
       </div>
@@ -44,7 +48,7 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, computed, ref, watch, nextTick } from 'vue'
+import { onMounted, computed, ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useUserStore } from './stores/userStore'
 import { useTeamStore } from './stores/teamStore'
 import router from './router'
@@ -52,6 +56,7 @@ import ChatButton from '@/components/ChatButton.vue'
 import ChatBox from '@/components/ChatBox.vue'
 import ErrorModal from '@/components/ErrorModal.vue'
 import { useErrorStore } from './stores/errorStore'
+import { handleClickOutside } from './utils'
 
 const errorStore = useErrorStore()
 const userStore = useUserStore()
@@ -60,6 +65,9 @@ const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
 const selectedTeamId = ref(null)
 const showScrollIndicator = ref(false)
+const showDeleteButton = ref(null)
+const deleteButtonStyle = ref({})
+const dropdownRef = ref(null)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -79,10 +87,57 @@ const fetchUserTeams = async () => {
   }
 };
 
-onMounted(async () => {
-  await fetchUserTeams()
-  await userStore.fetchAllUsers()
-})
+const showDeleteButtonAt = (event, teamId) => {
+  deleteButtonStyle.value = {
+    position: 'fixed',
+    zIndex: 1000,
+  };
+  showDeleteButton.value = teamId;
+
+  nextTick(() => {
+    if (dropdownRef.value) {
+      document.addEventListener('click', outsideClickHandler);
+    }
+  });
+};
+
+const deleteTeam = async (teamId) => {
+  const currentRoute = router.currentRoute.value;
+  const response = await teamStore.deleteTeam(teamId);
+
+  if (response.isSuccess) {
+    showDeleteButton.value = null;
+    removeOutsideClickListener();
+
+    if (currentRoute.params.id == teamId) {
+      router.push({ name: 'HomeView' });
+    }
+  } else {
+    console.error(response.message);
+  }
+};
+
+
+// 외부 클릭 감지 핸들러
+const outsideClickHandler = handleClickOutside(dropdownRef, () => {
+  showDeleteButton.value = null;
+  removeOutsideClickListener();
+});
+
+const removeOutsideClickListener = () => {
+  document.removeEventListener('click', outsideClickHandler);
+};
+
+onMounted(() => {
+  fetchUserTeams().then(() => {
+    userStore.fetchAllUsers();
+  });
+});
+
+onBeforeUnmount(() => {
+  removeOutsideClickListener();
+});
+
 
 const teams = computed(() => teamStore.teams)
 
@@ -257,6 +312,29 @@ li.nav-item {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 팀 삭제 */
+.dropdown {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  left: 80px;
+  margin-top: -75px;
+}
+
+.btn-delete {
+  background-color: #e1bee7;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background-color: #8c8593;
 }
 
 /* 팀 추가 */
