@@ -1,6 +1,7 @@
 package com.ssafy.globalcc.domain.session.controller;
 
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/webhook")
+@Slf4j
 public class WebHookController {
 
     private final MeetingService meetingService;
@@ -21,10 +23,10 @@ public class WebHookController {
     public ResponseEntity<String> handleSessionDestroyed(@RequestBody Map<String, Object> payload) {
         // OpenVidu에서 전송한 sessionId 추출
         String sessionId = (String) payload.get("sessionId");
-
+        log.debug("webhookTest sessionId {} ", sessionId);
         // sessionId로 meetingId 조회
         String meetingId = meetingService.findMeetingIdBySessionId(sessionId);
-
+        log.debug("webhookTest meetingId {} ", meetingId);
         if (meetingId != null) {
             // meetingId로 리디렉션
             String redirectUrl = "/meetingSTT/" + meetingId;
