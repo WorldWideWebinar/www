@@ -67,7 +67,7 @@ const selectedTeamId = ref(null)
 const showScrollIndicator = ref(false)
 const showDeleteButton = ref(null)
 const deleteButtonStyle = ref({})
-const dropdownRef = ref(null) 
+const dropdownRef = ref(null)
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -101,7 +101,6 @@ const showDeleteButtonAt = (event, teamId) => {
   });
 };
 
-
 const deleteTeam = async (teamId) => {
   const currentRoute = router.currentRoute.value;
   const response = await teamStore.deleteTeam(teamId);
@@ -119,6 +118,7 @@ const deleteTeam = async (teamId) => {
 };
 
 
+// 외부 클릭 감지 핸들러
 const outsideClickHandler = handleClickOutside(dropdownRef, () => {
   showDeleteButton.value = null;
   removeOutsideClickListener();

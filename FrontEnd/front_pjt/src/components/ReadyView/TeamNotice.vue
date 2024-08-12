@@ -90,10 +90,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
-import { useRouter, useRoute } from 'vue-router'
-import { useSessionStore } from '@/stores/sessionStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils';
+import { formatTime, handleClickOutside } from '@/utils.js';
 import { useUserStore } from '@/stores/userStore.js'
 
 const teamStore = useTeamStore();
@@ -118,7 +116,7 @@ const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PRE
 const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
 const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
-// 여기서 각 요소에 대한 ref를 설정합니다.
+
 const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
 const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
 
@@ -150,13 +148,27 @@ const closeMemberListDropdown = () => {
   showMemberListDropdown.value = false;
 };
 
+const closeInviteInput = () => {
+  showInviteMemberInput.value = false;
+};
+
+let removeMemberDropdownListener;
+let removeInviteInputListener;
+
 onMounted(() => {
-  // handleClickOutside 함수 호출 시, ref를 전달합니다.
-  document.addEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  const memberDropdownHandler = handleClickOutside(memberDropdown, closeMemberListDropdown);
+  const inviteInputHandler = handleClickOutside(inviteInput, closeInviteInput);
+
+  document.addEventListener('click', memberDropdownHandler);
+  document.addEventListener('click', inviteInputHandler);
+
+  removeMemberDropdownListener = () => document.removeEventListener('click', memberDropdownHandler);
+  removeInviteInputListener = () => document.removeEventListener('click', inviteInputHandler);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  if (removeMemberDropdownListener) removeMemberDropdownListener();
+  if (removeInviteInputListener) removeInviteInputListener();
 });
 
 onMounted(async () => {
@@ -290,6 +302,10 @@ template {
 
 .play-button {
   width: 50px;
+}
+
+.notice-item {
+  margin: 20px 0px 20px 20px;
 }
 
 .department-info {
