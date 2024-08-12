@@ -47,8 +47,8 @@
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ meeting.start }}</td>
-                  <!-- <td>{{ meeting.start.split('T')[1] }} - {{ meeting.end.split('T')[1] }}</td> -->
+                  <td>{{ formatDate(meeting.start_at) }} </td>
+                  <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
                     @click="selectMeeting(meeting)">
                     {{ meeting.name }}
@@ -75,11 +75,11 @@
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ selectedMeeting?.start }}</td>
+                  <td>{{ formatDate(selectedMeeting?.start_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <!-- <td>{{ selectedMeeting?.start.split('T')[1] }} - {{ selectedMeeting?.end.split('T')[1] }}</td> -->
+                  <td>{{ formatTime(selectedMeeting?.start_at) }} - {{ formatTime(selectedMeeting?.end_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Status</strong></td>
@@ -251,6 +251,7 @@ const loadData = async (teamId) => {
 
 onMounted(async () => {
   isLoading.value = true;
+  meetingStore.clearMeetings();
   const teamId = parseInt(route.params.id, 10);
   await loadData(teamId);
   isLoading.value = false;
@@ -290,6 +291,20 @@ const closeMeetingDetails = () => {
 
 const CreateMeeting = () => {
   meetingCreateModal.value = true;
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}-${day}`;
+};
+
+const formatTime = (dateString) => {
+  const date = new Date(dateString);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 </script>
 

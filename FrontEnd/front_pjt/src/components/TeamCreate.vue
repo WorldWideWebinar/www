@@ -83,6 +83,7 @@ import { useErrorStore } from '@/stores/errorStore'
 import ProfileModal from '@/components/ProfileModal.vue'
 import ErrorModal from '@/components/ErrorModal.vue'
 import { useRouter } from 'vue-router'
+import axiosInstance from '@/axios.js'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -97,8 +98,6 @@ const selectedUsers = ref([])
 const teamName = ref('')
 const selectedIcon = ref('🚀')
 const icons = ref([]) // API를 통해 가져온 이모지 리스트
-const apiKey = '52e705268f19ebcfd321b76e47872b9882d407a1'  // 발급받은 API 키 => 추후에 가리기!
-
 
 const showError = computed(() => errorStore.showError)
 const errorMessage = computed(() => errorStore.errorMessage)
@@ -111,9 +110,8 @@ onMounted(async () => {
 
 const fetchEmojis = async () => {
   try {
-    const response = await axios.get(`https://emoji-api.com/emojis?access_key=${apiKey}`)
+    const response = await axiosInstance.get('api/teams/emojis')
     icons.value = response.data
-    console.log('Fetched Emojis:', response.data)
   } catch (error) {
     console.error('Failed to fetch emojis:', error)
     errorStore.showError('Failed to fetch emojis.')
@@ -122,7 +120,7 @@ const fetchEmojis = async () => {
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('https://i11a501.p.ssafy.io/api/users')
+    const response = axiosInstance.get('api/users')
     userStore.setUserList(response.data)
     console.log('Fetched Users:', response.data)
   } catch (error) {

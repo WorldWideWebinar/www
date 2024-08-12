@@ -12,7 +12,6 @@ export const useMeetingStore = defineStore('meeting', {
     },
   }),
   actions: {
-
     clearMeetings() {
       this.meetings = [];
     },
@@ -28,6 +27,7 @@ export const useMeetingStore = defineStore('meeting', {
         console.error('Error adding meeting:', error)
       }
     },
+
     async fetchMeetingById(meetingId) {
       try {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`)
@@ -60,7 +60,6 @@ export const useMeetingStore = defineStore('meeting', {
           next: next,
           teamId: teamId
         };
-    
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
     
