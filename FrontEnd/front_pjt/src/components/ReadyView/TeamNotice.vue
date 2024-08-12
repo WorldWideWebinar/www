@@ -6,25 +6,16 @@
       </div>
       <div class="notice-content">
         <table v-if="todayMeetings.length > 0" class="notice-table">
-          <!-- <thead>
-            <tr>
-              <th>TIME</th>
-              <th>AGENDA</th>
-              <th>PLAY</th>
-            </tr>
-          </thead> -->
-          <tbody>
-            <tr v-for="meeting in todayMeetings" :key="meeting.id">
-              <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-              <td class="bold">{{ meeting.name }}</td>
-              <td>
-                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
-                <button @click="handleJoinConference(meeting.name)" class="join-button">
-                  <img class="play-button" src="@/assets/img/play.png" alt="play">
-                </button>
-              </td>
-            </tr>
-          </tbody>
+          <tr v-for="meeting in todayMeetings" :key="meeting.id">
+            <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+            <td class="bold">{{ meeting.name }}</td>
+            <td>
+              <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+              <button @click="handleJoinConference(meeting.name)" class="join-button">
+                <img class="play-button" src="@/assets/img/play.png" alt="play">
+              </button>
+            </td>
+          </tr>
         </table>
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
@@ -33,7 +24,7 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-        <p>We have meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
+        <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
           <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
           <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
@@ -95,10 +86,15 @@ import { useMeetingStore } from '@/stores/meetingStore';
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
 const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
-const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
-const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
-const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
+
+const teamId = computed(() => teamStore.teamInfo?.id);
+
+const prevMeetingHours = computed(() => teamId.value ? teamStore.prevMeetingHoursByTeam(teamId.value) : 0);
+const todayMeetingHours = computed(() => teamId.value ? teamStore.todayMeetingHoursByTeam(teamId.value) : 0);
+const nextMeetingHours = computed(() => teamId.value ? teamStore.nextMeetingHoursByTeam(teamId.value) : 0);
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
+const totalParticipants = computed(() => teamId.value ? teamStore.totalParticipantsByTeam(teamId.value) : 0);
 
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
@@ -218,7 +214,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .notice-header h5 .icon {
@@ -226,11 +222,11 @@ onMounted(async () => {
 }
 
 .notice-content {
-  max-height: 150px; /* 원하는 최대 높이 설정 */
+  max-height: 100px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 0px 10px;
   background-color: #f9f9f9;
 }
 
@@ -241,7 +237,7 @@ onMounted(async () => {
 
 .notice-table th,
 .notice-table td {
-  padding: 8px;
+  padding: 5px;
   text-align: center;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -579,6 +575,10 @@ onMounted(async () => {
   .container {
     width: 90%;
     margin: auto;
+  }
+
+  .notice-content {
+    max-height: 150px;
   }
 }
 </style>

@@ -12,6 +12,7 @@
           class="nav-item" 
           v-for="team in teams" 
           :key="team.id"
+          @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
           >
             <RouterLink 
               class="nav-link" 
@@ -21,6 +22,9 @@
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
+            <div v-if="showDeleteButton === team.id" class="dropdown">
+              <button @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
+            </div>
           </li>
         </ul>
       </div>
@@ -44,7 +48,7 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, computed, ref, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, computed, ref, watch, nextTick } from 'vue'
 import { useUserStore } from './stores/userStore'
 import { useTeamStore } from './stores/teamStore'
 import router from './router'
@@ -60,6 +64,8 @@ const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
 const selectedTeamId = ref(null)
 const showScrollIndicator = ref(false)
+const showDeleteButton = ref(null)
+const deleteButtonStyle = ref({})
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
@@ -78,10 +84,51 @@ const fetchUserTeams = async () => {
   }
 }
 
-onMounted(async () => {
-  await fetchUserTeams()
-  await userStore.fetchAllUsers()
-})
+const showDeleteButtonAt = (event, teamId) => {
+  deleteButtonStyle.value = {
+    position: 'fixed',
+    zIndex: 1000,
+  };
+  showDeleteButton.value = teamId;
+};
+
+const deleteTeam = async (teamId) => {
+  const currentRoute = router.currentRoute.value; // 현재 라우터 경로를 가져옵니다.
+  const response = await teamStore.deleteTeam(teamId); // 팀 삭제 시도
+
+  if (response.isSuccess) {
+    showDeleteButton.value = null; // 삭제 성공 시 버튼 숨김
+
+    // 현재 접속 중인 팀이 삭제된 팀인지 확인
+    if (currentRoute.params.id == teamId) {
+      // 메인 화면으로 리다이렉트
+      router.push({ name: 'HomeView' });
+    }
+  } else {
+    console.error(response.message); // 오류 발생 시 콘솔에 메시지 출력
+  }
+};
+
+const handleClickOutside = (event) => {
+  if (showDeleteButton.value) {
+    const dropdown = document.querySelector('.dropdown');
+    if (dropdown && !dropdown.contains(event.target)) {
+      showDeleteButton.value = null; // 외부 클릭 시 삭제 버튼 숨김
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+
+  fetchUserTeams().then(() => {
+    userStore.fetchAllUsers();
+  });
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 const teams = computed(() => teamStore.teams)
 
@@ -243,6 +290,28 @@ li.nav-item {
   justify-content: center;
 }
 
+/* 팀 삭제 */
+.dropdown {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  left: 80px;
+  margin-top: -75px;
+}
+
+.btn-delete {
+  background-color: #e1bee7;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background-color: #8c8593;
+}
 /* 팀 추가 */
 .add-team {
   margin: 0px auto;
