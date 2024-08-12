@@ -2,8 +2,11 @@ package com.ssafy.globalcc.domain.meetingSTT.controller;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import com.ssafy.globalcc.domain.chat.entity.Chat;
 import com.ssafy.globalcc.domain.meeting.entity.Meeting;
 import com.ssafy.globalcc.domain.meeting.service.MeetingService;
+import com.ssafy.globalcc.domain.meetingSTT.entity.MeetingSTT;
+import com.ssafy.globalcc.domain.meetingSTT.service.MeetingSTTService;
 import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.team.entity.Team;
 import com.ssafy.globalcc.domain.team.service.TeamService;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.*;
+import java.util.List;
 
 @Controller
 @RequestMapping("/summary")
@@ -26,13 +30,14 @@ import java.io.*;
 public class MeetingSTTSummaryController {
 
     private final MeetingService meetingService;
+    private final MeetingSTTService meetingSTTService;
     private final UserService userService;
     private final TeamService teamService;
 
     @GetMapping("/{teamId}/{meetingId}")
     public ResponseEntity<InputStreamResource> generateSummary(@PathVariable("meetingId") Integer meetingId, @PathVariable("teamId") Integer teamId) throws DocumentException, IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
+        loadSummary(meetingId);
         createMeetingSTTSummary(outputStream, teamId, meetingId);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
@@ -102,7 +107,6 @@ public class MeetingSTTSummaryController {
         // Adding participant data
         for(int i = 0; i < teamDetailDto.getUserList().size(); i++) {
             int idx = teamDetailDto.getUserList().get(i);
-            System.out.println("--------------------" + idx);
             addTableRow(table, String.valueOf(i + 1), userService.getUserDetails(idx).getName(), tableNormalFont);
         }
         document.add(table);
@@ -126,6 +130,15 @@ public class MeetingSTTSummaryController {
         document.close();
 
         addWatermark(new ByteArrayInputStream(outputStream.toByteArray()), outputStream);
+    }
+
+    public void loadSummary(int meetingId) {
+        List<MeetingSTT> meetingSTTList = meetingSTTService.getMeetingSTTsByMeetingId(meetingId);
+        System.out.println("----------------------------");
+        for(int i = 0; i < meetingSTTList.size(); i++) {
+            System.out.println(meetingSTTList.get(i).getContent());
+        }
+        System.out.println("----------------------------");
     }
 
     private void addWatermark(InputStream pdfInputStream, ByteArrayOutputStream outputStream) throws IOException, DocumentException {
