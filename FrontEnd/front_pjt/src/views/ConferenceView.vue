@@ -70,7 +70,7 @@ const userStore = useUserStore();
 const sessionStore = useSessionStore();
 const departmentName = computed(() => route.params.name);
 
-const sessionId = route.params.sessionId;
+// const sessionId = route.params.sessionId;
 const token = route.params.token;;
 const session = ref(null);
 const publisher = ref(null);
@@ -250,11 +250,26 @@ const leaveSession = async () => {
 };
 
 const endConference = async () => {
-  if (session.value) {
-    await sessionStore.endSession(sessionStore.meetingId);
-    session.value.disconnect();
-    session.value = null;
-    router.replace({ name: 'ReadyView' });
+  console.log("click!!!");
+  if (sessionStore && sessionStore.endSession) {
+    console.log(sessionStore);
+    try {
+      const success = await sessionStore.endSession(sessionStore.meetingId);
+      if (success) {
+        // session.value.disconnect(); // 유사 로직 백엔드 존재
+        session.value = null;
+      } else {
+        console.error('Failed to end the session on the server.');
+      }
+      // Ready Page로 이동
+      const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+        console.error('Router error:', err);
+      });
+
+    } catch (error) {
+      console.error('Error while ending the session:', error);
+    }
   }
 };
 
@@ -478,3 +493,4 @@ onBeforeRouteLeave(async (to, from, next) => {
   object-fit: contain;
 }
 </style>
+
