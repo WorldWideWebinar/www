@@ -173,8 +173,6 @@ const isLoading = ref(true);
 const members = computed(() => teamStore.teamUserInfo);
 
 const filteredMeetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-
   if (activeTab.value === 'PREV') {
     return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
