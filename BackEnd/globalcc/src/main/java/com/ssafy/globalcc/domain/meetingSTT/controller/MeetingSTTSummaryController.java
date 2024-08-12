@@ -1,9 +1,7 @@
 package com.ssafy.globalcc.domain.meetingSTT.controller;
 
 import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -38,81 +36,131 @@ public class MeetingSTTSummaryController {
                 .body(new InputStreamResource(inputStream));
     }
 
-    public String createMeetingSTTSummary(ByteArrayOutputStream outputStream) throws FileNotFoundException, DocumentException {
-        String filePath = "example.pdf";
+    public void createMeetingSTTSummary(ByteArrayOutputStream outputStream) throws DocumentException, IOException {
+        Document document = new Document(PageSize.A4, 36, 36, 72, 108); // Margins: left, right, top, bottom
+        PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
-        Document document = new Document();
-        PdfWriter.getInstance(document, outputStream);
+        // Header and Footer
+        HeaderFooterPageEvent event = new HeaderFooterPageEvent();
+        writer.setPageEvent(event);
+
         document.open();
 
-        // 폰트 설정
+        // Fonts
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.BLUE);
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.DARK_GRAY);
         Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
         Font tableHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        Font tableNormalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
 
-//        // 페이지 헤더
-//        HeaderFooter header = new HeaderFooter(new Phrase("Meeting Minutes", titleFont), false);
-//        header.setAlignment(Element.ALIGN_CENTER);
-//        document.setHeader(header);
-//
-//        // 페이지 푸터
-//        HeaderFooter footer = new HeaderFooter(new Phrase("Page ", normalFont), true);
-//        footer.setAlignment(Element.ALIGN_CENTER);
-//        document.setFooter(footer);
-
-        // 제목 추가
-        document.add(new Paragraph("Meeting Minutes", titleFont));
+        // Title
+        Paragraph title = new Paragraph("Meeting Minutes", titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        document.add(title);
         document.add(new Paragraph("Meeting ID: " + 1, normalFont));
         document.add(new Paragraph("Date: " + LocalDate.now(), normalFont));
         document.add(Chunk.NEWLINE);
 
-        // 회의 참석자 목록
-        document.add(new Paragraph("Participants:", headerFont));
+        // Participants
+        Paragraph participantsHeader = new Paragraph("Participants:", headerFont);
+        document.add(participantsHeader);
 
-        // 테이블 생성
-        PdfPTable table = new PdfPTable(2); // 두 개의 열: 참석자 번호, 이름
+        PdfPTable table = new PdfPTable(2); // Two columns: No, Name
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         table.setSpacingAfter(10f);
 
-        // 테이블 헤더
         PdfPCell cell = new PdfPCell(new Phrase("No", tableHeaderFont));
         cell.setBackgroundColor(BaseColor.GRAY);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
 
         cell = new PdfPCell(new Phrase("Name", tableHeaderFont));
         cell.setBackgroundColor(BaseColor.GRAY);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
 
-        // 참석자 데이터 추가
-        table.addCell("1");
-        table.addCell("John Doe");
-
-        table.addCell("2");
-        table.addCell("Jane Smith");
-
-        table.addCell("3");
-        table.addCell("Bob Johnson");
+        // Adding participant data
+        addTableRow(table, "1", "John Doe", tableNormalFont);
+        addTableRow(table, "2", "Jane Smith", tableNormalFont);
+        addTableRow(table, "3", "Bob Johnson", tableNormalFont);
 
         document.add(table);
         document.add(Chunk.NEWLINE);
 
-        // 주요 논의 사항
-        document.add(new Paragraph("Main Discussion Points:", headerFont));
+        // Main Discussion Points
+        Paragraph discussionHeader = new Paragraph("Main Discussion Points:", headerFont);
+        document.add(discussionHeader);
         document.add(new Paragraph("1. Project timeline review", normalFont));
         document.add(new Paragraph("2. Budget allocation", normalFont));
         document.add(new Paragraph("3. Task assignments", normalFont));
         document.add(Chunk.NEWLINE);
 
-        // 결론 및 액션 아이템
-        document.add(new Paragraph("Conclusions and Action Items:", headerFont));
+        // Conclusions and Action Items
+        Paragraph conclusionsHeader = new Paragraph("Conclusions and Action Items:", headerFont);
+        document.add(conclusionsHeader);
         document.add(new Paragraph("1. Finalize the project plan by next week", normalFont));
         document.add(new Paragraph("2. Prepare a budget report by end of month", normalFont));
         document.add(new Paragraph("3. Assign tasks to team members", normalFont));
 
         document.close();
 
-        return filePath;
+        addWatermark(new ByteArrayInputStream(outputStream.toByteArray()), outputStream);
     }
+
+    private void addWatermark(InputStream pdfInputStream, ByteArrayOutputStream outputStream) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(pdfInputStream);
+        PdfStamper stamper = new PdfStamper(reader, outputStream);
+        PdfContentByte canvas;
+        PdfGState gs = new PdfGState();
+        gs.setFillOpacity(0.3f); // Set transparency level
+
+        int numberOfPages = reader.getNumberOfPages();
+
+        for (int i = 1; i <= numberOfPages; i++) {
+            canvas = stamper.getOverContent(i);
+            canvas.setGState(gs);
+
+            // Load the watermark image
+            Image watermarkImage = Image.getInstance("image.png");
+            watermarkImage.setAbsolutePosition(150, 300); // Position (x, y) on the page
+            watermarkImage.setRotationDegrees(45); // Rotate if necessary
+
+            // Add watermark image to the content
+            canvas.addImage(watermarkImage);
+        }
+
+        stamper.close();
+        reader.close();
+    }
+
+    private void addTableRow(PdfPTable table, String no, String name, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(no, font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(cell);
+
+        cell = new PdfPCell(new Phrase(name, font));
+        table.addCell(cell);
+    }
+
+    class HeaderFooterPageEvent extends PdfPageEventHelper {
+        Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
+        Font footerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
+
+        @Override
+        public void onEndPage(PdfWriter writer, Document document) {
+            PdfPTable header = new PdfPTable(1);
+            header.setTotalWidth(527); // Width of A4 page minus margins
+            header.setLockedWidth(true);
+            header.addCell(new PdfPCell(new Phrase("Meeting Minutes Summary", headerFont)));
+            header.writeSelectedRows(0, -1, document.leftMargin(), document.top() + 20, writer.getDirectContent());
+
+            PdfPTable footer = new PdfPTable(1);
+            footer.setTotalWidth(527);
+            footer.setLockedWidth(true);
+            footer.addCell(new PdfPCell(new Phrase("Page " + writer.getPageNumber(), footerFont)));
+            footer.writeSelectedRows(0, -1, document.leftMargin(), document.bottom() - 10, writer.getDirectContent());
+        }
+    }
+
 }
