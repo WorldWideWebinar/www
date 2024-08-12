@@ -36,7 +36,8 @@
                 </div>
                 <div class="message-body">{{ message.content }}</div>
               </div>
-              <img :src="message.senderProfile" class="profile-image" />
+              <img :src="message.senderProfile" class="profile-image" v-if="message.senderProfile!=null"/>
+              <img src="https://i11a501.p.ssafy.io/api/images/default_profile.png" class="profile-image" v-else/>
             </div>
           </div>
         </div>
