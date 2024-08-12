@@ -17,7 +17,7 @@
               </tr>
               <tr>
                 <td class="label">ID</td>
-                <td>{{ userInfo.userId }}</td>
+                <td>{{ userInfo.id }}</td>
               </tr>
               <tr>
                 <td class="label">Email</td>

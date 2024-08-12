@@ -3,44 +3,7 @@ import axiosInstance from '@/axios'
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => ({
-    meetings: [
-      {
-        "meeting_id": 1,
-        "team_id": 10,
-        "name": "과거 회의",
-        "start_at": "2024-07-17T09:00:00Z",
-        "end_at": "2024-07-17T11:00:00Z",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00",
-        "status": "OUT"
-      },
-      {
-        "meeting_id": 2,
-        "team_id": 10,
-        "name": "오늘 회의",
-        "start_at": "2024-08-09T11:00:00Z",
-        "end_at": "2024-08-17T13:00:00Z",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00",
-        "status": "IN"
-      },
-      {
-        "meeting_id": 3,
-        "team_id": 10,
-        "name": "미래 회의",
-        "start_at": "2024-09-07T13:00:00Z",
-        "end_at": "2024-09-17T15:00:00Z",
-        "details": "회의의 내용은 다음과 같습니다.",
-        "content": "아이디어 1: ..., 아이디어 2: ..., 아이디어 3: ...",
-        "created_at": "2024-07-15 9:00:00",
-        "updated_at": "2024-07-16 9:00:00",
-        "status": "OUT"
-      }
-    ],
+    meetings: [],
     groupedMeetings: {
       PREV: [],
       TODAY: [],
@@ -137,6 +100,27 @@ export const useMeetingStore = defineStore('meeting', {
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
+    },
+    prevMeetingHours(state) {
+      return state.groupedMeetings.PREV.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
+      }, 0);
+    },
+    todayMeetingHours(state) {
+      return state.groupedMeetings.TODAY.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
+    },
+    nextMeetingHours(state) {
+      return state.groupedMeetings.NEXT.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
     }
   }
 });

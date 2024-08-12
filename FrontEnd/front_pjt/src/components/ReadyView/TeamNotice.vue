@@ -5,28 +5,27 @@
         <h5 style="font-weight: bolder"><span class="icon">🏴</span> Notice</h5>
       </div>
       <div class="notice-content">
-        <div v-if="todayMeeting" class="notice-item">
-          <div class="notice-left">
-            <p class="bold">{{ todayMeeting.name }}</p>
-          </div>
-          <div class="notice-middle">
-            <p>{{ formatTime(todayMeeting?.start_at) }} - {{ formatTime(todayMeeting?.end_at) }}</p>
-            <p class="before-dropdown" @click="toggleTodayMembersList">
-              <!-- {{ todayMeeting.members.length }} members will join! -->
-            </p>
-            <ul v-show="showTodayMembersList" class="notice-dropdown dropdown">
-              <li v-for="member in members" :key="member.name" class="member">
-                {{ member.name }}
-              </li>
-            </ul>
-          </div>
-          <div class="notice-right">
-            <button @click="handleStartConference(todayMeeting.meeting_id, todayMeeting.name)" class="join-button">Start</button>
-            <button @click="handleJoinConference(todayMeeting.name)" class="join-button">
-              <img class="play-button" src="@/assets/img/play.png" alt="play">
-            </button>
-          </div>
-        </div>
+        <table v-if="todayMeetings.length > 0" class="notice-table">
+          <!-- <thead>
+            <tr>
+              <th>TIME</th>
+              <th>AGENDA</th>
+              <th>PLAY</th>
+            </tr>
+          </thead> -->
+          <tbody>
+            <tr v-for="meeting in todayMeetings" :key="meeting.id">
+              <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+              <td class="bold">{{ meeting.name }}</td>
+              <td>
+                <button @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
         <div v-else class="notice-item">
           <p class="no-meeting">There's no meeting today :)</p>
         </div>
@@ -34,24 +33,24 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-        <p>We have meetings for {{ totalMeetingHours }} hours</p>
+        <p>We have meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
-          <div class="meeting-hours-segment prev-meetings" :style="{ width: prevMeetingHoursPercentage + '%' }" v-if="prevMeetingHours > 0"></div>
-          <div class="meeting-hours-segment today-meetings" :style="{ width: todayMeetingHoursPercentage + '%' }" v-if="todayMeetingHours > 0"></div>
-          <div class="meeting-hours-segment next-meetings" :style="{ width: nextMeetingHoursPercentage + '%' }" v-if="nextMeetingHours > 0"></div>
+          <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
+          <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
+          <div class="meeting-hours-segment next-meetings" :style="{ width: (nextMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="nextMeetingHours > 0"></div>
         </div>
         <div class="meeting-hours-legend">
           <div class="legend-item">
             <span class="legend-color prev-meetings"></span>
-            <span class="legend-label">Previous {{ prevMeetingHours }}</span>
+            <span class="legend-label">Previous {{ prevMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color today-meetings"></span>
-            <span class="legend-label">Today {{ todayMeetingHours }}</span>
+            <span class="legend-label">Today {{ todayMeetingHours.toFixed(2) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color next-meetings"></span>
-            <span class="legend-label">Next {{ nextMeetingHours }}</span>
+            <span class="legend-label">Next {{ nextMeetingHours.toFixed(2) }} hours</span>
           </div>
         </div>
       </div>
@@ -91,20 +90,21 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
+import { useMeetingStore } from '@/stores/meetingStore';
 
 const teamStore = useTeamStore();
+const meetingStore = useMeetingStore();
+const todayMeetings = computed(() => meetingStore.groupedMeetings.TODAY || []);
+const prevMeetingHours = computed(() => meetingStore.prevMeetingHours);
+const todayMeetingHours = computed(() => meetingStore.todayMeetingHours);
+const nextMeetingHours = computed(() => meetingStore.nextMeetingHours);
+const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 
-const props = defineProps({
-  todayMeeting: Object,
-  totalMeetingHours: Number,
-  prevMeetingHours: Number,
-  todayMeetingHours: Number,
-  nextMeetingHours: Number
-});
 
 const formatTime = (dateTimeString) => {
   if (!dateTimeString) return '';
@@ -117,7 +117,6 @@ const formatTime = (dateTimeString) => {
   
   return `${hours}:${minutes}`;
 };
-
 
 
 const toggleMemberListDropdown = () => {
@@ -171,6 +170,19 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
+
+onMounted(async () => {
+  const teamId = teamStore.teamInfo?.id;
+
+  if (teamId) {
+    const prevDays = 7; // 이전 7일 동안의 미팅을 가져옴
+    const nextDays = 7; // 앞으로 7일 동안의 미팅을 가져옴
+
+    await meetingStore.fetchMeetings(teamId, prevDays, nextDays);
+  } else {
+    console.error('Team ID is not available.');
+  }
+});
 </script>
 
 
@@ -214,80 +226,48 @@ onBeforeUnmount(() => {
 }
 
 .notice-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  max-height: 150px; /* 원하는 최대 높이 설정 */
+  overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px 0;
+  padding: 20px;
   background-color: #f9f9f9;
 }
 
-.notice-item {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-right: 1rem;
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.no-meeting {
-  margin: auto;
-  padding: 0 20px;
-}
-
-.notice-left,
-.notice-middle,
-.notice-right {
-  flex: 1;
+.notice-table th,
+.notice-table td {
+  padding: 8px;
   text-align: center;
-  position: relative;
-  margin: 5px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.notice-middle {
-  flex: 2;
+.notice-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 
-.notice-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.notice-table tr:last-child td {
+  border-bottom: none;
 }
 
-.notice-left::after,
-.notice-middle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  border-right: 1px dashed #ccc;
-  transform: translateX(50%);
-}
-
-.notice-right::after {
-  display: none;
-}
-
-.notice-right button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  padding: 0.5rem;
+.notice-table td .join-button {
+  margin: 0 5px;
+  padding: 0.4rem 1rem;
   cursor: pointer;
-  font-size: 1rem;
-  border-radius: 100px;
-  background-color: none;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  background-color: #a571c4;
+  color: white;
+  border: none;
 }
 
-.notice-right {
-  font-size: 1.2rem;
-  padding: 5px;
+.notice-table td .join-button img {
+  width: 20px;
 }
 
 .play-button {
