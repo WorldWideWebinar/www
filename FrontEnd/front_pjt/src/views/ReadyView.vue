@@ -5,7 +5,7 @@
         Welcome to <span class="highlight">{{ departmentName }}</span> Ready Page
       </span>
     </header>
-    
+
     <div v-if="showOverlay" class="background-overlay" @click="closeDropdowns"></div>
     <div class="sub-container">
       <TeamNotice />
@@ -55,7 +55,6 @@
             </table>
           </div>
         </section>
-
 
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
@@ -138,21 +137,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { useSessionStore } from '@/stores/sessionStore';
-import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue';
+import { formatTime, handleClickOutside } from '@/utils';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 
 const route = useRoute();
-const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
-const sessionStore = useSessionStore();
 const inConference = ref(false);
 const selectedMeeting = ref(null);
 const detailType = ref('');
@@ -162,24 +158,18 @@ const showOverlay = ref(false);
 const selectedMeetingMembers = ref([]);
 const activeTab = ref('TODAY');
 const previewUrl = ref(null);
-const meetingCreateModal = ref(false)
+const meetingCreateModal = ref(false);
 
 const members = computed(() => teamStore.teamUserInfo);
-const meetings = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-  return meetingStore.meetings.filter(meeting => meeting.team_id === teamId);
-});
-
 const departmentName = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
+  const teamData = teamStore.getTeamById(teamId);
   return teamData ? teamData.teamName : '';
 });
-
 const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.teams.find((team) => team.id === teamId);
-  return teamData && teamData.ownerId == userStore.userId;
+  const teamData = teamStore.getTeamById(teamId);
+  return teamData && teamData.ownerId === userStore.userId;
 });
 
 const filteredMeetings = computed(() => {
@@ -200,30 +190,15 @@ const filteredMeetings = computed(() => {
   return [];
 });
 
-const formatTime = (dateTimeString) => {
-  if (!dateTimeString) return '';
-
-  const date = new Date(dateTimeString);
-  
-  // 시간과 분을 2자리 숫자로 맞추기 위해 padStart 사용
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  
-  return `${hours}:${minutes}`;
-};
-
 const toggleStatus = (meeting) => {
   meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
 };
 
-const buttonClass = (type, status) => {
-  if (type === 'NEXT') return status === 'IN' ? 'btn-green' : 'btn-red';
-  if (type === 'PREV') return 'btn-gray';
-  if (type === 'TODAY') return status === 'IN' ? 'btn-green' : 'btn-red';
-  return '';
+const buttonClass = (status) => {
+  return status === 'IN' ? 'btn-green' : 'btn-red';
 };
 
-const buttonText = (type, status) => status;
+const buttonText = (status) => status;
 
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
@@ -250,7 +225,6 @@ const selectTab = async (tab) => {
   const teamId = parseInt(route.params.id, 10);
   const prev = tab === 'PREV' ? 1 : 0;
   const next = tab === 'NEXT' ? 1 : 0;
-  console.log(`탭: ${tab}, prev: ${prev}, next: ${next}`);
   await meetingStore.fetchMeetings(teamId, prev, next);
 };
 
@@ -294,7 +268,16 @@ const computeDetailType = (start_at) => {
 const CreateMeeting = () => {
   meetingCreateModal.value = true;
 };
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+});
 </script>
+
 
 <style scoped>
 .ready-page-container {
@@ -319,17 +302,20 @@ const CreateMeeting = () => {
 
 .sub-container {
   width: 82%;
+  box-sizing: border-box;
+  padding: 0;
   margin: 0 auto;
 }
 
 .main-section {
   display: flex;
-  padding: 1rem;
   justify-content: space-between;
   width: 100%;
   gap: 2rem;
   box-sizing: border-box;
   min-height: 400px;
+  /* padding: 1.7rem;
+  margin: 0 auto; */
 }
 
 .meeting-list-section {
