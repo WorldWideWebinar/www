@@ -88,8 +88,8 @@ const createMeeting = async () => {
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
-    start: new Date(start.value).toISOString(),
-    end: new Date(end.value).toISOString(),
+    start: start.value,
+    end: end.value,
     detail: detail.value,
   };
 
