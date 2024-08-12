@@ -12,6 +12,11 @@ export const useTeamStore = defineStore('team', {
     isOwner: false,
     teamUserList: [],
     teamUserInfo: [],
+    groupedMeetings: {
+      PREV: [],
+      TODAY: [],
+      NEXT: []
+    },
   }),
   actions: {
     clearTeams() {
@@ -21,18 +26,24 @@ export const useTeamStore = defineStore('team', {
       this.teamUserList = [];
       this.teamUserInfo = [];
     },
-    async fetchTeamById(teamId) {
-      this.clearTeamUsers()
-      const meetingStore = useMeetingStore();
-      const errorStore = useErrorStore();
+    clearTeamMeetings(){
+      this.groupedMeetings = {
+        PREV: [],
+        TODAY: [],
+        NEXT: []
 
+      }
+    },
+    async fetchTeamById(teamId) {
+      this.clearTeamUsers();
+      const errorStore = useErrorStore();
       try {
         // 초기화 로직
         const response = await axiosInstance.get(`api/teams/${teamId}`);
         const teamData = response.data.result;
         this.teamInfo = teamData
         this.teamUserList = teamData.userList
-        const teamExists = this.teams.some(team => team.id === teamId);
+        const teamExists = this.teams.some(team => team.id == teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드
@@ -133,7 +144,7 @@ export const useTeamStore = defineStore('team', {
         }
 
         if (response.data.isSuccess) {
-          this.teams = this.teams.filter(team => team.id !== teamId);
+          this.teams = this.teams.filter(team => team.id != teamId);
         } else {
           errorStore.showError(`Failed to delete team: ${response.data.message}`);
         }
@@ -153,7 +164,7 @@ export const useTeamStore = defineStore('team', {
       try {
         const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
         if (response.data.isSuccess) {
-          const team = this.teams.find(team => team.id === teamId);
+          const team = this.teams.find(team => team.id == teamId);
           if (team) {
             team.userList = team.userList.filter(user => user !== userId);
           }
@@ -177,15 +188,49 @@ export const useTeamStore = defineStore('team', {
         const errorStore = useErrorStore();
         errorStore.showError(`Team ${teamId} not found`);
       }
-    }
+    },
+
+    async fetchMeetings(teamId, prev = false, next = false) {
+      
+      try {
+        const today = new Date().toISOString();
+        const params = {
+          today: today,
+          prev: prev,
+          next: next,
+          teamId: teamId
+        };
+        const response = await axiosInstance.get('/api/meetings', { params });
+        const newMeetings = response.data.result;
+        const meetingStore = useMeetingStore();
+  
+        meetingStore.meetings.push(newMeetings);
+        this.groupMeetings(prev, next, newMeetings);
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          console.error('Failed to fetch meetings:', error)
+        }
+      }
+    },
+
+    groupMeetings(prev, next, meetings) {
+      if (prev) {
+        this.groupedMeetings.PREV = [...meetings];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [];
+      } else if (next) {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [...meetings];
+      } else {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [...meetings];
+        this.groupedMeetings.NEXT = [];
+      }
+    },
   },
   getters: {
-    getTeamById: (state) => (id) => {
-      return state.teams.find(team => team.id === id);
-    },
-    getUserTeamsByHostId: (state) => (hostId) => {
-      return state.teams.filter(team => team.ownerId === hostId);
-    }
+    getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
   },
   persist: {
     key: 'teamStore',
