@@ -34,7 +34,7 @@ export const useTeamStore = defineStore('team', {
         const teamData = response.data.result;
         this.teamInfo = teamData
         this.teamUserList = teamData.userList
-        const teamExists = this.teams.some(team => team.id === teamId);
+        const teamExists = this.teams.some(team => team.id == teamId);
         if (!teamExists) {
           this.teams.push({
             id: teamId, // 추가된 ID 필드

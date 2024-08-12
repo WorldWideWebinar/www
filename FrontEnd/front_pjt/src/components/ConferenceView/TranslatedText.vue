@@ -28,60 +28,6 @@ import { onUnmounted, ref, watch } from 'vue'
 
   const textStore = useSTTStore();
   textStore.target_language= 'ko'
-  // const {last_received_segment, transcript} = textStore;
-  // textStore.openConnection(token,meetingId);
-  // onUnmounted(()=>{
-  //   textStore.closeConnection()
-  // })
-  // const ws = new WebSocket("https://i11a501.p.ssafy.io/api/stomp/stt");
-  // const stompClient = Stomp.over(ws)
-  //
-  // stompClient.connect(
-  //   {
-  //     Authorization: `Bearer ${token}`
-  //   },
-  //   function () {
-  //     stompClient.subscribe(
-  //       `/exchange/meetingSTT.exchange/meetingSTT.key${meetingId}`,
-  //       function (message) {
-  //         console.log('Received : ', message)
-  //         const messageBody = JSON.parse(message.body);
-  //         showMessage(messageBody);
-  //       }
-  //     );
-  //   },
-  //   function (error) {
-  //     console.error("Connection error: " + error);
-  //   }
-  // );
-  // const showMessage = (message) => {
-  //   const segments = message["segments"];
-  //   processSegments(segments)
-  // }
-  // let last_segment = null;
-  // let last_received_segment = ref(null);
-  // const transcript = ref([]);
-  //
-  // function processSegments(segments) {
-  //   for (let i = 0; i < segments.length; i++) {
-  //     if(i === segments.length - 1) {
-  //       last_segment = segments[i]
-  //     } else {
-  //       if(transcript.value.length === 0 ||
-  //         (segments[i].start >= transcript.value[transcript.value.length - 1].end)){
-  //         transcript.value.push({
-  //           start : segments[i].start,
-  //           end : segments[i].end,
-  //           text : segments[i].text,
-  //         })
-  //       }
-  //     }
-  //   }
-  //   if(last_received_segment.value !== last_segment){
-  //     last_received_segment.value = last_segment
-  //   }
-
-  // }
 </script>
 
 

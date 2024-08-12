@@ -59,16 +59,18 @@ const goingHome = () => {
 
 const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
+    await userStore.fetchUserInfo(userStore.userId);
+    const userInfo = userStore.userInfo;
+
     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id === teamId));
+      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id == teamId));
       await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
+    console.log("Teams: ", teams)
     hasFetchedUserInfo.value = true;
     userStore.fetchAllUsers();
   }
-}
+};
 
 onMounted(async () => {
   await fetchUserTeams()

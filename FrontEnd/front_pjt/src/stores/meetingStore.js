@@ -12,24 +12,27 @@ export const useMeetingStore = defineStore('meeting', {
     },
   }),
   actions: {
+
+    clearMeetings() {
+      this.meetings = [];
+    },
     async addMeeting(meeting) {
       try {
         const response = await axiosInstance.post('api/meetings', meeting)
-
-        console.log("create meeting",response)
-        this.meetings.push(
-          response.data.result
-        )
+        if (response.data.success) {
+          this.meetings.push(meeting)
+        } else {
+          console.error('Failed to add meeting:', response.data.message)
+        }
       } catch (error) {
         console.error('Error adding meeting:', error)
-      } 
+      }
     },
-
     async fetchMeetingById(meetingId) {
       try {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`)
         const meeting = response.data.result
-        if (!this.meetings.find((m) => m.id === meetingId)) {
+        if (!this.meetings.find((m) => m.id == meetingId)) {
           console.log("Meeting fetched", response.data.result)
           this.meetings.push(meeting)
         }
@@ -61,9 +64,11 @@ export const useMeetingStore = defineStore('meeting', {
 
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
-        console.log("fetchMeetings" ,newMeetings)
 
-        this.meetings.push(...newMeetings);
+        const existingMeetingIds = new Set(this.meetings.map(meeting => meeting.id));
+        const filteredMeetings = newMeetings.filter(meeting => !existingMeetingIds.has(meeting.id));
+
+        this.meetings.push(...filteredMeetings);
 
         this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
       } catch (error) {
@@ -87,7 +92,6 @@ export const useMeetingStore = defineStore('meeting', {
         this.groupedMeetings.TODAY = [...this.meetings];
         this.groupedMeetings.NEXT = [];
       }
-      console.log(this.groupedMeetings)
     }
   },
   getters: {
@@ -95,8 +99,8 @@ export const useMeetingStore = defineStore('meeting', {
       return state.meetings.filter((meeting) => meeting.team_id === teamId)
     }
   },
-  persist: {
-    key: 'meetingStore',
-    storage: sessionStorage,
-  },
+  // persist: {
+  //   key: 'meetingStore',
+  //   storage: sessionStorage,
+  // },
 })

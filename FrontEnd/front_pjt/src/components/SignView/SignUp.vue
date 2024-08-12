@@ -47,12 +47,18 @@ function changeLanguage(event) {
 }
 
 watch(passwordConfirmation, (newVal) => {
-  if (newVal) {
-    if (password.value !== newVal) {
-      errorMessage.value = 'Passwords do not match';
-    } else {
-      errorMessage.value = '';
-    }
+  if (newVal && password.value !== newVal) {
+    errorMessage.value = 'Passwords do not match';
+  } else {
+    errorMessage.value = '';
+  }
+});
+
+watch(id, async (newId) => {
+  if (newId) {
+    idCheck.value = false; 
+    idCheckMessage.value = ''; 
+    await checkId(); 
   }
 });
 
@@ -86,11 +92,11 @@ async function handleSignUp() {
     id: id.value,
     email: email.value,
     password: password.value,
-    language: selectedLanguage.value
+    language: selectedLanguage.value,
   };
 
   const result = await userStore.signUp(signUpData);
-  if (result.success == true) {
+  if (result.success) {
     alert('Sign up successful');
     router.push({ name: 'HomeView' });
   } else {
@@ -226,6 +232,45 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow-y: auto; /* 스크롤바 추가 */
+  padding-bottom: 20px; /* 하단 공간 추가 */
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 폼 요소가 위쪽에 정렬 */
+  align-items: center;
+  background-color: #FFFFFF;
+  padding: 20px;
+  text-align: center;
+  flex-grow: 1; /* 남은 공간을 차지하게 함 */
+  overflow-y: auto; /* 폼 내부 스크롤바 추가 */
+}
+
+.submit-btn {
+  position: sticky; /* 버튼을 고정 */
+  bottom: 0;
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  padding: 12px 45px;
+  margin-top: 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: #b380bc;
+}
+
+.submit-btn:focus {
+  outline: none;
 }
 
 .sign-up-container {
@@ -245,7 +290,7 @@ select {
   font-size: 12px;
 }
 
-.submit-btn {
+/* .submit-btn {
   margin-top: 5%;
-}
+} */
 </style>
