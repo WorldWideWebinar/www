@@ -11,19 +11,30 @@ export const useTeamStore = defineStore('team', {
     isOwner: false,
     teamUserList: [],
     teamUserInfo: [],
+    groupedMeetings: {
+      PREV: [],
+      TODAY: [],
+      NEXT: []
+    },
   }),
   actions: {
     clearTeams() {
       this.teams = [];
-    }
-    ,
+    },
     clearTeamUsers() {
       this.teamUserList = [];
       this.teamUserInfo = [];
     },
+    clearTeamMeetings(){
+      this.groupedMeetings = {
+        PREV: [],
+        TODAY: [],
+        NEXT: []
+
+      }
+    },
     async fetchTeamById(teamId) {
       this.clearTeamUsers();
-      const meetingStore = useMeetingStore();
       
       try {
         const response = await axiosInstance.get(`api/teams/${teamId}`);
@@ -188,28 +199,69 @@ export const useTeamStore = defineStore('team', {
         const errorStore = useErrorStore(); // Access the error store
         errorStore.showError(`Team ${teamId} not found`);
       }
-    }
+    },
+
+    async fetchMeetings(teamId, prev = false, next = false) {
+      
+      try {
+        const today = new Date().toISOString();
+        const params = {
+          today: today,
+          prev: prev,
+          next: next,
+          teamId: teamId
+        };
+        const response = await axiosInstance.get('/api/meetings', { params });
+        const newMeetings = response.data.result;
+        const meetingStore = useMeetingStore();
+  
+        meetingStore.meetings.push(newMeetings);
+        console.log('서버로부터 받은 회의 데이터:', newMeetings);
+        this.groupMeetings(prev, next); // 새로 가져온 미팅을 그룹화
+        console.log('현재 store의 groupedMeetings:', this.groupedMeetings)
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          console.error('Failed to fetch meetings:', error)
+        }
+      }
+    },
+
+    groupMeetings(prev, next) {
+      if (prev) {
+        this.groupedMeetings.PREV = [...this.meetings];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [];
+      } else if (next) {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [];
+        this.groupedMeetings.NEXT = [...this.meetings];
+      } else {
+        this.groupedMeetings.PREV = [];
+        this.groupedMeetings.TODAY = [...this.meetings];
+        this.groupedMeetings.NEXT = [];
+      }
+    },
   },
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
 
      // 팀별로 이전/오늘/다음 미팅 시간 계산
-    prevMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.prevMeetingHoursByTeam(teamId);
-    },
-    todayMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.todayMeetingHoursByTeam(teamId);
-    },
-    nextMeetingHoursByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.nextMeetingHoursByTeam(teamId);
-    },
-    totalParticipantsByTeam: () => (teamId) => {
-      const meetingStore = useMeetingStore();
-      return meetingStore.totalParticipantsByTeam(teamId);
-    },
+    // prevMeetingHoursByTeam: () => (teamId) => {
+    //   const meetingStore = useMeetingStore();
+    //   return meetingStore.prevMeetingHoursByTeam(teamId);
+    // },
+    // todayMeetingHoursByTeam: () => (teamId) => {
+    //   const meetingStore = useMeetingStore();
+    //   return meetingStore.todayMeetingHoursByTeam(teamId);
+    // },
+    // nextMeetingHoursByTeam: () => (teamId) => {
+    //   const meetingStore = useMeetingStore();
+    //   return meetingStore.nextMeetingHoursByTeam(teamId);
+    // },
+    // totalParticipantsByTeam: () => (teamId) => {
+    //   const meetingStore = useMeetingStore();
+    //   return meetingStore.totalParticipantsByTeam(teamId);
+    // },
   },
   persist: {
     key: 'teamStore',

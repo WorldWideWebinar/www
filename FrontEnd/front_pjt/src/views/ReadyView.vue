@@ -177,11 +177,11 @@ const filteredMeetings = computed(() => {
   const teamId = parseInt(route.params.id, 10);
 
   if (activeTab.value === 'PREV') {
-    return meetingStore.groupedMeetings.PREV.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
-    return meetingStore.groupedMeetings.TODAY.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.TODAY;
   } else if (activeTab.value === 'NEXT') {
-    return meetingStore.groupedMeetings.NEXT.filter(meeting => meeting.team_id === teamId);
+    return teamStore.groupedMeetings.NEXT;
   }
   return [];
 });
@@ -233,16 +233,23 @@ const closeDropdowns = () => {
 
 const selectTab = async (tab) => {
   activeTab.value = tab;
+  console.log(teamStore.groupedMeetings)
   const teamId = parseInt(route.params.id, 10);
   const prev = tab === 'PREV' ? 1 : 0;
   const next = tab === 'NEXT' ? 1 : 0;
-  await meetingStore.fetchMeetings(teamId, prev, next);
+  await teamStore.fetchMeetings(teamId, prev, next);
 };
 
 const loadData = async (teamId) => {
   try {
-    await teamStore.fetchTeamById(teamId);
-    await teamStore.fetchTeamUsers();
+    await Promise.all([
+      teamStore.fetchTeamById(teamId),
+      teamStore.fetchTeamUsers(),
+      teamStore.fetchMeetings(teamId, 0, 0), // TODAY
+      teamStore.fetchMeetings(teamId, false, true), // NEXT
+      teamStore.fetchMeetings(teamId, true, false), // PREV
+    ]);
+
     await selectTab('TODAY');
   } catch (error) {
     console.error('Failed to load data:', error);
@@ -251,14 +258,15 @@ const loadData = async (teamId) => {
 
 onMounted(async () => {
   isLoading.value = true;
-  meetingStore.clearMeetings();
   const teamId = parseInt(route.params.id, 10);
+
   await loadData(teamId);
   isLoading.value = false;
 });
 
 watch(() => route.params.id, async (newId) => {
   isLoading.value = true;
+  teamStore.clearTeamMeetings();
   await loadData(newId);
   isLoading.value = false;
 });
