@@ -86,7 +86,7 @@ export const useMeetingStore = defineStore('meeting', {
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
-      return state.meetings.filter(meeting => meeting.team_id === teamId);
+      return state.meetings.filter(meeting => meeting.team_id == teamId);
     },
     prevMeetingHoursByTeam: (state) => (teamId) => {
       return state.groupedMeetings.PREV
