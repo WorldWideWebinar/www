@@ -27,7 +27,6 @@ export const useMeetingStore = defineStore('meeting', {
         console.error('Error adding meeting:', error)
       }
     },
-
     async fetchMeetingById(meetingId) {
       try {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`)
@@ -60,6 +59,7 @@ export const useMeetingStore = defineStore('meeting', {
           next: next,
           teamId: teamId
         };
+    
         const response = await axiosInstance.get('/api/meetings', { params });
         const newMeetings = response.data.result;
     
@@ -77,96 +77,54 @@ export const useMeetingStore = defineStore('meeting', {
         }
       }
     },
+    groupMeetings() {
+      const today = new Date(); // 현재 시간을 포함한 오늘 날짜
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // 자정으로 설정된 오늘의 시작
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // 오늘의 끝
 
-    groupMeetings(prev, next) {
-      if (prev) {
-        this.groupedMeetings.PREV = [...this.meetings];
-        this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [];
-      } else if (next) {
-        this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [];
-        this.groupedMeetings.NEXT = [...this.meetings];
-      } else {
-        this.groupedMeetings.PREV = [];
-        this.groupedMeetings.TODAY = [...this.meetings];
-        this.groupedMeetings.NEXT = [];
-      }
-    },
+      this.groupedMeetings.PREV = this.meetings.filter(meeting => {
+        const endDate = new Date(meeting.end_at);
+        return endDate < startOfDay;
+      });
 
-    async deleteMeeting(meetingId) {
-      const errorStore = useErrorStore(); // Access the error store
-      try {
-        const response = await axiosInstance.delete(`api/meetings/${meetingId}`);
-        if (response.data.isSuccess) {
-          this.meetings = this.meetings.filter(meeting => meeting.id !== meetingId);
-        } else {
-          errorStore.showError(`Failed to delete team: ${response.data.message}`);
-        }
-        return response.data;
-      } catch (error) {
-        errorStore.showError(`Failed to delete team ${meetingId}: ${error.message}`);
-        return { isSuccess: false, message: error.message };
-      }
-    },
+      this.groupedMeetings.TODAY = this.meetings.filter(meeting => {
+        const startDate = new Date(meeting.start_at);
+        return startDate >= startOfDay && startDate <= endOfDay;
+      });
+
+      this.groupedMeetings.NEXT = this.meetings.filter(meeting => {
+        const startDate = new Date(meeting.start_at);
+        return startDate > endOfDay;
+      });
+    
+      console.log('Grouped Meetings:', this.groupedMeetings);
+    }
      
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
     },
-    
-    // 팀별 이전 미팅 시간 합계 계산
-    prevMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.PREV
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
-        }, 0);
+    prevMeetingHours(state) {
+      return state.groupedMeetings.PREV.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
+      }, 0);
     },
-    
-    // 팀별 오늘 미팅 시간 합계 계산
-    todayMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.TODAY
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60);
-        }, 0);
+    todayMeetingHours(state) {
+      return state.groupedMeetings.TODAY.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
     },
-    
-    // 팀별 다음 미팅 시간 합계 계산
-    nextMeetingHoursByTeam: (state) => (teamId) => {
-      return state.groupedMeetings.NEXT
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          const start = new Date(meeting.start_at);
-          const end = new Date(meeting.end_at);
-          return total + (end - start) / (1000 * 60 * 60);
-        }, 0);
-    },
-    
-    // 팀별 전체 참가자 수 계산
-    totalParticipantsByTeam: (state) => (teamId) => {
-      return state.meetings
-        .filter(meeting => meeting.team_id == teamId)
-        .reduce((total, meeting) => {
-          return total + (meeting.participants?.length || 0);
-        }, 0);
-    },
-    meetingDuration: (state) => (meetingId) => {
-      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
-      if (!meeting) return 0;
-      const start = new Date(meeting.start_at);
-      const end = new Date(meeting.end_at);
-      return (end - start) / (1000 * 60 * 60); // 시간 단위로 계산
-    },
-    meetingParticipantsCount: (state) => (meetingId) => {
-      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
-      return meeting ? (meeting.participants?.length || 0) : 0;
-    },
+    nextMeetingHours(state) {
+      return state.groupedMeetings.NEXT.reduce((total, meeting) => {
+        const start = new Date(meeting.start_at);
+        const end = new Date(meeting.end_at);
+        return total + (end - start) / (1000 * 60 * 60);
+      }, 0);
+    }
   }
 });
