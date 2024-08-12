@@ -168,21 +168,5 @@ export const useMeetingStore = defineStore('meeting', {
       const meeting = state.meetings.find(meeting => meeting.id === meetingId);
       return meeting ? (meeting.participants?.length || 0) : 0;
     },
-<<<<<<< HEAD
-    nextMeetingHours(state) {
-      return state.groupedMeetings.NEXT.reduce((total, meeting) => {
-        const start = new Date(meeting.start_at);
-        const end = new Date(meeting.end_at);
-        return total + (end - start) / (1000 * 60 * 60);
-      }, 0);
-    }
-  },
-  persist: {
-    key: 'meetingStore',
-    storage: sessionStorage,
-  },
-})
-=======
   }
 });
->>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
