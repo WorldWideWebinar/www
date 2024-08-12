@@ -115,20 +115,60 @@ export const useMeetingStore = defineStore('meeting', {
     getMeetingsByTeamId: (state) => (teamId) => {
       return state.meetings.filter(meeting => meeting.team_id === teamId);
     },
-    prevMeetingHours(state) {
-      return state.groupedMeetings.PREV.reduce((total, meeting) => {
-        const start = new Date(meeting.start_at);
-        const end = new Date(meeting.end_at);
-        return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
-      }, 0);
+    
+    // 팀별 이전 미팅 시간 합계 계산
+    prevMeetingHoursByTeam: (state) => (teamId) => {
+      return state.groupedMeetings.PREV
+        .filter(meeting => meeting.team_id == teamId)
+        .reduce((total, meeting) => {
+          const start = new Date(meeting.start_at);
+          const end = new Date(meeting.end_at);
+          return total + (end - start) / (1000 * 60 * 60); // 시간을 시간 단위로 계산
+        }, 0);
     },
-    todayMeetingHours(state) {
-      return state.groupedMeetings.TODAY.reduce((total, meeting) => {
-        const start = new Date(meeting.start_at);
-        const end = new Date(meeting.end_at);
-        return total + (end - start) / (1000 * 60 * 60);
-      }, 0);
+    
+    // 팀별 오늘 미팅 시간 합계 계산
+    todayMeetingHoursByTeam: (state) => (teamId) => {
+      return state.groupedMeetings.TODAY
+        .filter(meeting => meeting.team_id == teamId)
+        .reduce((total, meeting) => {
+          const start = new Date(meeting.start_at);
+          const end = new Date(meeting.end_at);
+          return total + (end - start) / (1000 * 60 * 60);
+        }, 0);
     },
+    
+    // 팀별 다음 미팅 시간 합계 계산
+    nextMeetingHoursByTeam: (state) => (teamId) => {
+      return state.groupedMeetings.NEXT
+        .filter(meeting => meeting.team_id == teamId)
+        .reduce((total, meeting) => {
+          const start = new Date(meeting.start_at);
+          const end = new Date(meeting.end_at);
+          return total + (end - start) / (1000 * 60 * 60);
+        }, 0);
+    },
+    
+    // 팀별 전체 참가자 수 계산
+    totalParticipantsByTeam: (state) => (teamId) => {
+      return state.meetings
+        .filter(meeting => meeting.team_id == teamId)
+        .reduce((total, meeting) => {
+          return total + (meeting.participants?.length || 0);
+        }, 0);
+    },
+    meetingDuration: (state) => (meetingId) => {
+      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
+      if (!meeting) return 0;
+      const start = new Date(meeting.start_at);
+      const end = new Date(meeting.end_at);
+      return (end - start) / (1000 * 60 * 60); // 시간 단위로 계산
+    },
+    meetingParticipantsCount: (state) => (meetingId) => {
+      const meeting = state.meetings.find(meeting => meeting.id === meetingId);
+      return meeting ? (meeting.participants?.length || 0) : 0;
+    },
+<<<<<<< HEAD
     nextMeetingHours(state) {
       return state.groupedMeetings.NEXT.reduce((total, meeting) => {
         const start = new Date(meeting.start_at);
@@ -142,3 +182,7 @@ export const useMeetingStore = defineStore('meeting', {
     storage: sessionStorage,
   },
 })
+=======
+  }
+});
+>>>>>>> d8bda7aed3c3b9f875899932949dd2553a8aba9b
