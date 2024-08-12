@@ -85,6 +85,9 @@ export const useTeamStore = defineStore('team', {
         const response = await axiosInstance.post('api/teams', { teamName, ownerId, emoji, userList });
         if (!response.data.success) {
           errorStore.showError(`Failed to create team: ${response.data.message}`);
+        }else {
+          const teamId = response.data.result;
+          await this.fetchTeamById(teamId)
         }
       } catch (error) {
         errorStore.showError(`Error creating team: ${error.message}`);
