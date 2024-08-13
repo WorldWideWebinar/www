@@ -227,7 +227,7 @@ const deleteMeeting = async () =>{
     if(success){
       selectedMeeting.value = null;
       const teamId = route.params.id;
-      router.push(`/team/${teamId}`);
+      loadData(teamId);
     }
   } catch (error) {
     console.log(error)
