@@ -88,7 +88,7 @@ const attendedNums = computed(() => {
 
 // const sessionId = route.params.sessionId;
 const token = route.params.token;;
-const session = ref(null);
+const session = computed(() => sessionStore.session);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
@@ -269,12 +269,18 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
-      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
-        console.error('Router error:', err);
-      });
+    // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
+    //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+    //     console.error('Router error:', err);
+    //   });
 
-  }
+  session.value.disconnect();
+  socket.close()
+  console.log('meetingId', meetingId)
+  session.value = null;
+  const teamId = await sessionStore.getTeamId(meetingId);
+  router.replace({ name: 'ReadyView', params: {id : teamId} })
+
 };
 
 const endConference = async () => {
@@ -291,6 +297,7 @@ const endConference = async () => {
       }
       // Ready Page로 이동
       const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      console.log('TeamID', teamId)
       await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
         console.error('Router error:', err);
       });
