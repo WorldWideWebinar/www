@@ -118,9 +118,7 @@
                   <thead>
                     <tr>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          " class="file-link">📂summary</a>
+                        <a href="#" @click.prevent="downloadSummary" class="file-link">📂summary</a>
                       </td>
                       <td>
                         <a href="#" @click.prevent="
@@ -220,6 +218,20 @@ const previewFile = (file) => {
   previewUrl.value = file.link;
 };
 
+const downloadSummary = async () => {
+  if (!selectedMeeting.value) {
+    console.error('No meeting selected');
+    return;
+  }
+  console.log(selectedMeeting.value)
+  try {
+    await meetingStore.downloadSummary(
+        selectedMeeting.value.team_id, selectedMeeting.value.meeting_id);
+  } catch (error) {
+    console.error('Error handling summary download:', error);
+  }
+};
+
 const closeDropdowns = () => {
   showFilesList.value = false;
   showMembersList.value = false;
@@ -274,6 +286,7 @@ const selectMeeting = (meeting) => {
   }
 
   selectedMeeting.value = meeting;
+  console.log('Selected meeting:', selectedMeeting.value); // Debug log
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
