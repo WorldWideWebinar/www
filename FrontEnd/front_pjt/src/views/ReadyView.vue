@@ -55,9 +55,8 @@
                     <div class="meeting-date">{{ formatDateTime(meeting.end_at).date }}</div>
                     <div class="meeting-time">{{ formatDateTime(meeting.end_at).time }}</div>
                   </td>
-                  <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
-                      @click="selectMeeting(meeting)">
-                    {{ meeting.name }}
+                  <td @click="selectMeeting(meeting)">
+                    <div>{{ meeting.name }}</div>
                   </td>
                   <td>
                     {{ calculateDuration(meeting.start_at, meeting.end_at) }}
@@ -203,6 +202,7 @@ const departmentName = computed(() => {
   const teamData = teamStore.getTeamById(teamId);
   return teamData ? teamData.teamName : '';
 });
+
 const isOwner = computed(() => {
   const teamId = parseInt(route.params.id, 10);
   const teamData = teamStore.getTeamById(teamId);
@@ -284,7 +284,6 @@ const selectMeeting = (meeting) => {
   } else if (teamStore.groupedMeetings.NEXT.includes(meeting)) {
     detailType.value = 'NEXT';
   }
-
   selectedMeeting.value = meeting;
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
@@ -292,6 +291,7 @@ const selectMeeting = (meeting) => {
   previewUrl.value = null;
   showOverlay.value = true;
 };
+
 const closeMeetingDetails = () => {
   selectedMeeting.value = null;
   selectedMeetingMembers.value = [];
@@ -532,11 +532,11 @@ ul.nav li {
   text-decoration-color: rgba(154, 130, 253, 0.4);
   text-decoration-thickness: 3px;
 }
-
+/* 
 .meeting-list .bold-agenda {
   font-weight: bolder;
   color: rgb(154, 130, 253);
-}
+} */
 
 .meeting-list th {
   background-color: #f5f5f5;
@@ -575,7 +575,7 @@ button {
 
 .meeting-list tbody {
   display: block;
-  max-height: 190px;
+  max-height: 170px;
   overflow-y: scroll;
 }
 

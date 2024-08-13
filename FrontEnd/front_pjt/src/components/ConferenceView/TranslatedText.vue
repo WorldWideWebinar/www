@@ -6,6 +6,7 @@
       <option value="ja">🇯🇵 日本語</option>
       <option value="zh">🇨🇳 中国语</option>
       <option value="es">🇪🇸 Español</option>
+      <option value="fr">FR Français</option>
     </select>
   </span></h5>
   <div class="translated-content" ref="translatedContent">
