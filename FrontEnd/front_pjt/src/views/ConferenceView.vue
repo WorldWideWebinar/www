@@ -10,7 +10,8 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
+            <video v-if="isScreenSharing" id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
+            <img v-else src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
           </div>
           <div class="right-side">
             <user-video :stream-manager="myStreamManager" />
@@ -297,8 +298,7 @@ const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
   if (!isScreenSharing.value) {
-    // 화면 공유 시작
-    screenPublisher.value = OV.initPublisher(undefined, {
+    screenPublisher.value = OV.initPublisher('screen-share-video', {
       videoSource: 'screen',
       publishAudio: true,
       publishVideo: true,
