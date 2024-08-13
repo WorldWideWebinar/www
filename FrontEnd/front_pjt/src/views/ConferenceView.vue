@@ -305,12 +305,17 @@ const toggleScreenShare = async () => {
       publishVideo: true,
       mirror: false,
     });
+
     session.value.publish(screenPublisher.value);
+    myStreamManager.value = screenPublisher.value; // 화면 공유 스트림을 메인 영역에 표시
     isScreenSharing.value = true;
   } else {
+    // 화면 공유 중지
     session.value.unpublish(screenPublisher.value);
     screenPublisher.value = null;
     isScreenSharing.value = false;
+
+    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
   }
 };
 
