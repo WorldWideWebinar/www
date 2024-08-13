@@ -37,15 +37,15 @@
         <div class="meeting-hours-legend">
           <div class="legend-item">
             <span class="legend-color prev-meetings"></span>
-            <span class="legend-label">Previous {{ prevMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Previous <br> {{ formatHours(prevMeetingHours) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color today-meetings"></span>
-            <span class="legend-label">Today {{ todayMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Today <br> {{ formatHours(todayMeetingHours) }} hours</span>
           </div>
           <div class="legend-item">
             <span class="legend-color next-meetings"></span>
-            <span class="legend-label">Next {{ nextMeetingHours.toFixed(2) }} hours</span>
+            <span class="legend-label">Next <br> {{ formatHours(nextMeetingHours) }} hours</span>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils';
+import { formatTime, handleClickOutside } from '@/utils.js';
 import { useUserStore } from '@/stores/userStore.js'
 import { useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore';
@@ -121,6 +121,12 @@ const prevMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.PRE
 const todayMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.TODAY))
 const nextMeetingHours = computed(() => formatDate(teamStore.groupedMeetings.NEXT))
 const totalMeetingHours = computed(() => prevMeetingHours.value + todayMeetingHours.value + nextMeetingHours.value);
+
+const formatHours = (hours) => {
+  return hours % 1 === 0 ? Math.floor(hours) : hours.toFixed(2);
+};
+
+
 // 여기서 각 요소에 대한 ref를 설정합니다.
 const memberDropdown = ref(null);  // memberDropdown 요소에 대한 ref
 const inviteInput = ref(null);  // inviteInput 요소에 대한 ref
@@ -259,7 +265,7 @@ template {
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 0px 10px;
   background-color: #f9f9f9;
   font-size: medium;
 }
@@ -392,7 +398,9 @@ template {
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 15px;
+  width: 70px;
+  margin: 0 auto;
+  margin-right: 5px;
 }
 
 .legend-item:last-child {
@@ -421,6 +429,8 @@ template {
 .legend-label {
   font-size: 9px;
   font-weight: bold;
+  width: 65px;
+  margin: 0 auto;
 }
 
 .members {
@@ -648,6 +658,10 @@ template {
 
   .intro-section {
     display: none;
+  }
+
+  .notice-table .meeting-name {
+    width: 150px;
   }
 }
 </style>
