@@ -72,6 +72,7 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
+              <button @click="deleteMeeting(selectedMeeting?.id)" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">Delect</button>
               <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
@@ -167,6 +168,7 @@ import { useMeetingStore } from '@/stores/meetingStore';
 import { handleClickOutside } from '@/utils.js';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
+import router from '@/router';
 
 const route = useRoute();
 const teamStore = useTeamStore();
@@ -218,6 +220,19 @@ const buttonClass = (status) => {
 };
 
 const buttonText = (status) => status;
+
+const deleteMeeting = async (meetingId) =>{
+  try {
+    const success = await meetingStore.deleteMeeting(meetingId);
+    if(success){
+      selectedMeeting.value = null;
+      const teamId = route.params.id;
+      router.push(`/team/${teamId}`);
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
