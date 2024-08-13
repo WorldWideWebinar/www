@@ -46,6 +46,7 @@
     <div class="bottom-toolbar">
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
+      <button class="btn-icon" @click="toggleScreenShare">{{ isScreenSharing ? '🛑' : '🖥️' }}</button>
       <button class="btn-icon" @click="leaveSession">🔄</button>
       <button class="btn-icon" @click="endConference">❌</button>
     </div>
@@ -84,11 +85,11 @@ const meetingId = sessionStore.meetingId
 let socket = null;
 let audioContext = null;
 let processor = null;
-
-const isOwner = computed(() => teamStore.teamInfo?.ownerId === userStore.userId);
-// const isOwner = computed(() => sessionStore.meetingId != null);
+const OV = new OpenVidu();
+// const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
+const isOwner = computed(() => sessionStore.meetingId != null);
 const joinSession = async () => {
-  const OV = new OpenVidu();
+  // const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
@@ -288,6 +289,32 @@ const toggleVideo = () => {
   if (publisher.value) {
     isVideoEnabled.value = !isVideoEnabled.value;
     publisher.value.publishVideo(isVideoEnabled.value);
+  }
+};
+
+const isScreenSharing = ref(false);
+const screenPublisher = ref(null);
+
+const toggleScreenShare = async () => {
+  if (!isScreenSharing.value) {
+    // 화면 공유 시작
+    screenPublisher.value = OV.initPublisher(undefined, {
+      videoSource: 'screen',
+      publishAudio: true,
+      publishVideo: true,
+      mirror: false,
+    });
+
+    session.value.publish(screenPublisher.value);
+    myStreamManager.value = screenPublisher.value; // 화면 공유 스트림을 메인 영역에 표시
+    isScreenSharing.value = true;
+  } else {
+    // 화면 공유 중지
+    session.value.unpublish(screenPublisher.value);
+    screenPublisher.value = null;
+    isScreenSharing.value = false;
+
+    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
   }
 };
 
