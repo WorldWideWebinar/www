@@ -424,8 +424,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   padding: 1rem 1rem 0 1rem;
-  margin-top: 80px;
-  /* margin-bottom: 20px; */
+  margin-top: 20px;
 }
 
 .participant {
