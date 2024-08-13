@@ -213,16 +213,45 @@ export const useTeamStore = defineStore('team', {
     },
 
     groupMeetings(prev, next, meetings) {
+      const sortMeetingsByDateTime = (meetings) => {
+        return meetings.sort((a, b) => {
+          const startDateA = new Date(a.start_at);
+          const startDateB = new Date(b.start_at);
+          const endDateA = new Date(a.end_at);
+          const endDateB = new Date(b.end_at);
+    
+          // 시작 날짜 기준 오름차순
+          if (startDateA > startDateB) return 1;
+          if (startDateA < startDateB) return -1;
+    
+          // 시작 시간이 같은 경우, 시작 시간 기준 오름차순
+          if (startDateA.getTime() > startDateB.getTime()) return 1;
+          if (startDateA.getTime() < startDateB.getTime()) return -1;
+    
+          // 시작 날짜와 시간이 같은 경우, 종료 날짜 기준 오름차순
+          if (endDateA > endDateB) return 1;
+          if (endDateA < endDateB) return -1;
+    
+          // 종료 날짜와 시간이 같은 경우, 종료 시간 기준 오름차순
+          if (endDateA.getTime() > endDateB.getTime()) return 1;
+          if (endDateA.getTime() < endDateB.getTime()) return -1;
+    
+          return 0;
+        });
+      };
+    
       if (prev) {
-        this.groupedMeetings.PREV = [...meetings];
+        this.groupedMeetings.PREV = sortMeetingsByDateTime(meetings);
       }
       if (next) {
-        this.groupedMeetings.NEXT = [...meetings];
+        this.groupedMeetings.NEXT = sortMeetingsByDateTime(meetings);
       }
-      if(!prev && !next){
-        this.groupedMeetings.TODAY = [...meetings];
+      if (!prev && !next) {
+        this.groupedMeetings.TODAY = sortMeetingsByDateTime(meetings);
       }
-    },
+    }
+    
+    
   },
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
