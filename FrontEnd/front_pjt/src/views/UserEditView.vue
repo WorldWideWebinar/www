@@ -74,7 +74,6 @@ const fileInput = ref(null);
 const passwordInput = ref('1234')
 const showPasswordModal = ref(false);
 const isPasswordVerified = ref(false);
-
 onMounted(() => {
   userInfo.value = userStore.userInfo;
   email.value = userInfo.value.email;
@@ -91,23 +90,22 @@ function selectImage() {
 }
 
 async function handleImageChange(event) {
+  console.log("Image change triggered"); // 파일 선택 시 로그 확인
   const file = event.target.files[0];
   if (file) {
-    // 이미지 파일을 서버에 업로드하기 위한 FormData 객체 생성
+    console.log("File selected:", file.name); // 파일 이름 로그 확인
     const formData = new FormData();
     formData.append('image', file);
 
     try {
-      // 서버에 POST 요청을 보내서 이미지를 업로드
       const response = await axiosInstance.post('/api/images', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
-
       if (response.data) {
-        image.value = response.data.result.image_url;
+        image.value = response.data.result;
+        console.log("Image uploaded successfully:", image.value); // 업로드 성공 로그
       } else {
         throw new Error(response.data.message || 'Image upload failed');
       }
