@@ -68,8 +68,8 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <button @click="deleteMeeting(selectedMeeting?.id)" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
-              <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
+              <button @click="deleteMeeting()" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
+              <p :style="{ 'padding-left': (!isOwner || new Date().getTime() >= new Date(selectedMeeting?.start_at).getTime()) ? '25px' : '0' }">&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
             <div class="meeting-detail-content">
@@ -208,10 +208,9 @@ const buttonClass = (status) => {
 
 const buttonText = (status) => status;
 
-const deleteMeeting = async (meetingId) =>{
+const deleteMeeting = async () =>{
+  const meetingId = selectedMeeting.value.meeting_id;
   console.log(meetingId)
-  console.log(selectedMeeting.value)
-  console.log(selectedMeeting.value.id)
   try {
     const success = await meetingStore.deleteMeeting(meetingId);
     if(success){
