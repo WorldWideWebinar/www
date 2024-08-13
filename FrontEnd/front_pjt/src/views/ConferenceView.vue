@@ -85,8 +85,8 @@ let socket = null;
 let audioContext = null;
 let processor = null;
 
-// const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
-const isOwner = computed(() => sessionStore.meetingId != null);
+const isOwner = computed(() => teamStore.teamInfo?.ownerId === userStore.userId);
+// const isOwner = computed(() => sessionStore.meetingId != null);
 const joinSession = async () => {
   const OV = new OpenVidu();
   const currentSession = OV.initSession();
@@ -135,7 +135,6 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      console.log("내가 팀 주인인가?", isOwner.value)
       if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
@@ -165,7 +164,10 @@ const joinSession = async () => {
         }
 
         sessionStore.addStream(subscriber.stream);
-        if(isOwner.value) captureAudioStream(subscriber.stream.getMediaStream());
+        if(isOwner.value) {
+          createWebsocketConnection()
+          captureAudioStream(subscriber.stream.getMediaStream())
+        }
       }
     });
 
@@ -178,6 +180,8 @@ const joinSession = async () => {
   }
 };
 const createWebsocketConnection = ()=>{
+  if(socket != null) return
+
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {

@@ -45,7 +45,7 @@ export const useSessionStore = defineStore('session', {
 
         this.token = response.data; // 서버로부터 받은 토큰을 저장
         console.log('openvidu 발급 토큰', this.token);
-
+        this.meetingId = sessionId;
         this.inConference = true;
         return this.token; // 토큰 반환
       } catch (error) {

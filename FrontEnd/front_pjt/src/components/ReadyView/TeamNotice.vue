@@ -104,10 +104,9 @@ const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const isOwner = ref(false);
+const isOwner = computed(() => teamStore.teamInfo.ownerId === userStore.userId);
 const router = useRouter();
-const sessionStore = useSessionStore()
-isOwner.value = teamStore.teamInfo.ownerId === userStore.userId;
+const sessionStore = useSessionStore();
 
 function formatDate(meetingList) {
     return meetingList.reduce((total, meeting) => {
