@@ -183,4 +183,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUserByUserId(userId)
                 .orElseThrow(() -> new NoSuchUserException("User with id " + userId + " not found"));
     }
+
+    @Override
+    public boolean checkPassword(String dbPassword, String password) {
+        return passwordEncoder.matches(password,dbPassword);
+    }
 }

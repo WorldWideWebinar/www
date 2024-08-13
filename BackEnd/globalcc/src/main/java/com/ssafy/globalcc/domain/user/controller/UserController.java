@@ -1,6 +1,7 @@
 package com.ssafy.globalcc.domain.user.controller;
 
 import com.ssafy.globalcc.aop.ApiResponse;
+import com.ssafy.globalcc.domain.user.dto.SecurityUser;
 import com.ssafy.globalcc.domain.user.result.*;
 import com.ssafy.globalcc.domain.user.dto.LoginUserDto;
 import com.ssafy.globalcc.domain.user.dto.UserDto;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -109,6 +111,16 @@ public class UserController {
                 new UserIdResult(userId),"유저 삭제 성공"
         ), HttpStatus.OK);
     }
+
+    @PostMapping("/checkPassword")
+    public ResponseEntity<?> checkPass(@AuthenticationPrincipal SecurityUser user, @RequestBody LoginUserDto dto){
+        boolean checked = userService.checkPassword(user.getPassword(),dto.getPassword());
+        if(checked){
+            return new ResponseEntity<>(ApiResponse.success(checked,"비밀번호 확인성공"),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ApiResponse.fail(checked,"비밀번호 확인 실패"),HttpStatus.BAD_REQUEST);
+    }
+
 
     @GetMapping("/refresh")
     public ResponseEntity<?> refresh(@Param("id") int id, @RequestHeader("Authorization") String token){
