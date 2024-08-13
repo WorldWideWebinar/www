@@ -95,7 +95,7 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
-const meetingId = sessionStore.sessionId
+const meetingId = computed(() => sessionStore.sessionId)
 
 // 이미지 경로 지정
 import audioOffIcon from '@/assets/img/audio_off.png';
@@ -205,8 +205,8 @@ const createWebsocketConnection = ()=>{
 
   socket.onopen = () => {
     console.log('WebSocket connection opened');
-    console.log('Meeting ID:', sessionStore.meetingId);
-    socket.send(JSON.stringify({ meetingId: sessionStore.meetingId }));
+    console.log('Meeting ID:', sessionStore.sessionId);
+    socket.send(JSON.stringify({ meetingId: sessionStore.sessionId }));
   };
 
   socket.onclose = () => {
@@ -269,7 +269,7 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+    const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
       await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
         console.error('Router error:', err);
       });
@@ -358,10 +358,6 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onMounted(() => {
-  joinSession();
-});
-
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
@@ -372,7 +368,7 @@ onMounted(async () => {
   if (meetingId) {
     await sessionStore.fetchMeetingById(meetingId);  // 미팅 정보 가져오기
   }
-  joinSession();
+  await joinSession();
 });
 </script>
 
