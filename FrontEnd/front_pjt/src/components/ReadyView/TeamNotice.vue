@@ -33,7 +33,7 @@
     </section>
     <section class="intro-section">
       <div class="total-meeting-hours">
-        <p>We have {{ totalParticipants }} members and meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
+        <p>We have meetings for {{ totalMeetingHours.toFixed(2) }} hours</p>
         <div class="meeting-hours-bar">
           <div class="meeting-hours-segment prev-meetings" :style="{ width: (prevMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="prevMeetingHours > 0"></div>
           <div class="meeting-hours-segment today-meetings" :style="{ width: (todayMeetingHours / totalMeetingHours) * 100 + '%' }" v-if="todayMeetingHours > 0"></div>
