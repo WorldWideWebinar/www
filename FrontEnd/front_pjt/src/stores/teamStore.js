@@ -163,7 +163,7 @@ export const useTeamStore = defineStore('team', {
 
       try {
         const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
-        if (response.data.isSuccess) {
+        if (response.data.success) {
           const team = this.teams.find(team => team.id == teamId);
           if (team) {
             team.userList = team.userList.filter(user => user !== userId);

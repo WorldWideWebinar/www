@@ -23,7 +23,8 @@
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
             <div v-show="showDeleteButton === team.id" :ref="(el) => {addEventClickOutside(el)}" class="dropdown">
-              <button @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
+              <button v-if="isOwner(team.id)" @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
+              <button @click="leaveTeam(team.id)" class="btn btn-delete">Leave <br> Team</button>
             </div>
           </li>
         </ul>
@@ -69,6 +70,15 @@ const showDeleteButton = ref(null)
 const deleteButtonStyle = ref({})
 const dropdownRef = ref(null)
 
+const isOwner = (teamId) => {
+  const userId = userStore.userId
+  const ownerId = teamStore.teams.find((team) => team.id === teamId)?.ownerId;
+  return ownerId !== '' && userId === ownerId;
+}
+
+const leaveTeam = (teamId) => {
+  teamStore.leaveTeam(teamId)
+}
 
 const goingHome = () => {
   router.push({ name: 'HomeView' })
