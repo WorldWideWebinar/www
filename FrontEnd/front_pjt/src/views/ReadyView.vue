@@ -71,7 +71,8 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
+              <button @click="deleteMeeting()" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
+              <p :style="{ 'padding-left': (!isOwner || new Date().getTime() >= new Date(selectedMeeting?.start_at).getTime()) ? '25px' : '0' }">&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
             <div class="meeting-detail-content">
@@ -130,9 +131,7 @@
                   <thead>
                     <tr>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          " class="file-link">📂summary</a>
+                        <a href="#" @click.prevent="downloadSummary" class="file-link">📂summary</a>
                       </td>
                       <td>
                         <a href="#" @click.prevent="
@@ -166,6 +165,7 @@ import { useMeetingStore } from '@/stores/meetingStore';
 import { handleClickOutside } from '@/utils.js';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
+import router from '@/router';
 
 const route = useRoute();
 const teamStore = useTeamStore();
@@ -219,6 +219,21 @@ const buttonClass = (status) => {
 
 const buttonText = (status) => status;
 
+const deleteMeeting = async () =>{
+  const meetingId = selectedMeeting.value.meeting_id;
+  console.log(meetingId)
+  try {
+    const success = await meetingStore.deleteMeeting(meetingId);
+    if(success){
+      selectedMeeting.value = null;
+      const teamId = route.params.id;
+      router.push(`/team/${teamId}`);
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
   showOverlay.value = showFilesList.value;
@@ -233,6 +248,20 @@ const previewFile = (file) => {
   previewUrl.value = file.link;
 };
 
+const downloadSummary = async () => {
+  if (!selectedMeeting.value) {
+    console.error('No meeting selected');
+    return;
+  }
+  console.log(selectedMeeting.value)
+  try {
+    await meetingStore.downloadSummary(
+        selectedMeeting.value.team_id, selectedMeeting.value.meeting_id);
+  } catch (error) {
+    console.error('Error handling summary download:', error);
+  }
+};
+
 const closeDropdowns = () => {
   showFilesList.value = false;
   showMembersList.value = false;
@@ -245,9 +274,9 @@ const selectTab = async (tab) => {
 
 const loadData = async () => {
   const teamId = route.params.id
+  await teamStore.fetchTeamById(teamId)
   try {
-    await Promise.all([
-      teamStore.fetchTeamById(teamId),
+    await Promise.all([      
       teamStore.fetchTeamUsers(),
       teamStore.fetchMeetings(teamId, false, false), // TODAY
       teamStore.fetchMeetings(teamId, false, true), // NEXT
@@ -285,6 +314,7 @@ const selectMeeting = (meeting) => {
     detailType.value = 'NEXT';
   }
   selectedMeeting.value = meeting;
+  console.log('Selected meeting:', selectedMeeting.value); // Debug log
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
@@ -594,7 +624,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-left: 25px;
+  /* margin-left: 25px; */
 }
 
 .meeting-detail-header p {
