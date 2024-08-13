@@ -2,7 +2,7 @@
   <div class="container-wrapper">
     <div class="user-edit-container">
       <span class="container-title">Edit Profile</span>
-      <form @submit.prevent="handleUserUpdate">
+      <form @submit.prevent="handleSubmit">
         <div class="form-content">
           <div class="profile-image-container">
             <img :src="image" alt="Profile Image" class="profile-image" />
@@ -41,6 +41,16 @@
         </div>
         <button class="submit-btn" type="submit">Update</button>
       </form>
+
+      <div v-if="showPasswordModal" class="password-modal">
+        <div class="modal-content">
+          <span class="modal-title">Confirm Password</span>
+          <input v-model="passwordInput" type="password" placeholder="Enter your password" />
+          <button @click="verifyPassword" class="verify-btn">Verify</button>
+          <button @click="cancelPasswordVerification" class="cancel-btn">Cancel</button>
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -49,6 +59,8 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import axiosInstance from '@/axios';
+import { useErrorStore } from '@/stores/errorStore';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -59,6 +71,9 @@ const selectedLanguage = ref('en');
 const errorMessage = ref('');
 const userInfo = ref({});
 const fileInput = ref(null);
+const passwordInput = ref('1234')
+const showPasswordModal = ref(false);
+const isPasswordVerified = ref(false);
 
 onMounted(() => {
   userInfo.value = userStore.userInfo;
@@ -86,17 +101,40 @@ function handleImageChange(event) {
   }
 }
 
+async function handleSubmit() {
+  if (!isPasswordVerified.value) {
+    showPasswordModal.value = true;
+  } else {
+    await handleUserUpdate();
+  }
+}
+
+async function verifyPassword() {
+  const result = await axiosInstance.post(`api/users/checkPassword`, {password: passwordInput.value});
+  console.log(result)
+  if (result.data.success) {
+    isPasswordVerified.value = true;
+    showPasswordModal.value = false;
+    await handleUserUpdate();
+  } else {
+    errorMessage.value = 'Password verification failed. Please try again.';
+  }
+}
+
 async function handleUserUpdate() {
   const updatedInfo = {
+    id: userInfo.value.id,
+    name: userInfo.value.name,
+    password: passwordInput.value,
     email: email.value,
     profileImageUrl: image.value,
     language: selectedLanguage.value
   };
-
+  const errorStore = useErrorStore();
   const result = await userStore.changeUserInfo(userStore.userId, updatedInfo);
-  if (result.success) {
-    alert('Profile updated successfully');
-    router.push({ name: 'HomeView' });
+  if (result) {
+    errorStore.showError('Profile updated successfully');
+    router.push({ name: 'ProfileView' });
   } else {
     errorMessage.value = `Update failed: ${result.message}`;
   }
@@ -285,6 +323,65 @@ select {
 
 .submit-btn:focus {
   outline: none;
+}
+
+/* 비밀번호 체크 모달 */
+.password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* 어두운 배경으로 변경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 모달을 최상단에 배치 */
+}
+
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #6a1b9a;
+  margin-bottom: 20px;
+}
+
+input[type="password"] {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.verify-btn,
+.cancel-btn {
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.verify-btn:hover,
+.cancel-btn:hover {
+  background-color: #b380bc;
 }
 
 @media (max-width: 992px) {
