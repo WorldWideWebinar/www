@@ -46,7 +46,7 @@ export const useSessionStore = defineStore('session', {
 
         this.token = response.data; // 서버로부터 받은 토큰을 저장
         console.log('openvidu 발급 토큰', this.token);
-        this.meetingId = sessionId;
+        // this.meetingId = sessionId;
         this.inConference = true;
         return this.token; // 토큰 반환
       } catch (error) {
@@ -57,7 +57,6 @@ export const useSessionStore = defineStore('session', {
     async endSession(meetingId) {
       try {
         const response = await axiosInstance.delete(`/api/sessions/${meetingId}`);
-        console.log(meetingId)
         if (response.data.success) {
           console.log('Session ended successfully');
           this.sessionId = null;
@@ -65,6 +64,7 @@ export const useSessionStore = defineStore('session', {
           this.session = null;
           this.token = null;
           this.streams = [];
+          await this.saveSTTFinishedMeeting(meetingId); // save STT: redis -> mysql
         } else {
           console.error('Failed to end session:', response.data.message);
         }
@@ -94,5 +94,17 @@ export const useSessionStore = defineStore('session', {
         return null;
       }
     },
+
+    async saveSTTFinishedMeeting(meetingId) {
+      try {
+        const response = await axiosInstance.get(`/api/meetings/${meetingId}/finish`);
+        console.log("Meeting finished successfully");
+        console.log("Response status:", response.status);
+        console.log("Response data:", response.data);
+      } catch (error) {
+        console.error('Failed to finish meeting:', error.response ? error.response.data : error.message);
+      }
+    }
+
   },
 });

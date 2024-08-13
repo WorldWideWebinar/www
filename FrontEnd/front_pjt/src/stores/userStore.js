@@ -15,6 +15,9 @@ export const useUserStore = defineStore('user', {
     userList: [
       
     ],
+    meetings: [
+      
+    ]
   }),
   getters: {
     isLogin: (state) => state.userId != 0

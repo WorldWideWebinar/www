@@ -6,20 +6,15 @@
       </div>
       <div class="notice-content">
         <table v-if="todayMeetings.length > 0" class="notice-table">
-          <!-- <thead>
-            <tr>
-              <th>TIME</th>
-              <th>AGENDA</th>
-              <th>PLAY</th>
-            </tr>
-          </thead> -->
           <tbody>
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
-                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">Start</button>
-                <button @click="handleJoinConference(meeting.meeting_id)" class="join-button">
+                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
+                <button v-else @click="handleJoinConference(meeting.meeting_id)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
               </td>
@@ -98,13 +93,20 @@ import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY);
+const todayMeetings = computed(() => {
+  const now = new Date();
+
+  return teamStore.groupedMeetings.TODAY.filter(meeting => {
+    const endAt = new Date(meeting.end_at);
+    return endAt >= now;
+  });
+});
 const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const isOwner = computed(() => teamStore.teamInfo.ownerId === userStore.userId);
+const isOwner = computed(() => teamStore.teamInfo.ownerId == userStore.userId);
 const router = useRouter();
 const sessionStore = useSessionStore();
 

@@ -10,8 +10,8 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <video v-if="isScreenSharing" id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
-            <img v-else src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
+            <video id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
+            <!-- <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" /> -->
           </div>
           <div class="right-side">
             <user-video class="right-side-video" :stream-manager="myStreamManager" />
@@ -224,6 +224,7 @@ const createWebsocketConnection = ()=>{
     socket.close()
   };
 }
+
 const captureAudioStream = (mediaStream) => {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
@@ -274,7 +275,11 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    router.push({ name: 'HomeView' })
+    const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+        console.error('Router error:', err);
+      });
+
   }
 };
 
@@ -340,6 +345,24 @@ const toggleScreenShare = async () => {
     myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
   }
 };
+
+// 오리지널/번역 출력 스크롤 생성
+const originalContent = ref(null);
+
+const scrollToBottom = (element) => {
+  if (element) {
+    element.scrollTop = element.scrollHeight;
+  }
+};
+
+// Watch for changes in original content
+watch(() => participants.value, () => {
+  scrollToBottom(originalContent.value);
+}, { deep: true });
+
+onMounted(() => {
+  scrollToBottom(originalContent.value);
+});
 
 onMounted(() => {
   joinSession();
