@@ -69,6 +69,7 @@ const displayEndDate = ref('');
 const startChecked = ref(false);
 const endChecked = ref(false);
 
+
 const createMeeting = async () => {
   if (!name.value || !start.value || !end.value) {
     errorStore.showError('필수 필드를 모두 입력해주세요.');
@@ -80,11 +81,16 @@ const createMeeting = async () => {
     return;
   }
 
+  if (start.value > end.value) {
+    alert('The end time cannot be earlier than the start time.');
+    return;
+  }
+
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
-    start: start.value,
-    end: end.value,
+    start: new Date(start.value).toISOString(),
+    end: new Date(end.value).toISOString(),
     detail: detail.value,
   };
 
@@ -113,6 +119,7 @@ const setupFlatpickrStart = () => {
     dateFormat: "Y-m-d\\TH:i",
     time_24hr: true,
     minuteIncrement: 1,
+    minDate :'today',
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
@@ -120,6 +127,7 @@ const setupFlatpickrStart = () => {
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
         start.value = adjustedDate.toISOString();
         console.log("Start Date for display:", start.value);
+        console.log(new Date(start.value).toISOString())
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
@@ -134,6 +142,7 @@ const setupFlatpickrEnd = () => {
     dateFormat: "Y-m-d\\TH:i",
     time_24hr: true,
     minuteIncrement: 1,
+    minDate :'today',
     onChange: (selectedDates) => {
       if (selectedDates.length > 0) {
         const selectedDate = selectedDates[0];
@@ -151,6 +160,9 @@ const setupFlatpickrEnd = () => {
 onMounted(() => {
   setupFlatpickrStart();
   setupFlatpickrEnd();
+  const nineHoursLater = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+  document.getElementById("startPicker").value =  nineHoursLater.toISOString().slice(0, 16).replace('T', ' ');
+  document.getElementById("endPicker").value = nineHoursLater.toISOString().slice(0, 16).replace('T', ' ');
 })
 </script>
 

@@ -143,7 +143,7 @@ export const useTeamStore = defineStore('team', {
           });
         }
 
-        if (response.data.isSuccess) {
+        if (response.data.success) {
           this.teams = this.teams.filter(team => team.id != teamId);
         } else {
           errorStore.showError(`Failed to delete team: ${response.data.message}`);
