@@ -89,7 +89,7 @@ const formatDate = (dateString) => {
   if (date >= today) {
     return `${formattedTime}`;
   } else {
-    const formattedDate = today.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+    const formattedDate = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
     return `${formattedDate} ${formattedTime}`;
   }
 };

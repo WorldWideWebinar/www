@@ -14,36 +14,36 @@
             <!-- <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" /> -->
           </div>
           <div class="right-side">
-            <user-video :stream-manager="myStreamManager" />
+            <user-video class="right-side-video" :stream-manager="myStreamManager" />
           </div>
         </div>
         <div class="translation-container">
           <div class="translation-section original">
             <h5>Original Version</h5>
-            <div class="translation-content">
+            <div class="original-content" ref="originalContent">
               <!-- Original messages -->
               <TranscriptionText/>
             </div>
           </div>
-          <div class="translation-section">
+          <div class="translation-section translated">
             <TranslatedText/>
           </div>
         </div>
-        <div class="footer">
-          <div class="footer-left">
-            <span style="font-weight: bold;">Duration</span>
-            <span>1:27:31 30min left</span>
-          </div>
-          <div class="footer-center">
-            <span style="font-weight: bold;">Attendance</span>
-            <span>{{ participants.length }} / 6</span>
-          </div>
-          <!-- <div class="footer-right">
-            <span>Invite Alex, Joy</span>
-          </div> -->
-        </div>
       </div>
     </main>
+    <div class="footer">
+      <div class="footer-left">
+        <span style="font-weight: bold;">Duration</span>
+        <span>1:27:31 30min left</span>
+      </div>
+      <div class="footer-center">
+        <span style="font-weight: bold;">Attendance</span>
+        <span>{{ participants.length }} / 6</span>
+      </div>
+      <!-- <div class="footer-right">
+        <span>Invite Alex, Joy</span>
+      </div> -->
+    </div>
     <div class="bottom-toolbar">
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -70,7 +70,11 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
-const departmentName = computed(() => route.params.name);
+const departmentName = computed(() => {
+  const teamId = parseInt(route.params.id, 10);
+  const teamData = teamStore.getTeamById(teamId);
+  return teamData ? teamData.teamName : '';
+});
 
 // const sessionId = route.params.sessionId;
 const token = route.params.token;;
@@ -133,7 +137,7 @@ const joinSession = async () => {
       audioSource: undefined,
       publishVideo: true,
       publishAudio: true,
-      resolution: '320x240',
+      resolution: '210x140',
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
@@ -323,6 +327,24 @@ const toggleScreenShare = async () => {
   }
 };
 
+// 오리지널/번역 출력 스크롤 생성
+const originalContent = ref(null);
+
+const scrollToBottom = (element) => {
+  if (element) {
+    element.scrollTop = element.scrollHeight;
+  }
+};
+
+// Watch for changes in original content
+watch(() => participants.value, () => {
+  scrollToBottom(originalContent.value);
+}, { deep: true });
+
+onMounted(() => {
+  scrollToBottom(originalContent.value);
+});
+
 onMounted(() => {
   joinSession();
 });
@@ -385,7 +407,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 .left-side {
   margin: 0 0 0 1rem;
-  border-radius: 8px 8px 0px 8px;
+  border-radius: 8px 8px 0px 0px;
 }
 
 .right-side {
@@ -445,11 +467,13 @@ onBeforeRouteLeave(async (to, from, next) => {
   border-radius: 8px;
   margin: 1rem;
   font-size: 90%;
+  min-height: 250px;
 }
 
 .translation-section {
   flex: 1;
   padding: 1rem;
+  min-height: 250px;
 }
 
 .original {
@@ -460,10 +484,30 @@ onBeforeRouteLeave(async (to, from, next) => {
   margin-right: 0;
 }
 
-.translation-content {
+.original-content {
   background-color: #e0e0e0;
   padding: 1rem;
   border-radius: 8px;
+  height: 200px;
+  overflow-y: auto;
+}
+
+.original-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.original-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.original-content::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.original-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .message-group {
@@ -499,8 +543,8 @@ onBeforeRouteLeave(async (to, from, next) => {
   justify-content: space-between;
   padding: 1rem;
   background-color: #f3e5f5;
-  margin: 1rem 1rem 0 0;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0px 0px 8px 8px;
+  margin-left: 36px;
 }
 
 .footer-left,

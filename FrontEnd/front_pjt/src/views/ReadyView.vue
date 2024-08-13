@@ -39,24 +39,28 @@
             <table class="meeting-list">
               <thead>
                 <tr>
-                  <th>DATE</th>
-                  <th>TIME</th>
+                  <th>START</th>
+                  <th>END</th>
                   <th>AGENDA</th>
-                  <th>JOIN</th>
+                  <th>DURATION</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ formatDate(meeting.start_at) }} </td>
-                  <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+                  <td>
+                    <div class="meeting-date">{{ formatDateTime(meeting.start_at).date }}</div>
+                    <div class="meeting-time">{{ formatDateTime(meeting.start_at).time }}</div>
+                  </td>
+                  <td>
+                    <div class="meeting-date">{{ formatDateTime(meeting.end_at).date }}</div>
+                    <div class="meeting-time">{{ formatDateTime(meeting.end_at).time }}</div>
+                  </td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
-                    @click="selectMeeting(meeting)">
+                      @click="selectMeeting(meeting)">
                     {{ meeting.name }}
                   </td>
                   <td>
-                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
-                      {{ buttonText(meeting.status) }}
-                    </button>
+                    {{ calculateDuration(meeting.start_at, meeting.end_at) }}
                   </td>
                 </tr>
               </tbody>
@@ -68,20 +72,30 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
+              <button @click="deleteMeeting()" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
+              <p :style="{ 'padding-left': (!isOwner || new Date().getTime() >= new Date(selectedMeeting?.start_at).getTime()) ? '25px' : '0' }">&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
             <div class="meeting-detail-content">
               <table class="meeting-detail-table">
                 <tr>
                   <td><strong>Date</strong></td>
-                  <td>{{ formatDate(selectedMeeting?.start_at) }}</td>
+                  <td style="font-size: 0.75rem;">{{ formatDateRange(selectedMeeting?.start_at, selectedMeeting?.end_at) }}</td>
                 </tr>
                 <tr>
                   <td><strong>Time</strong></td>
-                  <td>{{ formatTime(selectedMeeting?.start_at) }} - {{ formatTime(selectedMeeting?.end_at) }}</td>
+                  <td>
+                    {{ formatDateTime(selectedMeeting?.start_at).time }} - {{ formatDateTime(selectedMeeting?.end_at).time }}
+                    <small>({{ calculateDuration(selectedMeeting?.start_at, selectedMeeting?.end_at) }})</small>
+                  </td>
                 </tr>
                 <tr>
+                  <td><strong>Details</strong></td>
+                  <td>
+                    <div>{{ selectedMeeting?.details }}</div>
+                  </td>
+                </tr>
+                <!-- <tr>
                   <td><strong>Status</strong></td>
                   <td>
                     <button :class="buttonClass(detailType, selectedMeeting?.status)"
@@ -99,7 +113,7 @@
                       </li>
                     </ul>
                   </td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td><strong>Files</strong></td>
                   <td class="before-dropdown" @click="toggleFilesList">
@@ -118,9 +132,7 @@
                   <thead>
                     <tr>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'summary.pdf', link: selectedMeeting.summary })
-                          " class="file-link">📂summary</a>
+                        <a href="#" @click.prevent="downloadSummary" class="file-link">📂summary</a>
                       </td>
                       <td>
                         <a href="#" @click.prevent="
@@ -151,9 +163,10 @@ import { useRoute } from 'vue-router';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { formatTime, handleClickOutside } from '@/utils.js';
+import { handleClickOutside } from '@/utils.js';
 import TeamNotice from '@/components/ReadyView/TeamNotice.vue';
 import MeetingCreate from '@/components/MeetingCreateView/MeetingCreate.vue'
+import router from '@/router';
 
 const route = useRoute();
 const teamStore = useTeamStore();
@@ -206,6 +219,21 @@ const buttonClass = (status) => {
 
 const buttonText = (status) => status;
 
+const deleteMeeting = async () =>{
+  const meetingId = selectedMeeting.value.meeting_id;
+  console.log(meetingId)
+  try {
+    const success = await meetingStore.deleteMeeting(meetingId);
+    if(success){
+      selectedMeeting.value = null;
+      const teamId = route.params.id;
+      router.push(`/team/${teamId}`);
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const toggleFilesList = () => {
   showFilesList.value = !showFilesList.value;
   showOverlay.value = showFilesList.value;
@@ -218,6 +246,20 @@ const toggleMembersList = () => {
 
 const previewFile = (file) => {
   previewUrl.value = file.link;
+};
+
+const downloadSummary = async () => {
+  if (!selectedMeeting.value) {
+    console.error('No meeting selected');
+    return;
+  }
+  console.log(selectedMeeting.value)
+  try {
+    await meetingStore.downloadSummary(
+        selectedMeeting.value.team_id, selectedMeeting.value.meeting_id);
+  } catch (error) {
+    console.error('Error handling summary download:', error);
+  }
 };
 
 const closeDropdowns = () => {
@@ -264,7 +306,6 @@ watch(() => route.params.id, async (newId) => {
 });
 
 const selectMeeting = (meeting) => {
-
   if (teamStore.groupedMeetings.PREV.includes(meeting)) {
     detailType.value = 'PREV';
   } else if (teamStore.groupedMeetings.TODAY.includes(meeting)) {
@@ -274,6 +315,7 @@ const selectMeeting = (meeting) => {
   }
 
   selectedMeeting.value = meeting;
+  console.log('Selected meeting:', selectedMeeting.value); // Debug log
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
@@ -300,12 +342,80 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
 });
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}-${day}`;
+
+// 미팅 리스트 전용
+const formatDateTime = (dateTimeString) => {
+  const dateObj = new Date(dateTimeString);
+  
+  // 날짜 포맷: Aug 13rd, 2024
+  const options = { month: 'short' };
+  const month = dateObj.toLocaleDateString('en-US', options);
+  const day = dateObj.getDate();
+  const daySuffix = 
+    day === 1 || day === 21 || day === 31 ? 'st' : 
+    day === 2 || day === 22 ? 'nd' : 
+    day === 3 || day === 23 ? 'rd' : 'th';
+  const year = dateObj.getFullYear();
+  const date = `${month} ${day}${daySuffix}, ${year}`;
+  
+  // 시간 포맷: 17:00
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const time = `${hours}:${minutes}`;
+  
+  return { date, time };
 };
+
+const calculateDuration = (startDateTime, endDateTime) => {
+  const start = new Date(startDateTime);
+  const end = new Date(endDateTime);
+  const diffMs = end - start; // 차이 밀리초
+  const diffMins = Math.floor(diffMs / 60000); // 차이 분
+  
+  const hours = Math.floor(diffMins / 60);
+  const minutes = diffMins % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else {
+    return `${minutes}m`;
+  }
+};
+
+// 미팅 세부사항 전용
+const formatDateRange = (startDateTime, endDateTime) => {
+  const start = new Date(startDateTime);
+  const end = new Date(endDateTime);
+
+  const options = { month: 'short' };
+  const startMonth = start.toLocaleDateString('en-US', options);
+  const startDay = start.getDate();
+  const startDaySuffix = 
+    startDay === 1 || startDay === 21 || startDay === 31 ? 'st' : 
+    startDay === 2 || startDay === 22 ? 'nd' : 
+    startDay === 3 || startDay === 23 ? 'rd' : 'th';
+  const startYear = start.getFullYear();
+
+  const endMonth = end.toLocaleDateString('en-US', options);
+  const endDay = end.getDate();
+  const endDaySuffix = 
+    endDay === 1 || endDay === 21 || endDay === 31 ? 'st' : 
+    endDay === 2 || endDay === 22 ? 'nd' : 
+    endDay === 3 || endDay === 23 ? 'rd' : 'th';
+  const endYear = end.getFullYear();
+
+  const startDate = `${startMonth} ${startDay}${startDaySuffix}`;
+  const endDate = `${endMonth} ${endDay}${endDaySuffix}, ${endYear}`;
+
+  if (start.toDateString() === end.toDateString()) {
+    return `${startDate}, ${startYear}`;
+  } else {
+    return `${startDate} - ${endDate}`;
+  }
+};
+
 </script>
 
 
@@ -418,6 +528,14 @@ ul.nav li {
   width: 20%;
 }
 
+.meeting-date {
+  font-size: x-small;
+}
+
+.meeting-time {
+  font-size: medium;
+}
+
 .meeting-list th:nth-child(3),
 .meeting-list td:nth-child(3) {
   width: auto;
@@ -487,7 +605,7 @@ button {
 
 .meeting-list tbody {
   display: block;
-  max-height: 140px;
+  max-height: 190px;
   overflow-y: scroll;
 }
 
@@ -506,7 +624,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-left: 25px;
+  /* margin-left: 25px; */
 }
 
 .meeting-detail-header p {
