@@ -71,10 +71,9 @@ const selectedLanguage = ref('en');
 const errorMessage = ref('');
 const userInfo = ref({});
 const fileInput = ref(null);
-const passwordInput = ref('1234')
+const passwordInput = ref('')
 const showPasswordModal = ref(false);
 const isPasswordVerified = ref(false);
-
 onMounted(() => {
   userInfo.value = userStore.userInfo;
   email.value = userInfo.value.email;
@@ -90,14 +89,30 @@ function selectImage() {
   fileInput.value.click();
 }
 
-function handleImageChange(event) {
+async function handleImageChange(event) {
+  console.log("Image change triggered"); // 파일 선택 시 로그 확인
   const file = event.target.files[0];
   if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      image.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    console.log("File selected:", file.name); // 파일 이름 로그 확인
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await axiosInstance.post('/api/images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      if (response.data) {
+        image.value = response.data.result;
+        console.log("Image uploaded successfully:", image.value); // 업로드 성공 로그
+      } else {
+        throw new Error(response.data.message || 'Image upload failed');
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      errorMessage.value = 'Failed to upload image. Please try again.';
+    }
   }
 }
 

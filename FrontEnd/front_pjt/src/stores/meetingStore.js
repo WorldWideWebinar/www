@@ -58,6 +58,28 @@ export const useMeetingStore = defineStore('meeting', {
         console.error(`Failed to fetch meeting ${meetingId}:`, error);
       }
     },
+    async downloadSummary(teamId, meetingId) {
+      try {
+        const response = await axiosInstance.get(`/api/summary/${teamId}/${meetingId}`, {
+          responseType: 'blob',
+          headers: {
+            'Accept': 'application/pdf',
+          },
+        });
+        const meetingResponse = await axiosInstance.get(`/api/meetings/${meetingId}`);
+        const meetingInfo = meetingResponse.data;
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(response.data);
+        link.download = `${meetingInfo.result.name}_${meetingInfo.result.start_at}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+      } catch (error) {
+        console.error('Error downloading summary:', error.response ? error.response.data : error.message);
+      }
+    },
   },
   getters: {
     getMeetingsByTeamId: (state) => (teamId) => {
