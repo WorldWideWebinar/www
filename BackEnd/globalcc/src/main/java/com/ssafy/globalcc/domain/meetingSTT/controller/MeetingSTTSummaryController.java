@@ -179,7 +179,7 @@ public class MeetingSTTSummaryController {
             canvas = stamper.getOverContent(i);
             canvas.setGState(gs);
 
-            InputStream imageStream = MeetingSTTSummaryController.class.getResourceAsStream(uploadDir + logoDir);
+            InputStream imageStream = new FileInputStream(uploadDir + logoDir);
             Image watermarkImage = Image.getInstance(imageStream.readAllBytes());
             watermarkImage.setAbsolutePosition(150, 300);
             canvas.addImage(watermarkImage);
