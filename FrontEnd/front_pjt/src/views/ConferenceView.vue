@@ -160,7 +160,6 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
@@ -187,12 +186,7 @@ const joinSession = async () => {
             streamManager: subscriber,
           });
         }
-
         sessionStore.addStream(subscriber.stream);
-        if(isOwner.value) {
-          createWebsocketConnection()
-          captureAudioStream(subscriber.stream.getMediaStream())
-        }
       }
     });
 
