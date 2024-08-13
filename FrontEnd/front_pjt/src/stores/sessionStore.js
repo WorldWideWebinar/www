@@ -21,7 +21,7 @@ export const useSessionStore = defineStore('session', {
     removeStream(streamId) {
       this.streams = this.streams.filter(stream => stream.id !== streamId);
     },
-    
+
     async startConference(meetingId, userId) {
       try {
         const response = await axiosInstance.post(`/api/sessions/${meetingId}/${userId}`, { customSessionId: String(meetingId) });
@@ -73,5 +73,14 @@ export const useSessionStore = defineStore('session', {
         throw error;
       }
     },
+    async getTeamId(meetingId) {
+      try {
+        const response = await axiosInstance.get(`/api/meetings/${meetingId}`);
+        return response.data.result.team_id;
+      } catch (error) {
+        console.error('Failed to get team ID:', error);
+        throw error;
+      }
+    }
   },
 });

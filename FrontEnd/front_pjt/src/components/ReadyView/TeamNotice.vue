@@ -16,10 +16,10 @@
           <tbody>
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
-              <td class="bold">{{ meeting.name }}</td>
+              <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
-                <button v-if="isOwner" @click="handleStartConference(meeting.id, meeting.name)" class="join-button">Start</button>
-                <button @click="handleJoinConference(meeting.name)" class="join-button">
+                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">Start</button>
+                <button @click="handleJoinConference(meeting.meeting_id)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
               </td>
@@ -93,6 +93,8 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils';
 import { useUserStore } from '@/stores/userStore.js'
+import { useRouter } from 'vue-router'
+import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
@@ -103,6 +105,8 @@ const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const isOwner = ref(false);
+const router = useRouter();
+const sessionStore = useSessionStore()
 isOwner.value = teamStore.teamInfo.ownerId === userStore.userId;
 
 function formatDate(meetingList) {
@@ -148,15 +152,59 @@ const closeMemberListDropdown = () => {
   showMemberListDropdown.value = false;
 };
 
+const closeInviteInput = () => {
+  showInviteMemberInput.value = false;
+};
+
+let removeMemberDropdownListener;
+let removeInviteInputListener;
+
 onMounted(() => {
-  // handleClickOutside 함수 호출 시, ref를 전달합니다.
-  document.addEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  const memberDropdownHandler = handleClickOutside(memberDropdown, closeMemberListDropdown);
+  const inviteInputHandler = handleClickOutside(inviteInput, closeInviteInput);
+
+  document.addEventListener('click', memberDropdownHandler);
+  document.addEventListener('click', inviteInputHandler);
+
+  removeMemberDropdownListener = () => document.removeEventListener('click', memberDropdownHandler);
+  removeInviteInputListener = () => document.removeEventListener('click', inviteInputHandler);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside(memberDropdown, closeMemberListDropdown));
+  if (removeMemberDropdownListener) removeMemberDropdownListener();
+  if (removeInviteInputListener) removeInviteInputListener();
 });
 
+onMounted(async () => {
+  const teamId = teamStore.teamInfo?.id;
+  await meetingStore.fetchMeetings(teamId);
+});
+
+const handleStartConference = async (meetingId) => {
+  const userId = userStore.userId;
+  try {
+    let sessionId = sessionStore.sessionId; // 이미 저장된 sessionId 확인
+
+    if (!sessionId) {
+      // sessionId가 없는 경우 새로운 세션 시작
+      sessionId = await sessionStore.startConference(meetingId, userId);
+    }
+
+    const token = await sessionStore.joinConference(sessionId);
+    router.push({ name: 'ConferenceView', params: { sessionId, token } });
+  } catch (error) {
+    console.error('Failed to start conference:', error);
+  }
+};
+
+const handleJoinConference = async (sessionName) => {
+  try {
+    const token = await sessionStore.joinConference(sessionName);
+    router.push({ name: 'ConferenceView', params: { sessionId: sessionName, token } });
+  } catch (error) {
+    console.error('Failed to join conference:', error);
+  }
+};
 </script>
 
 
@@ -210,12 +258,31 @@ template {
 }
 
 .notice-content {
-  max-height: 150px; /* 원하는 최대 높이 설정 */
+  max-height: 125px; /* 원하는 최대 높이 설정 */
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 5px 10px;
   background-color: #f9f9f9;
+  font-size: medium;
+}
+
+.notice-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notice-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.notice-content::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+.notice-content::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
 
 .notice-table {
@@ -233,6 +300,11 @@ template {
 .notice-table th {
   background-color: #f0f0f0;
   font-weight: bold;
+}
+
+.notice-table .meeting-name {
+  max-width: 200px;
+  min-width: 150px;
 }
 
 .notice-table tr:last-child td {
@@ -255,11 +327,15 @@ template {
 }
 
 .join-btn {
-  width: 200px;
+  width: 185px;
 }
 
 .play-button {
   width: 50px;
+}
+
+.notice-item {
+  margin: 20px 0px 20px 20px;
 }
 
 .department-info {
