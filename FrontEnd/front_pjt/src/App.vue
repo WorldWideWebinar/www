@@ -22,7 +22,7 @@
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
-            <div v-show="showDeleteButton === team.id" ref="dropdownRef" class="dropdown">
+            <div v-show="showDeleteButton === team.id" :ref="(el) => {addEventClickOutside(el)}" class="dropdown">
               <button @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
             </div>
           </li>
@@ -69,6 +69,7 @@ const showDeleteButton = ref(null)
 const deleteButtonStyle = ref({})
 const dropdownRef = ref(null)
 
+
 const goingHome = () => {
   router.push({ name: 'HomeView' })
 }
@@ -94,11 +95,11 @@ const showDeleteButtonAt = (event, teamId) => {
   };
   showDeleteButton.value = teamId;
 
-  nextTick(() => {
-    if (dropdownRef.value) {
-      document.addEventListener('click', outsideClickHandler);
-    }
-  });
+  // nextTick(() => {
+  //   if (dropdownRef.value) {
+  //     document.addEventListener('click', outsideClickHandler);
+  //   }
+  // });
 };
 
 const deleteTeam = async (teamId) => {
@@ -117,15 +118,22 @@ const deleteTeam = async (teamId) => {
   }
 };
 
+// // 외부 클릭 감지 핸들러
+// const outsideClickHandler = handleClickOutside(dropdownRef, () => {
+//   console.log("click outside click");
+//   showDeleteButton.value = null;
+//   removeOutsideClickListener();
+// });
 
-// 외부 클릭 감지 핸들러
-const outsideClickHandler = handleClickOutside(dropdownRef, () => {
-  showDeleteButton.value = null;
-  removeOutsideClickListener();
-});
+const addEventClickOutside = (el)=>{
+  document.addEventListener('click',handleClickOutside(el,()=>{
+      showDeleteButton.value = null;
+    })
+  )
+}
 
-const removeOutsideClickListener = () => {
-  document.removeEventListener('click', outsideClickHandler);
+const removeOutsideClickListener = (handler) => {
+  document.removeEventListener('click', handler);
 };
 
 onMounted(() => {

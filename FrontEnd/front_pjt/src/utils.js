@@ -10,9 +10,10 @@ export function formatTime(dateTimeString) {
 
 export function handleClickOutside(elementRef, callback) {
   return (event) => {
-    const element  = elementRef.value;
-    if (element instanceof HTMLElement && element.contains(event.target)) {
-      console.log('Clicked outside:', event.target);
+    if(elementRef == null) return
+    const element  = elementRef instanceof HTMLElement ? elementRef : elementRef.value;
+    if (element instanceof HTMLElement &&
+      !element.contains(event.target)) {
       callback();
     }
   };
