@@ -2,7 +2,7 @@
   <div class="profile-card-outer">
     <div class="profile-card-inner">
       <!-- <img :src="profileImage" alt="Profile Image" class="profile-image" /> -->
-      <img src="../../assets/img/profile.png" alt="Profile Image" class="profile-image">
+      <img :src="profileImage" alt="Profile Image" class="profile-image">
       <div class="profile-name">{{ name }}</div>
       <div class="profile-time">
         <span class="profile-header">Total Meeting Time</span><br>
