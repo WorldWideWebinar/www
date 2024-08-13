@@ -18,6 +18,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Set;
@@ -78,7 +79,7 @@ public class MeetingSTTStompController {
         }
     }
     @GetMapping("/api/meetings/{meetingId}/finish")
-    public void saveFinishedMeeting(int meetingId){
+    public void saveFinishedMeeting(@PathVariable Integer meetingId){
         log.debug("---------STT 데이터베이스 저장---------");
         String redisKey = "MeetingSTT:" + meetingId;
         saveListFromRedisToDatabase(redisKey);
