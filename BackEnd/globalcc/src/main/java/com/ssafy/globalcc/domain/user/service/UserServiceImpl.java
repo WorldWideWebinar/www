@@ -134,6 +134,7 @@ public class UserServiceImpl implements UserService {
         dbUser.setPassword(encoded);
         dbUser.setLanguage(user.getLanguage());
         dbUser.setEmail(user.getEmail());
+        dbUser.setProfileImage(user.getProfileImageUrl());
         // 프로필 사진의 경우 다른 곳에서 수정함.
 
         userRepository.save(dbUser);
