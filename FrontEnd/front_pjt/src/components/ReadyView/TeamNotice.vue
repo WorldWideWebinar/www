@@ -175,10 +175,6 @@ onBeforeUnmount(() => {
   if (removeInviteInputListener) removeInviteInputListener();
 });
 
-onMounted(async () => {
-  const teamId = teamStore.teamInfo?.id;
-  await meetingStore.fetchMeetings(teamId);
-});
 
 const handleStartConference = async (meetingId) => {
   const userId = userStore.userId;
