@@ -213,14 +213,18 @@ export const useTeamStore = defineStore('team', {
     },
 
     groupMeetings(prev, next, meetings) {
+      const sortMeetingsByTime = (meetings) => {
+        return meetings.sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
+      };
+    
       if (prev) {
-        this.groupedMeetings.PREV = [...meetings];
+        this.groupedMeetings.PREV = sortMeetingsByTime(meetings);
       }
       if (next) {
-        this.groupedMeetings.NEXT = [...meetings];
+        this.groupedMeetings.NEXT = sortMeetingsByTime(meetings);
       }
       if(!prev && !next){
-        this.groupedMeetings.TODAY = [...meetings];
+        this.groupedMeetings.TODAY = sortMeetingsByTime(meetings);
       }
     },
   },

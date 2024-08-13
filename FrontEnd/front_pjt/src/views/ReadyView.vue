@@ -39,23 +39,23 @@
             <table class="meeting-list">
               <thead>
                 <tr>
-                  <th>DATE</th>
-                  <th>TIME</th>
+                  <th>START</th>
+                  <th>END</th>
                   <th>AGENDA</th>
                   <th>JOIN</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="meeting in filteredMeetings" :key="meeting.id">
-                  <td>{{ formatDate(meeting.start_at) }} </td>
-                  <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
+                  <td>{{ formatDateTime(meeting.start_at) }}</td>
+                  <td>{{ formatDateTime(meeting.end_at) }}</td>
                   <td :class="{ agenda: true, 'bold-agenda': selectedMeeting && selectedMeeting.id === meeting.id }"
-                    @click="selectMeeting(meeting)">
+                      @click="selectMeeting(meeting)">
                     {{ meeting.name }}
                   </td>
                   <td>
-                    <button :class="buttonClass(meeting.status)" @click="toggleStatus(meeting)">
-                      {{ buttonText(meeting.status) }}
+                    <button class="btn-green">
+                      IN
                     </button>
                   </td>
                 </tr>
@@ -300,12 +300,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
 });
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}-${day}`;
+
+const formatDateTime = (dateTimeString) => {
+  const dateObj = new Date(dateTimeString);
+  const options = { month: 'short' };
+  const month = dateObj.toLocaleDateString('en-US', options);
+  const day = dateObj.getDate();
+  const daySuffix = 
+    day === 1 || day === 21 || day === 31 ? 'st' : 
+    day === 2 || day === 22 ? 'nd' : 
+    day === 3 || day === 23 ? 'rd' : 'th';
+  const year = dateObj.getFullYear();
+  const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  return `${month} ${day}${daySuffix}, ${year} ${time}`;
 };
+
 </script>
 
 
