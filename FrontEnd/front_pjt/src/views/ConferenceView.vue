@@ -48,8 +48,8 @@
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
       <button class="btn-icon" @click="toggleScreenShare">{{ isScreenSharing ? '🛑' : '🖥️' }}</button>
-      <button class="btn-icon" @click="leaveSession">🔄</button>
-      <button class="btn-icon" @click="endConference">❌</button>
+      <button v-if="!isOwner" class="btn-icon" @click="leaveSession">🔄</button>
+      <button v-else-if="isOwner" class="btn-icon" @click="endConference">❌</button>
     </div>
   </div>
 </template>
