@@ -1,7 +1,7 @@
 <template>
   <div class="conference-container">
     <header class="header">
-      <h3>Welcome to <span class="highlight">{{ departmentName }}</span> Meeting</h3>
+      <span>Welcome to <span class="highlight">{{ conferenceName }}</span> Meeting Page</span>
     </header>
     <main class="main-content">
       <div class="left-side">
@@ -15,15 +15,23 @@
           </div>
           <div class="right-side">
             <user-video class="right-side-video" :stream-manager="myStreamManager" />
+            <div class="my-toolbar">
+              <button class="btn-icon" @click="toggleAudio">
+                <img :src="isAudioEnabled ? audioOnIcon : audioOffIcon" alt="Toggle Audio" />
+              </button>
+              <button class="btn-icon" @click="toggleVideo">
+                <img :src="isVideoEnabled ? videoOnIcon : videoOffIcon" alt="Toggle Video" />
+              </button>
+              <button class="btn-icon" @click="toggleScreenShare">
+                <img :src="isScreenSharing ? screenOnIcon : screenOffIcon" alt="Toggle Screen Share" />
+              </button>
+            </div>
           </div>
         </div>
         <div class="translation-container">
           <div class="translation-section original">
-            <h5>Original Version</h5>
-            <div class="original-content" ref="originalContent">
               <!-- Original messages -->
               <TranscriptionText/>
-            </div>
           </div>
           <div class="translation-section translated">
             <TranslatedText/>
@@ -34,22 +42,22 @@
     <div class="footer">
       <div class="footer-left">
         <span style="font-weight: bold;">Duration</span>
-        <span>1:27:31 30min left</span>
+        <span>{{ attendedNums.length }}</span>
       </div>
       <div class="footer-center">
         <span style="font-weight: bold;">Attendance</span>
-        <span>{{ participants.length }} / 6</span>
+        <span>{{ attendedNums.length }} / {{ participants.length }}</span>
       </div>
       <!-- <div class="footer-right">
         <span>Invite Alex, Joy</span>
       </div> -->
-    </div>
-    <div class="bottom-toolbar">
-      <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
-      <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
-      <button class="btn-icon" @click="toggleScreenShare">{{ isScreenSharing ? '🛑' : '🖥️' }}</button>
-      <button v-if="!isOwner" class="btn-icon" @click="leaveSession">🔄</button>
-      <button v-else-if="isOwner" class="btn-icon" @click="endConference">❌</button>
+      <div class="footer-right">
+        <span style="font-weight: bold;">Exit</span>
+        <div class="bottom-toolbar">
+          <button class="btn-icon" @click="leaveSession"><img src="../assets/img/refresh.png" alt="refresh"></button>
+          <button class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -70,10 +78,12 @@ const router = useRouter();
 const teamStore = useTeamStore();
 const userStore = useUserStore();
 const sessionStore = useSessionStore();
-const departmentName = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.getTeamById(teamId);
-  return teamData ? teamData.teamName : '';
+const conferenceName = computed(() => {
+  return sessionStore.meetingInfo ? sessionStore.meetingInfo.name : '';
+});
+
+const attendedNums = computed(() => {
+  return sessionStore.participants ? sessionStore.participants : '';
 });
 
 // const sessionId = route.params.sessionId;
@@ -86,6 +96,15 @@ const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = sessionStore.meetingId
+
+// 이미지 경로 지정
+import audioOffIcon from '@/assets/img/audio_off.png';
+import audioOnIcon from '@/assets/img/audio_on.png';
+import videoOffIcon from '@/assets/img/video_off.png';
+import videoOnIcon from '@/assets/img/video_on.png';
+import screenOnIcon from '@/assets/img/screen_off.png';
+import screenOffIcon from '@/assets/img/screen_on.png';
+
 
 let socket = null;
 let audioContext = null;
@@ -353,6 +372,14 @@ onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
 });
+
+onMounted(async () => {
+  const meetingId = sessionStore.meetingId;
+  if (meetingId) {
+    await sessionStore.fetchMeetingById(meetingId);  // 미팅 정보 가져오기
+  }
+  joinSession();
+});
 </script>
 
 <style scoped>
@@ -365,12 +392,13 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 .header {
   text-align: center;
-  padding: 1rem;
-  background-color: #ffffff;
+  padding: 1rem 0 1.5rem 0;
+  font-weight: bolder;
+  font-size: xx-large;
 }
 
 .highlight {
-  color: blueviolet;
+  color: rgb(166, 125, 247);
 }
 
 .main-content {
@@ -400,9 +428,10 @@ onBeforeRouteLeave(async (to, from, next) => {
   background-color: #f3e5f5;
   align-items: center;
   border-radius: 8px;
-  padding: 2rem;
+  padding: 2rem 2rem 0 2rem;
   display: flex;
   flex-direction: column;
+  margin: auto;
 }
 
 .left-side {
@@ -412,6 +441,14 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 .right-side {
   margin: 0 1rem 0 0;
+}
+
+.my-toolbar {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1rem 0 1rem;
+  margin-top: 80px;
+  /* margin-bottom: 20px; */
 }
 
 .participant {
@@ -484,32 +521,6 @@ onBeforeRouteLeave(async (to, from, next) => {
   margin-right: 0;
 }
 
-.original-content {
-  background-color: #e0e0e0;
-  padding: 1rem;
-  border-radius: 8px;
-  height: 200px;
-  overflow-y: auto;
-}
-
-.original-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.original-content::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 4px;
-}
-
-.original-content::-webkit-scrollbar-thumb:hover {
-  background-color: #999;
-}
-
-.original-content::-webkit-scrollbar-track {
-  background-color: #f0f0f0;
-  border-radius: 4px;
-}
-
 .message-group {
   margin-bottom: 1rem;
 }
@@ -542,6 +553,7 @@ onBeforeRouteLeave(async (to, from, next) => {
   display: flex;
   justify-content: space-between;
   padding: 1rem;
+  padding-bottom: 0rem;
   background-color: #f3e5f5;
   border-radius: 0px 0px 8px 8px;
   margin-left: 36px;
@@ -554,15 +566,39 @@ onBeforeRouteLeave(async (to, from, next) => {
   flex-direction: column;
 }
 
+.footer-left {
+  margin-left: 260px;
+}
+
+.footer-center {
+  /* margin-right: 100px; */
+}
+
 .bottom-toolbar {
   display: flex;
+  flex-direction: row;
   justify-content: center;
-  padding: 1rem;
+  margin-right: 100px;
   background-color: #ffffff;
 }
 
-.bottom-toolbar .btn-icon {
-  margin: 0 0.5rem;
+.btn-icon {
+  margin: 0.5rem 1rem;
+  background-color: #c5c5c5;
+  border: lightgray;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.btn-icon:hover {
+  background-color: #a6a6a6;
+}
+
+.btn-icon img {
+  width: 30px;
+  height: 30px;
+  margin: auto;
 }
 
 /* 화상 영역 */
