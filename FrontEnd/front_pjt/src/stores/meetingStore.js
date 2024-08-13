@@ -29,6 +29,23 @@ export const useMeetingStore = defineStore('meeting', {
         return false
       }
     },
+    async deleteMeeting(meetingId) {
+      try {
+        const response = await axiosInstance.delete(`api/meetings/${meetingId}`);
+        if (response.data.success) {
+          // await useTeamStore().fetchTeamById()
+          // this.meetings.push(meeting);
+          // this.groupMeetings();
+          return true;
+        } else {
+          console.error('Failed to delete meeting:', response.data.message);
+          return false;
+        }
+      } catch (error) {
+        console.error('Error deleting meeting:', error);
+        return false
+      }
+    },
     async fetchMeetingById(meetingId) {
       try {
         const response = await axiosInstance.get(`api/meetings/${meetingId}`);
