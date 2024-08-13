@@ -1,4 +1,5 @@
 <template>
+  <Loading v-model="loading" />
   <div :class="['container', { 'right-panel-active': isRightPanelActive }]" id="container">
     <SignUp />
     <SignIn />
@@ -20,19 +21,34 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import SignUp from '@/components/SignView/SignUp.vue';
-import SignIn from '@/components/SignView/SignIn.vue';
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import SignUp from '@/components/SignView/SignUp.vue'
+import SignIn from '@/components/SignView/SignIn.vue'
+import Loading from '@/components/Loading.vue'
 
-const isRightPanelActive = ref(false);
-
+const isRightPanelActive = ref(false)
+const route = useRoute()
+const loading = ref(true)
 const activateSignUp = () => {
-  isRightPanelActive.value = true;
-};
+  isRightPanelActive.value = true
+}
 
 const activateSignIn = () => {
-  isRightPanelActive.value = false;
-};
+  isRightPanelActive.value = false
+}
+
+// 페이지가 로드될 때 query 파라미터를 확인하여 적절한 overlay를 활성화
+onMounted(() => {
+  const mode = route.query.mode
+  if (mode === 'signup') {
+    activateSignUp()
+    loading.value = false
+  } else {
+    activateSignIn()
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>
@@ -75,7 +91,7 @@ button {
   border-radius: 20px;
   border: 1px solid rgb(166, 125, 247);
   background-color: rgb(166, 125, 247);
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 12px;
   font-weight: bold;
   padding: 12px 45px;
@@ -94,11 +110,11 @@ button:focus {
 
 button.ghost {
   background-color: transparent;
-  border-color: #FFFFFF;
+  border-color: #ffffff;
 }
 
 form {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,13 +133,14 @@ input {
 }
 
 #container {
-	margin-top: 10%;
+  margin-top: 5%;
 }
 
 .container {
   background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.25),
     0 10px 10px rgba(0, 0, 0, 0.22);
   position: relative;
   overflow: hidden;
@@ -164,12 +181,14 @@ input {
 }
 
 @keyframes show {
-  0%, 49.99% {
+  0%,
+  49.99% {
     opacity: 0;
     z-index: 1;
   }
-  
-  50%, 100% {
+
+  50%,
+  100% {
     opacity: 1;
     z-index: 5;
   }
@@ -197,7 +216,7 @@ input {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: 0 0;
-  color: #FFFFFF;
+  color: #ffffff;
   position: relative;
   opacity: 0.8;
   left: -100%;

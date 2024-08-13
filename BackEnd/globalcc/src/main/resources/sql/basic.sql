@@ -6,17 +6,17 @@ USE globalcc;
 
 -- 사용자 테이블
 CREATE TABLE IF NOT EXISTS user (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    id VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(320) NOT NULL, -- 이메일 주소는 최대 320자를 가질 수 있습니다.
-    password VARCHAR(255) NOT NULL,
-    language VARCHAR(255) DEFAULT 'eng', -- 기본 값으로 저장
-    profile_image VARCHAR(2048), -- 프로필 이미지 URL 저장
-    last_team_id INT,
-    last_meeting_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+user_id INT AUTO_INCREMENT PRIMARY KEY,
+id VARCHAR(255) NOT NULL,
+name VARCHAR(255) NOT NULL,
+email VARCHAR(320) NOT NULL, -- 이메일 주소는 최대 320자를 가질 수 있습니다.
+password VARCHAR(255) NOT NULL,
+language VARCHAR(255) DEFAULT 'eng', -- 기본 값으로 저장
+profile_image VARCHAR(2048), -- 프로필 이미지 URL 저장
+last_team_id INT,
+last_meeting_id INT,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 팀 테이블
@@ -31,12 +31,12 @@ CREATE TABLE IF NOT EXISTS team (
 
 -- 사용자-팀 관계 테이블
 CREATE TABLE IF NOT EXISTS user_team (
-    user_group_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    team_id INT NOT NULL,
-    last_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 마지막으로 접근한 시간
-    admission BOOLEAN DEFAULT FALSE, -- 입장 여부
-    FOREIGN KEY (user_id) REFERENCES user(user_id),
+     user_group_id INT AUTO_INCREMENT PRIMARY KEY,
+     user_id INT NOT NULL,
+     team_id INT NOT NULL,
+     last_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 마지막으로 접근한 시간
+     admission BOOLEAN DEFAULT FALSE, -- 입장 여부
+     FOREIGN KEY (user_id) REFERENCES user(user_id),
     FOREIGN KEY (team_id) REFERENCES team(team_id)
 );
 
@@ -74,10 +74,10 @@ CREATE TABLE IF NOT EXISTS meeting_file (
 
 -- 미팅 STT 테이블
 CREATE TABLE IF NOT EXISTS meeting_stt (
-    meeting_stt_id INT AUTO_INCREMENT PRIMARY KEY,
-    meeting_id INT NOT NULL,
-    content TEXT NOT NULL, -- 긴 내용을 저장할 수 있도록 TEXT 타입 사용
-    FOREIGN KEY (meeting_id) REFERENCES meeting(meeting_id)
+   meeting_stt_id INT AUTO_INCREMENT PRIMARY KEY,
+   meeting_id INT NOT NULL,
+   content TEXT NOT NULL, -- 긴 내용을 저장할 수 있도록 TEXT 타입 사용
+   FOREIGN KEY (meeting_id) REFERENCES meeting(meeting_id)
 );
 
 -- 채팅 테이블
@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS chat (
     FOREIGN KEY (team_id) REFERENCES team(team_id)
 );
 
--- 테이블 수정
 
 -- 팀 별로 이미지 정보 저장
 ALTER TABLE team ADD COLUMN emoji TEXT;
@@ -103,18 +102,18 @@ ALTER TABLE user MODIFY COLUMN password VARCHAR(512) NOT NULL;
 ALTER TABLE meeting ADD COLUMN session_id VARCHAR(255);
 
 
--- user 테이블
-ALTER TABLE user 
+-- user 테이블 분리
+ALTER TABLE user
 DROP COLUMN last_team_id,
 DROP COLUMN last_meeting_id;
 
 CREATE TABLE IF NOT EXISTS user_detail (
-    user_detail_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    last_team_id INT,
-    last_meeting_id INT,
-    total_meeting_time INT,
-    FOREIGN KEY (user_id) REFERENCES user(user_id)
+   user_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   last_team_id INT,
+   last_meeting_id INT,
+   total_meeting_time INT,
+   FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
 ALTER TABLE user CHANGE id uid VARCHAR(255) NOT NULL;
@@ -138,3 +137,19 @@ ADD detail VARCHAR(255);
 ALTER TABLE user ADD CONSTRAINT unique_uid UNIQUE (uid);
 
 ALTER TABLE chat ADD COLUMN senderProfile TEXT NULL;
+
+-- user 탈퇴 시 user_detail 삭제
+ALTER TABLE user_detail DROP FOREIGN KEY user_detail_ibfk_1;
+
+ALTER TABLE user_detail
+ADD CONSTRAINT user_detail_ibfk_1
+FOREIGN KEY (user_id) REFERENCES user(user_id)
+ON DELETE CASCADE;
+
+-- 팀 삭제 시 채팅 정보 삭제
+ALTER TABLE chat DROP FOREIGN KEY chat_ibfk_2;
+
+ALTER TABLE chat
+ADD CONSTRAINT chat_ibfk_2
+FOREIGN KEY (team_id) REFERENCES team(team_id)
+ON DELETE CASCADE;

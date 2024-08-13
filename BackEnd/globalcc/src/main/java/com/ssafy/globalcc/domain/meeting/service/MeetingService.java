@@ -28,4 +28,6 @@ public interface MeetingService {
     void delete(int meetingId);
 
     List<MeetingDetailsDto> findMeetingListByDto(MeetingListDto dto);
+
+    String findMeetingIdBySessionId(String sessionId);
 }

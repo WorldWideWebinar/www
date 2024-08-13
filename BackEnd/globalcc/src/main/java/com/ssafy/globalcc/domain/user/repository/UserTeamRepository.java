@@ -15,10 +15,11 @@ import java.util.List;
 public interface UserTeamRepository extends JpaRepository<UserTeam, Integer> {
     @Query("SELECT ut.team.teamId FROM UserTeam ut WHERE ut.user.userId = :userId")
     List<Integer> findUserTeamIdsByUserUserId(@Param("userId") Integer userId);
-    List<Integer> findUserIdByTeam(Team team);
+
     @Modifying
     @Query("select  u from User u join UserTeam ut on ut.user.userId = u.userId where ut.team = :team")
     List<User> findUserByTeam(@Param("team") Team team);
+
     @Modifying
     @Query("delete from UserTeam ut where ut.user.userId=:userId AND ut.team.teamId=:teamId")
     int deleteByUserUserId(@Param("userId") Integer userId, @Param("teamId") Integer teamId);

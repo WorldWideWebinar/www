@@ -19,4 +19,6 @@ public interface UserService {
     void deleteUser(int userId);
     String getNewAccessTokenWithRefreshToken(int id, String refreshToken);
     User findUserById(int userId);
+
+    boolean checkPassword(String username, String password);
 }
