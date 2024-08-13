@@ -29,8 +29,7 @@ public class SecurityConfig {
                         "/api/users/duplication/*",
                         "/api/stomp/**",
                         "/api/images/*",
-                        "/api/meetingSTT/**",
-                        "/api/**"
+                        "/api/meetingSTT/**"
                         ).permitAll()
                 .anyRequest().authenticated()
         );
