@@ -92,7 +92,7 @@ public class MeetingSTTSummaryController {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String meetingDate = meetingDto.getStartAt().format(formatter) + " ~ " + meetingDto.getEndAt().format(formatter);
         document.add(new Paragraph("회의명: " + meetingDto.getName(), normalFont));
-        document.add(new Paragraph("날짜: " + meetingDate, normalFont));
+        document.add(new Paragraph("시간: " + meetingDate, normalFont));
         document.add(new Paragraph("주제: " + meetingDto.getDetail(), normalFont));
         document.add(Chunk.NEWLINE);
 
