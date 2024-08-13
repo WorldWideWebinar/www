@@ -180,11 +180,7 @@ export const useUserStore = defineStore('user', {
     async changeUserInfo(userId, newUserInfo) {
       const errorStore = useErrorStore();
       try {
-        const response = await axiosInstance.put(`api/users/${userId}`, newUserInfo, {
-          headers: {
-            'Authorization': `Bearer ${this.accessToken}`
-          }
-        });
+        const response = await axiosInstance.put(`api/users/${userId}`, newUserInfo);
 
         if (response.data.success) {
           // 사용자 정보를 업데이트

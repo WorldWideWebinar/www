@@ -10,7 +10,8 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
+            <video v-if="isScreenSharing" id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
+            <img v-else src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
           </div>
           <div class="right-side">
             <user-video :stream-manager="myStreamManager" />
@@ -46,6 +47,7 @@
     <div class="bottom-toolbar">
       <button class="btn-icon" @click="toggleAudio">{{ isAudioEnabled ? '🔇' : '🎤' }}</button>
       <button class="btn-icon" @click="toggleVideo">{{ isVideoEnabled ? '📷' : '🎥' }}</button>
+      <button class="btn-icon" @click="toggleScreenShare">{{ isScreenSharing ? '🛑' : '🖥️' }}</button>
       <button class="btn-icon" @click="leaveSession">🔄</button>
       <button class="btn-icon" @click="endConference">❌</button>
     </div>
@@ -84,11 +86,11 @@ const meetingId = sessionStore.meetingId
 let socket = null;
 let audioContext = null;
 let processor = null;
-
+const OV = new OpenVidu();
 // const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
 const isOwner = computed(() => sessionStore.meetingId != null);
 const joinSession = async () => {
-  const OV = new OpenVidu();
+  // const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
 
@@ -135,7 +137,6 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      console.log("내가 팀 주인인가?", isOwner.value)
       if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
@@ -165,7 +166,10 @@ const joinSession = async () => {
         }
 
         sessionStore.addStream(subscriber.stream);
-        if(isOwner.value) captureAudioStream(subscriber.stream.getMediaStream());
+        if(isOwner.value) {
+          createWebsocketConnection()
+          captureAudioStream(subscriber.stream.getMediaStream())
+        }
       }
     });
 
@@ -178,6 +182,8 @@ const joinSession = async () => {
   }
 };
 const createWebsocketConnection = ()=>{
+  if(socket != null) return
+
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
@@ -284,6 +290,31 @@ const toggleVideo = () => {
   if (publisher.value) {
     isVideoEnabled.value = !isVideoEnabled.value;
     publisher.value.publishVideo(isVideoEnabled.value);
+  }
+};
+
+const isScreenSharing = ref(false);
+const screenPublisher = ref(null);
+
+const toggleScreenShare = async () => {
+  if (!isScreenSharing.value) {
+    screenPublisher.value = OV.initPublisher('screen-share-video', {
+      videoSource: 'screen',
+      publishAudio: true,
+      publishVideo: true,
+      mirror: false,
+    });
+
+    session.value.publish(screenPublisher.value);
+    myStreamManager.value = screenPublisher.value; // 화면 공유 스트림을 메인 영역에 표시
+    isScreenSharing.value = true;
+  } else {
+    // 화면 공유 중지
+    session.value.unpublish(screenPublisher.value);
+    screenPublisher.value = null;
+    isScreenSharing.value = false;
+
+    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
   }
 };
 
