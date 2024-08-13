@@ -206,7 +206,7 @@ const createWebsocketConnection = ()=>{
   socket.onopen = () => {
     console.log('WebSocket connection opened');
     console.log('Meeting ID:', sessionStore.sessionId);
-    socket.send(JSON.stringify({ meetingId: sessionStore.sessionId }));
+    socket.send(JSON.stringify({ meetingId: sessionStore.sessionId.toString() }));
   };
 
   socket.onclose = () => {
