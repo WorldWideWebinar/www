@@ -10,6 +10,7 @@ export const useSessionStore = defineStore('session', {
     token: null, // 토큰을 저장할 변수 추가
     meetingId: null,
     participants: 0,
+    meetingInfo: null,
   }),
   actions: {
     setSession(session) {
@@ -45,7 +46,7 @@ export const useSessionStore = defineStore('session', {
 
         this.token = response.data; // 서버로부터 받은 토큰을 저장
         console.log('openvidu 발급 토큰', this.token);
-        // this.meetingId = sessionId;
+        this.sessionId = sessionId;
         this.inConference = true;
         return this.token; // 토큰 반환
       } catch (error) {
@@ -82,6 +83,18 @@ export const useSessionStore = defineStore('session', {
         throw error;
       }
     },
+    
+    async fetchMeetingById(meetingId) {
+      try {
+        const response = await axiosInstance.get(`/api/meetings/${meetingId}`);
+        this.meetingInfo = response.data.result;  // 미팅 정보 저장
+        return this.meetingInfo;
+      } catch (error) {
+        console.error('Failed to fetch meeting:', error);
+        return null;
+      }
+    },
+
     async saveSTTFinishedMeeting(meetingId) {
       try {
         const response = await axiosInstance.get(`/api/meetings/${meetingId}/finish`);
@@ -92,5 +105,6 @@ export const useSessionStore = defineStore('session', {
         console.error('Failed to finish meeting:', error.response ? error.response.data : error.message);
       }
     }
+
   },
 });
