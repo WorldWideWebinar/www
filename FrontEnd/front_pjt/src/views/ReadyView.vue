@@ -68,7 +68,7 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <button @click="deleteMeeting(selectedMeeting?.id)" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">Delect</button>
+              <button @click="deleteMeeting(selectedMeeting?.id)" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
               <p>&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
@@ -209,6 +209,9 @@ const buttonClass = (status) => {
 const buttonText = (status) => status;
 
 const deleteMeeting = async (meetingId) =>{
+  console.log(meetingId)
+  console.log(selectedMeeting.value)
+  console.log(selectedMeeting.value.id)
   try {
     const success = await meetingStore.deleteMeeting(meetingId);
     if(success){
@@ -521,7 +524,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-left: 25px;
+  /* margin-left: 25px; */
 }
 
 .meeting-detail-header p {
