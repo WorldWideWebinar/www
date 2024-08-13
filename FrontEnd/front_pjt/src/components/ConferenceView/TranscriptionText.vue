@@ -20,7 +20,7 @@
   const userStore = useUserStore();
   const token = userStore.accessToken;
   const sessionStore = useSessionStore();
-  const meetingId = sessionStore.meetingId;
+  const meetingId = sessionStore.sessionId;
   const textStore = useSTTStore();
 
   textStore.openConnection(token,meetingId);

@@ -95,7 +95,7 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
-const meetingId = sessionStore.meetingId
+const meetingId = sessionStore.sessionId
 
 // 이미지 경로 지정
 import audioOffIcon from '@/assets/img/audio_off.png';
@@ -160,7 +160,6 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
@@ -187,12 +186,7 @@ const joinSession = async () => {
             streamManager: subscriber,
           });
         }
-
         sessionStore.addStream(subscriber.stream);
-        if(isOwner.value) {
-          createWebsocketConnection()
-          captureAudioStream(subscriber.stream.getMediaStream())
-        }
       }
     });
 
