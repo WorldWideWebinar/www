@@ -41,6 +41,8 @@ public class MeetingSTTSummaryController {
     private String model;
     @Value("${openai.api.url}")
     private String apiURL;
+    @Value("${file.uploads-dir}")
+    private String uploadDir;
     @Value("${summary.logo}")
     private String logoDir;
     @Value("${summary.ttf}")
@@ -75,7 +77,7 @@ public class MeetingSTTSummaryController {
 
         document.open();
 
-        BaseFont baseFont = BaseFont.createFont(fontDir, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        BaseFont baseFont = BaseFont.createFont(uploadDir + fontDir, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
 
         // Fonts
         Font titleFont = new Font(baseFont, 20, Font.BOLD, BaseColor.BLUE);
@@ -177,7 +179,7 @@ public class MeetingSTTSummaryController {
             canvas = stamper.getOverContent(i);
             canvas.setGState(gs);
 
-            InputStream imageStream = MeetingSTTSummaryController.class.getResourceAsStream(logoDir);
+            InputStream imageStream = MeetingSTTSummaryController.class.getResourceAsStream(uploadDir + logoDir);
             Image watermarkImage = Image.getInstance(imageStream.readAllBytes());
             watermarkImage.setAbsolutePosition(150, 300);
             canvas.addImage(watermarkImage);
