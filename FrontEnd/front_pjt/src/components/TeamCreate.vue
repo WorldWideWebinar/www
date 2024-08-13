@@ -118,23 +118,8 @@ const fetchEmojis = async () => {
   }
 }
 
-const fetchUsers = async () => {
-  try {
-    const response = axiosInstance.get('api/users')
-    userStore.setUserList(response.data)
-    console.log('Fetched Users:', response.data)
-  } catch (error) {
-    console.error('Failed to fetch users:', error)
-    errorStore.showError('Failed to fetch users.')
-  }
-}
-
 const setup = async () => {
   await fetchEmojis()
-  if (userStore.userList.length === 0) {
-    await fetchUsers()
-  }
-  console.log('Setup: User List:', userStore.userList)
 }
 
 setup()

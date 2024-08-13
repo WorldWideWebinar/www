@@ -10,8 +10,8 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <video v-if="isScreenSharing" id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
-            <img v-else src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" />
+            <video id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
+            <!-- <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" /> -->
           </div>
           <div class="right-side">
             <user-video class="right-side-video" :stream-manager="myStreamManager" />
@@ -205,6 +205,7 @@ const createWebsocketConnection = ()=>{
     socket.close()
   };
 }
+
 const captureAudioStream = (mediaStream) => {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
@@ -255,7 +256,11 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    router.push({ name: 'HomeView' })
+    const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+        console.error('Router error:', err);
+      });
+
   }
 };
 
