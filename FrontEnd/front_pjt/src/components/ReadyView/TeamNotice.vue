@@ -96,10 +96,9 @@ const meetingStore = useMeetingStore();
 const todayMeetings = computed(() => {
   const now = new Date();
 
-  // 오늘의 미팅 중에서 start_at이 현재 시간보다 이후인 미팅을 필터링
   return teamStore.groupedMeetings.TODAY.filter(meeting => {
-    const startAt = new Date(meeting.start_at);
-    return startAt >= now;
+    const endAt = new Date(meeting.end_at);
+    return endAt >= now;
   });
 });
 const userStore = useUserStore();
@@ -107,7 +106,7 @@ const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
 const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
-const isOwner = computed(() => teamStore.teamInfo.ownerId === userStore.userId);
+const isOwner = computed(() => teamStore.teamInfo.ownerId == userStore.userId);
 const router = useRouter();
 const sessionStore = useSessionStore();
 

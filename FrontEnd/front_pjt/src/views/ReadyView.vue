@@ -232,9 +232,9 @@ const selectTab = async (tab) => {
 
 const loadData = async () => {
   const teamId = route.params.id
+  await teamStore.fetchTeamById(teamId)
   try {
-    await Promise.all([
-      teamStore.fetchTeamById(teamId),
+    await Promise.all([      
       teamStore.fetchTeamUsers(),
       teamStore.fetchMeetings(teamId, false, false), // TODAY
       teamStore.fetchMeetings(teamId, false, true), // NEXT
