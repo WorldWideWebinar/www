@@ -94,5 +94,16 @@ export const useSessionStore = defineStore('session', {
         return null;
       }
     },
+
+    async saveSTTFinishedMeeting(meetingId) {
+      try {
+        const response = await axiosInstance.get(`/api/meetings/${meetingId}/finish`);
+        console.log("Meeting finished successfully");
+        console.log("Response status:", response.status);
+        console.log("Response data:", response.data);
+      } catch (error) {
+        console.error('Failed to finish meeting:', error.response ? error.response.data : error.message);
+      }
+    },
   },
 });
