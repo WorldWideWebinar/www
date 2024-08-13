@@ -15,6 +15,8 @@ public interface MeetingService {
 
     void updateMeetingSessionId(Integer meetingId, String sessionId);
 
+    void updateMeetingContent(Integer meetingId, String content);
+
     boolean isUserTeamLeader(Integer meetingId, Integer userId);
 
     int addMeeting(MeetingDto meeting, String username);

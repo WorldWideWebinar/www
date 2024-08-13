@@ -12,8 +12,6 @@ import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.team.service.TeamService;
 import com.ssafy.globalcc.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import okhttp3.*;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -26,10 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
-@RequestMapping("/summary")
+@RequestMapping("api/summary")
 @RequiredArgsConstructor
 public class MeetingSTTSummaryController {
 
@@ -67,7 +66,7 @@ public class MeetingSTTSummaryController {
         Meeting meetingDto = meetingService.findMeetingById(meetingId);
         TeamDetailDto teamDetailDto = teamService.getTeamDetails(teamId);
 
-        Document document = new Document(PageSize.A4, 36, 36, 72, 108); // Margins: left, right, top, bottom
+        Document document = new Document(PageSize.A4, 36, 36, 72, 108);
         PdfWriter writer = PdfWriter.getInstance(document, outputStream);
 
         document.open();
@@ -87,11 +86,13 @@ public class MeetingSTTSummaryController {
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
 
-        // info
+        // Info
         Paragraph infoHeader = new Paragraph("회의 정보:", headerFont);
         document.add(infoHeader);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String meetingDate = meetingDto.getStartAt().format(formatter) + " ~ " + meetingDto.getEndAt().format(formatter);
         document.add(new Paragraph("회의명: " + meetingDto.getName(), normalFont));
-        document.add(new Paragraph("날짜: " + meetingDto.getStartAt() + " ~ " + meetingDto.getEndAt(), normalFont));
+        document.add(new Paragraph("날짜: " + meetingDate, normalFont));
         document.add(new Paragraph("주제: " + meetingDto.getDetail(), normalFont));
         document.add(Chunk.NEWLINE);
 
@@ -114,7 +115,6 @@ public class MeetingSTTSummaryController {
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
 
-        // Adding participant data
         for(int i = 0; i < teamDetailDto.getUserList().size(); i++) {
             int idx = teamDetailDto.getUserList().get(i);
             addTableRow(table, String.valueOf(i + 1), userService.getUserDetails(idx).getName(), tableNormalFont);
@@ -122,29 +122,23 @@ public class MeetingSTTSummaryController {
         document.add(table);
         document.add(Chunk.NEWLINE);
 
-        // Main Discussion Points
-        Paragraph discussionHeader = new Paragraph("회의 주요 안건:", headerFont);
-        document.add(discussionHeader);
-        document.add(new Paragraph("1. Project timeline review", normalFont));
-        document.add(new Paragraph("2. Budget allocation", normalFont));
-        document.add(new Paragraph("3. Task assignments", normalFont));
+        // Summary
+        Paragraph summaryHeader = new Paragraph("회의 내용:", headerFont);
+        document.add(summaryHeader);
+
+        String summary = meetingDto.getContent();
+        if(summary != null) System.out.println("이미 요약된 회의입니다.");
+        if(summary == null) {
+            summary = loadSummary(meetingId);
+            meetingDto.setContent(summary);
+            meetingService.updateMeetingContent(meetingId, summary);
+        }
+
+        document.add(new Paragraph(summary, normalFont));
         document.add(Chunk.NEWLINE);
-
-        // Conclusions and Action Items
-        Paragraph conclusionsHeader = new Paragraph("회의 결론:", headerFont);
-        document.add(conclusionsHeader);
-        document.add(new Paragraph("1. Finalize the project plan by next week", normalFont));
-        document.add(new Paragraph("2. Prepare a budget report by end of month", normalFont));
-        document.add(new Paragraph("3. Assign tasks to team members", normalFont));
-
         document.close();
 
         addWatermark(new ByteArrayInputStream(outputStream.toByteArray()), outputStream);
-    }
-
-    @GetMapping("/12345")
-    public String chat(){
-        return loadSummary(1);
     }
 
     public String loadSummary(int meetingId) {
@@ -160,7 +154,8 @@ public class MeetingSTTSummaryController {
     }
 
     private String callOpenAIApiForSummary(String text) {
-        String prompt = "다음 회의 내용에서, 3가지 주요 안건을 추출하고 앞에 번호를 붙여줘." + text;
+        String prompt = "다음 회의 내용을 300자 정도로 요약해줘." + text;
+        System.out.println("프롬프트 사이즈: " + prompt.length());
         OpenAIRequest request = new OpenAIRequest(model, prompt);
         OpenAIResponse response =  template.postForObject(apiURL, request, OpenAIResponse.class);
         return response.getChoices().get(0).getMessage().getContent();
@@ -171,7 +166,7 @@ public class MeetingSTTSummaryController {
         PdfStamper stamper = new PdfStamper(reader, outputStream);
         PdfContentByte canvas;
         PdfGState gs = new PdfGState();
-        gs.setFillOpacity(0.3f); // Set transparency level
+        gs.setFillOpacity(0.3f);
 
         int numberOfPages = reader.getNumberOfPages();
 
@@ -179,12 +174,8 @@ public class MeetingSTTSummaryController {
             canvas = stamper.getOverContent(i);
             canvas.setGState(gs);
 
-            // Load the watermark image
             Image watermarkImage = Image.getInstance("logo.png");
-            watermarkImage.setAbsolutePosition(150, 300); // Position (x, y) on the page
-            //watermarkImage.setRotationDegrees(45); // Rotate if necessary
-
-            // Add watermark image to the content
+            watermarkImage.setAbsolutePosition(150, 300);
             canvas.addImage(watermarkImage);
         }
 

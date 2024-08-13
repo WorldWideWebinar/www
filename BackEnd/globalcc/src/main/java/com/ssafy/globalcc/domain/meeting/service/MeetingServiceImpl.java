@@ -73,6 +73,13 @@ public class MeetingServiceImpl implements MeetingService{
         meetingRepository.save(meeting);
     }
 
+    @Override
+    public void updateMeetingContent(Integer meetingId, String content) {
+        Meeting meeting = findMeetingById(meetingId);
+        meeting.setContent(content);
+        meetingRepository.save(meeting);
+    }
+
     /**
      * user가 팀장인지 확인하는 메서드
      * @param meetingId The meeting ID
