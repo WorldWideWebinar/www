@@ -90,14 +90,31 @@ function selectImage() {
   fileInput.value.click();
 }
 
-function handleImageChange(event) {
+async function handleImageChange(event) {
   const file = event.target.files[0];
   if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      image.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    // 이미지 파일을 서버에 업로드하기 위한 FormData 객체 생성
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      // 서버에 POST 요청을 보내서 이미지를 업로드
+      const response = await axiosInstance.post('/api/images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+
+      if (response.data) {
+        image.value = response.data.result.image_url;
+      } else {
+        throw new Error(response.data.message || 'Image upload failed');
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      errorMessage.value = 'Failed to upload image. Please try again.';
+    }
   }
 }
 

@@ -143,7 +143,7 @@ export const useTeamStore = defineStore('team', {
           });
         }
 
-        if (response.data.success) {
+        if (response.data.isSuccess) {
           this.teams = this.teams.filter(team => team.id != teamId);
         } else {
           errorStore.showError(`Failed to delete team: ${response.data.message}`);
@@ -178,11 +178,27 @@ export const useTeamStore = defineStore('team', {
       }
     },
 
-    addMembertoTeam(userId, teamId) {
-      const team = this.teams.find(team => team.id == teamId);
+    async addMemberToTeam(teamId, invitedUserList) {
+      const team = this.teams.find(team => team.id === teamId);
       if (team) {
-        if (!team.userList.includes(userId)) {
-          team.userList.push(userId);
+        // 현재 teamInfo의 userList에 새로운 유저들을 추가
+        const updatedUserList = [...team.userList, ...invitedUserList.filter(userId => !team.userList.includes(userId))];
+
+        try {
+          // 서버에 업데이트된 팀 정보를 PUT 요청으로 전송
+          await axiosInstance.put(`/api/teams/${teamId}`, {
+            ...team,
+            userList: updatedUserList, // 새로 추가된 멤버를 포함한 userList를 전송
+          });
+
+          // teamInfo도 업데이트
+          if (this.teamInfo.id === teamId) {
+            this.teamInfo.userList = updatedUserList;
+          }
+
+        } catch (error) {
+          const errorStore = useErrorStore();
+          errorStore.showError(`Failed to update team ${teamId}: ${error.message}`);
         }
       } else {
         const errorStore = useErrorStore();

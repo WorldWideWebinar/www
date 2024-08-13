@@ -252,7 +252,11 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    router.push({ name: 'HomeView' })
+    const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+        console.error('Router error:', err);
+      });
+
   }
 };
 

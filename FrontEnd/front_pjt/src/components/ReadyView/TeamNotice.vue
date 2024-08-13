@@ -6,19 +6,14 @@
       </div>
       <div class="notice-content">
         <table v-if="todayMeetings.length > 0" class="notice-table">
-          <!-- <thead>
-            <tr>
-              <th>TIME</th>
-              <th>AGENDA</th>
-              <th>PLAY</th>
-            </tr>
-          </thead> -->
           <tbody>
             <tr v-for="meeting in todayMeetings" :key="meeting.id">
               <td>{{ formatTime(meeting.start_at) }} - {{ formatTime(meeting.end_at) }}</td>
               <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
-                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">Start</button>
+                <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">
+                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                </button>
                 <button v-else @click="handleJoinConference(meeting.meeting_id)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
                 </button>
@@ -98,7 +93,15 @@ import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
 const meetingStore = useMeetingStore();
-const todayMeetings = computed(() => teamStore.groupedMeetings.TODAY);
+const todayMeetings = computed(() => {
+  const now = new Date();
+
+  // 오늘의 미팅 중에서 start_at이 현재 시간보다 이후인 미팅을 필터링
+  return teamStore.groupedMeetings.TODAY.filter(meeting => {
+    const startAt = new Date(meeting.start_at);
+    return startAt >= now;
+  });
+});
 const userStore = useUserStore();
 const showMemberListDropdown = ref(false);
 const showInviteMemberInput = ref(false);
