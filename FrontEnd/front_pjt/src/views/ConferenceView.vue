@@ -95,7 +95,7 @@ const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
-const meetingId = sessionStore.sessionId
+const meetingId = computed(() => sessionStore.sessionId)
 
 // 이미지 경로 지정
 import audioOffIcon from '@/assets/img/audio_off.png';
@@ -160,7 +160,6 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      if(!isOwner.value) return
       console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
@@ -187,12 +186,7 @@ const joinSession = async () => {
             streamManager: subscriber,
           });
         }
-
         sessionStore.addStream(subscriber.stream);
-        if(isOwner.value) {
-          createWebsocketConnection()
-          captureAudioStream(subscriber.stream.getMediaStream())
-        }
       }
     });
 
@@ -211,8 +205,8 @@ const createWebsocketConnection = ()=>{
 
   socket.onopen = () => {
     console.log('WebSocket connection opened');
-    console.log('Meeting ID:', sessionStore.meetingId);
-    socket.send(JSON.stringify({ meetingId: sessionStore.meetingId }));
+    console.log('Meeting ID:', sessionStore.sessionId);
+    socket.send(JSON.stringify({ meetingId: sessionStore.sessionId.toString() }));
   };
 
   socket.onclose = () => {
@@ -270,6 +264,15 @@ const sendDataToBackend = (data) => {
 };
 
 const leaveSession = async () => {
+  if (session.value) {
+    console.log(meetingId)
+    session.value.disconnect();
+    socket.close()
+    session.value = null;
+    // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
+    //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+    //     console.error('Router error:', err);
+    //   });
 
   session.value.disconnect();
   socket.close()
@@ -362,10 +365,6 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onMounted(() => {
-  joinSession();
-});
-
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
@@ -376,7 +375,7 @@ onMounted(async () => {
   if (meetingId) {
     await sessionStore.fetchMeetingById(meetingId);  // 미팅 정보 가져오기
   }
-  joinSession();
+  await joinSession();
 });
 </script>
 

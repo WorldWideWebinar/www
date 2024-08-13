@@ -217,7 +217,8 @@ const deleteMeeting = async () =>{
     if(success){
       selectedMeeting.value = null;
       const teamId = route.params.id;
-      router.push(`/team/${teamId}`);
+      teamStore.fetchMeetings(teamId, false, false) // TODAY
+      teamStore.fetchMeetings(teamId, false, true) // NEXT
     }
   } catch (error) {
     console.log(error)
