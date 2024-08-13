@@ -89,8 +89,8 @@ const createMeeting = async () => {
   const newMeeting = {
     team_id: teamId.value,
     name: name.value.replace(/\s+/g, '-'),
-    start: start.value,
-    end: end.value,
+    start: new Date(start.value).toISOString(),
+    end: new Date(end.value).toISOString(),
     detail: detail.value,
   };
 
@@ -127,6 +127,7 @@ const setupFlatpickrStart = () => {
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
         start.value = adjustedDate.toISOString();
         console.log("Start Date for display:", start.value);
+        console.log(new Date(start.value).toISOString())
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
