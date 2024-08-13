@@ -43,7 +43,7 @@ onMounted(() => {
 
 <style scoped>
 .stream {
-  margin: 10px 0px;
+  margin: 12px 0px;
 }
 
 .profile {
