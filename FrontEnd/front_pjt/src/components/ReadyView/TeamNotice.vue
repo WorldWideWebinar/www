@@ -22,7 +22,7 @@
           </tbody>
         </table>
         <div v-else class="notice-item">
-          <p class="no-meeting">There's no meeting today :)</p>
+          <p class="no-meeting">There's no meeting :)</p>
         </div>
       </div>
     </section>
