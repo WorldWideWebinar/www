@@ -15,6 +15,8 @@ public interface MeetingService {
 
     void updateMeetingSessionId(Integer meetingId, String sessionId);
 
+    void updateMeetingContent(Integer meetingId, String content);
+
     boolean isUserTeamLeader(Integer meetingId, Integer userId);
 
     int addMeeting(MeetingDto meeting, String username);
@@ -26,4 +28,6 @@ public interface MeetingService {
     void delete(int meetingId);
 
     List<MeetingDetailsDto> findMeetingListByDto(MeetingListDto dto);
+
+    String findMeetingIdBySessionId(String sessionId);
 }

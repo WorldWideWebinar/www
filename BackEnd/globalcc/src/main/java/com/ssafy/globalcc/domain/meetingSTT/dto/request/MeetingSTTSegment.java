@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MeetingSTTSegment {
-    private float start;
-    private float end;
+    private double start;
+    private double end;
     private String text;
 }

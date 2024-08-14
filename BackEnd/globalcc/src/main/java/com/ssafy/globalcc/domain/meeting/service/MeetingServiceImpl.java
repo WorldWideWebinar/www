@@ -73,6 +73,13 @@ public class MeetingServiceImpl implements MeetingService{
         meetingRepository.save(meeting);
     }
 
+    @Override
+    public void updateMeetingContent(Integer meetingId, String content) {
+        Meeting meeting = findMeetingById(meetingId);
+        meeting.setContent(content);
+        meetingRepository.save(meeting);
+    }
+
     /**
      * user가 팀장인지 확인하는 메서드
      * @param meetingId The meeting ID
@@ -199,5 +206,10 @@ public class MeetingServiceImpl implements MeetingService{
                         .session_id(meeting.getSessionId())
                         .build()))
                 .toList();
+    }
+
+    @Override
+    public String findMeetingIdBySessionId(String sessionId) {
+        return meetingRepository.findMeetingIdBySessionId(sessionId);
     }
 }
