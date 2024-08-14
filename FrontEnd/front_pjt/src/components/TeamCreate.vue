@@ -76,7 +76,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
 import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
 import { useErrorStore } from '@/stores/errorStore'
@@ -161,6 +160,7 @@ const handleCreateTeam = async () => {
       teamName.value = ''
       selectedUsers.value = []
       selectedIcon.value = '🚀'
+      teamStore.clearTeamMeetings()
       await router.replace({ name: 'HomeView' })
     } catch (error) {
       errorStore.showError('Failed to create team.')
