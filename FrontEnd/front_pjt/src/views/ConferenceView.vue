@@ -261,22 +261,20 @@ const sendDataToBackend = (data) => {
 };
 
 const leaveSession = async () => {
+  console.log("leave Session !!!!!!!!!");
   if (session.value) {
-    console.log(meetingId)
+    console.log("session value        ");
     session.value.disconnect();
-    socket.close()
+    socket.close();
     session.value = null;
     // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
     //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
     //     console.error('Router error:', err);
     //   });
-
-  session.value.disconnect();
-  socket.close()
-  console.log('meetingId', meetingId)
-  session.value = null;
-  const teamId = await sessionStore.getTeamId(meetingId);
-  router.replace({ name: 'ReadyView', params: {id : teamId} })
+    console.log('meetingId')
+    console.log(meetingId.value);
+    const teamId = await sessionStore.getTeamId(meetingId.value);
+    router.replace({ name: 'ReadyView', params: {id : teamId} });
   }
 };
 
@@ -368,10 +366,10 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onBeforeRouteLeave(async (to, from, next) => {
-  await leaveSession();
-  next();
-});
+// onBeforeRouteLeave(async (to, from, next) => {
+//   await leaveSession();
+//   next();
+// });
 
 onMounted(async () => {
   const meetingId = sessionStore.meetingId;
@@ -403,7 +401,7 @@ onUnmounted(() => {
   }
   if (session.value) {
     session.value.disconnect();
-    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+    // sessionStore.clearSession();
   }
 
   // Reset relevant refs
