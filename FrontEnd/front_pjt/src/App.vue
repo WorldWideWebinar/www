@@ -165,8 +165,6 @@ const route = useRoute()
 
 onMounted(() => {
   fetchUserTeams().then(() => {
-    console.log("fetched")
-    console.log(route.params.id)
     teamStore.setCurrentTeam(route.params.id)
     userStore.fetchAllUsers();
   });
