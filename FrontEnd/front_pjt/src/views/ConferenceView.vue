@@ -54,8 +54,8 @@
       <div class="footer-right">
         <span style="font-weight: bold;">Exit</span>
         <div class="bottom-toolbar">
-          <button class="btn-icon" @click="leaveSession"><img src="../assets/img/refresh.png" alt="refresh"></button>
-          <button class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
+          <button v-if="!isOwner" class="btn-icon" @click="leaveSession"><img src="../assets/img/end.png" alt="refresh"></button>
+          <button v-else-if="isOwner" class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
         </div>
       </div>
     </div>
