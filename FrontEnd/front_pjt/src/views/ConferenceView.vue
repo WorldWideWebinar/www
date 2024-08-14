@@ -62,6 +62,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -280,7 +281,7 @@ const leaveSession = async () => {
   session.value = null;
   const teamId = await sessionStore.getTeamId(meetingId);
   router.replace({ name: 'ReadyView', params: {id : teamId} })
-
+  }
 };
 
 const endConference = async () => {
@@ -377,6 +378,7 @@ onMounted(async () => {
   }
   await joinSession();
 });
+
 </script>
 
 <style scoped>
