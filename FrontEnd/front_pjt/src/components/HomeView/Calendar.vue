@@ -5,7 +5,7 @@
       <div id="calendar">
         <div class="calendar-header">
           <button @click="previousMonth" class="nav-button">&lt;</button>
-          <h2>{{ currentMonth.format('MMMM YYYY') }}</h2>
+          <h2 style="font-size: 28px;">{{ currentMonth.format('MMMM YYYY') }}</h2>
           <button @click="nextMonth" class="nav-button">&gt;</button>
         </div>
         <div class="calendar">
@@ -24,10 +24,11 @@
           </div>
         </div>
       </div>
-      <CalendarCard v-if="selectedMeetings.length" :meetings="selectedMeetings" />
+      <CalendarCard v-if="selectedMeetings.length" :meetings="selectedMeetings"/>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
@@ -73,10 +74,6 @@ const selectedMeetings = computed(() => {
   )
 })
 
-onMounted(async () => {
-  console.log('Meetings:', userStore.meetings) // 디버깅용
-})
-
 function selectDay(day) {
   selectedDate.value = day.date
 }
@@ -101,13 +98,17 @@ function previousMonth() {
 function nextMonth() {
   currentMonth.value = currentMonth.value.add(1, 'month')
 }
+
+onMounted(() => {
+  // userStore.fetchUserMeetings();
+});
 </script>
 <style scoped>
 .cal-container {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  height: 100vh;
+  max-height: 100vh;
   background-color: #f5f5f5; /* 연한 회색 배경색 추가 */
 }
 
@@ -116,13 +117,13 @@ function nextMonth() {
   color: #1d252c;
   padding: 40px 60px;
   text-align: center;
-  margin-right: 20px;
+  margin: 0px auto;
   border-radius: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cal-content h3 {
-  font-size: 37px;
+  font-size: 45px;
   font-weight: 900;
   margin: 0 0 1rem;
 }
@@ -137,6 +138,7 @@ function nextMonth() {
   align-items: center;
   margin-bottom: 20px;
 }
+
 
 .nav-button {
   background-color: #bbe8f8; /* 보색 2 */
@@ -169,6 +171,7 @@ function nextMonth() {
   cursor: pointer;
   background-color: #f3e5f5; /* 기본 날짜의 약한 색상 */
   transition: background-color 0.3s;
+  width: 58px;
 }
 
 .calendar-header-row .calendar-cell {

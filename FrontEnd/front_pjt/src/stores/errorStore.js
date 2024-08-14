@@ -2,16 +2,16 @@ import { defineStore } from 'pinia';
 
 export const useErrorStore = defineStore('error', {
   state: () => ({
-    showError: true,
+    showErrorModal: true,
     errorMessage: '',
   }),
   actions: {
     showError(message) {
       this.errorMessage = message;
-      this.showError = false;
+      this.showErrorModal = false;
     },
     hideError() {
-      this.showError = true;
+      this.showErrorModal = true;
       this.errorMessage = '';
     }
   }

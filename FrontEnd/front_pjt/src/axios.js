@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useUserStore } from './stores/userStore';
+import { useRouter } from 'vue-router'
 
+const router = useRouter();
 const axiosInstance = axios.create({
   baseURL: 'https://i11a501.p.ssafy.io/', // baseURL이 올바르게 설정되어 있는지 확인
 });
@@ -22,10 +24,7 @@ axiosInstance.interceptors.response.use(
     const userStore = useUserStore();
     const originalRequest = error.config;
 
-    // 오류가 발생할 때 originalRequest.url을 로깅하여 확인
-    console.log('Original request URL:', originalRequest.url);
-
-    if (error.response.status === 400 && !originalRequest._retry) {
+    if (error.response.status == 403 && !originalRequest._retry && !userStore.userId != 0) {
       originalRequest._retry = true;
       try {
         const response = await axios.get(
@@ -47,6 +46,10 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        userStore.userId = 0;
+        userStore.accessToken = null;
+        userStore.refreshToken = null;
+        router.push({ name: 'HomeView' });
         return Promise.reject(refreshError);
       }
     }

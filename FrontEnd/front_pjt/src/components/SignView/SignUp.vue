@@ -12,12 +12,14 @@
       <input v-model="password" type="password" placeholder="Password" required />
       <input v-model="passwordConfirmation" type="password" placeholder="Password Confirmation" required />
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-      <select v-model="selectedLanguage" @change="changeLanguage">
-        <option value="en">🇺🇸 English</option>
-        <option value="ko">🇰🇷 한국어</option>
-        <option value="ja">🇯🇵 日本語</option>
-        <option value="zh">🇨🇳 中国语</option>
-        <option value="es">🇪🇸 Español</option>
+      <select class="language-choice" v-model="selectedLanguage" @change="changeLanguage">
+        <option value="en">🇺🇸 &nbsp;English</option>
+        <option value="ko">🇰🇷 &nbsp;한국어</option>
+        <option value="ja">🇯🇵 &nbsp;日本語</option>
+        <option value="zh">🇨🇳 &nbsp;中国语</option>
+        <option value="es">🇪🇸 &nbsp;Español</option>
+        <option value="fr">🇫🇷 &nbsp;Français</option>
+        <option value="de">🇩🇪 &nbsp;Deutsche</option>
       </select>
       <button class="submit-btn" type="submit">Sign Up</button>
     </form>
@@ -47,26 +49,28 @@ function changeLanguage(event) {
 }
 
 watch(passwordConfirmation, (newVal) => {
-  if (newVal) {
-    if (password.value !== newVal) {
-      errorMessage.value = 'Passwords do not match';
-    } else {
-      errorMessage.value = '';
-    }
+  if (newVal && password.value !== newVal) {
+    errorMessage.value = 'Passwords do not match';
+  } else {
+    errorMessage.value = '';
+  }
+});
+
+watch(id, async (newId) => {
+  if (newId) {
+    idCheck.value = false; 
+    idCheckMessage.value = ''; 
   }
 });
 
 async function checkId() {
   try {
-    console.log(`Checking ID: ${id.value}`);
     const isAvailable = await userStore.checkIdDuplication(id.value);
     idCheckMessage.value = isAvailable ? 'ID is available' : 'ID is not available';
     idCheck.value = isAvailable;
-    console.log(`ID Check Result: ${idCheckMessage.value}`);
   } catch (error) {
     idCheckMessage.value = `Error: ${error.message}`;
     idCheck.value = false;
-    console.error(`ID Check Error: ${error.message}`);
   }
 }
 
@@ -86,12 +90,11 @@ async function handleSignUp() {
     id: id.value,
     email: email.value,
     password: password.value,
-    language: selectedLanguage.value
+    language: selectedLanguage.value,
   };
 
   const result = await userStore.signUp(signUpData);
-  if (result.success == true) {
-    alert('Sign up successful');
+  if (result.success) {
     router.push({ name: 'HomeView' });
   } else {
     errorMessage.value = `Sign up failed: ${result.message}`;
@@ -128,18 +131,24 @@ a {
 }
 
 button {
-  margin: 0 auto;
-  width: 50%;
+  font-size: 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
   border-radius: 20px;
-  border: 1px solid #6a1b9a;
   background-color: #6a1b9a;
-  color: #FFFFFF;
   font-size: 12px;
   font-weight: bold;
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: transform 80ms ease-in;
+  width: 40%;
+  margin: 0px auto;
+}
+
+button:hover {
+  background-color: #b380bc;
 }
 
 button:active {
@@ -162,7 +171,7 @@ form {
 }
 
 .form-title {
-  margin-top: 10%;
+  margin-top: 4%;
 }
 
 .id-check-container {
@@ -206,9 +215,9 @@ select {
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
       0 10px 10px rgba(0,0,0,0.22);
   position: relative;
-  width: 1000px; /* Increased width */
+  width: 1000px;
   max-width: 100%;
-  min-height: 600px; /* Increased height */
+  min-height: 600px;
 }
 
 .form-container {
@@ -220,6 +229,45 @@ select {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow-y: auto; /* 스크롤바 추가 */
+  padding-bottom: 20px; /* 하단 공간 추가 */
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 폼 요소가 위쪽에 정렬 */
+  align-items: center;
+  background-color: #FFFFFF;
+  padding: 20px;
+  text-align: center;
+  flex-grow: 1; /* 남은 공간을 차지하게 함 */
+  overflow-y: auto; /* 폼 내부 스크롤바 추가 */
+}
+
+.submit-btn {
+  position: sticky; /* 버튼을 고정 */
+  bottom: 0;
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  padding: 12px 45px;
+  margin-top: 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: #b380bc;
+}
+
+.submit-btn:focus {
+  outline: none;
 }
 
 .sign-up-container {
@@ -229,17 +277,18 @@ select {
 
 .error-message {
   color: red;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 
 .id-check-message {
   color: green;
-  margin: 10px 0;
+  margin: 1px 0;
   font-size: 12px;
 }
 
 .submit-btn {
   margin-top: 5%;
 }
+
 </style>

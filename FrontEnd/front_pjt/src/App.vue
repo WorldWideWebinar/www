@@ -3,40 +3,29 @@
     <aside class="sidebar d-flex flex-column">
       <div class="home">
         <button class="btn btn-home" @click="goingHome">
-<<<<<<< HEAD
-          <img src="../src/assets/img/nav_logo.png" alt="logo" />
-=======
           <img src="../src/assets/img/chat.png" alt="logo">
->>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
         </button>
       </div>
-      <div class="seperator"></div>
-      <ul class="nav flex-column">
-<<<<<<< HEAD
-        <li class="nav-item" v-for="team in teams" :key="team.id">
-          <RouterLink
-            class="nav-link"
-            :to="{ name: 'ReadyView', params: { id: team.id } }"
-            active-class="active"
+      <div class="nav-container flex-grow-1" @scroll="handleScroll">
+        <ul class="nav flex-column">
+          <li 
+            class="nav-item" 
+            v-for="team in teams" 
+            :key="team.id"
+            @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
           >
-            <span class="icon">{{ team.emoji }}</span>
-=======
-        <li 
-        class="nav-item" 
-        v-for="team in teams" 
-        :key="team.id"
-        >
-          <RouterLink 
-            class="nav-link" 
-            :to="{ name: 'ReadyView', params: { id: team.id } }" 
-            active-class="active"
+            <RouterLink 
+              class="nav-link" 
+              :to="{ name: 'ReadyView', params: { id: team.id } }" 
+              active-class="active"
             >
-            <span class="icon">{{ team.icon }}</span>
->>>>>>> bb06b92addabf26a0a551b85436ae5fd4cf4ee49
-            <span class="link-text">{{ team.teamName }}</span>
-          </RouterLink>
-        </li>
-      </ul>
+              <span class="btn-icon">{{ team.emoji }}</span>
+              <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+      <div class="spacer"></div>
       <div class="add-team">
         <button class="btn btn-add">
           <RouterLink class="no-decoration" :to="{ name: 'TeamCreateView' }">
@@ -44,80 +33,187 @@
           </RouterLink>
         </button>
       </div>
-      <div class="spacer"></div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <button class="btn btn-icon">
-            <!-- <span class="icon">📢</span> -->
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="btn btn-icon">
-            <!-- <span class="icon">❔</span> -->
-          </button>
-        </li>
-      </ul>
     </aside>
     <main class="flex-grow-1">
       <RouterView />
     </main>
     <ChatButton v-if="isLogin" @toggleChat="toggleChat" />
-    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" />
+    <ChatBox v-if="isChatOpen" @toggleChat="toggleChat" @selectTeam="selectTeam" :selectedTeamId="selectedTeamId" />
     <ErrorModal v-if="!showError" :message="errorMessage" @close="closeError" />
   </div>
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, computed, ref } from 'vue'
-import { useUserStore } from './stores/userStore'
-import { useTeamStore } from './stores/teamStore'
-import router from './router'
-import ChatButton from '@/components/ChatButton.vue'
-import ChatBox from '@/components/ChatBox.vue'
-import ErrorModal from '@/components/ErrorModal.vue'
-import { useErrorStore } from './stores/errorStore'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { onMounted, computed, ref, nextTick, onBeforeUnmount, watch } from 'vue';
+import { useUserStore } from './stores/userStore';
+import { useTeamStore } from './stores/teamStore';
+import router from './router';
+import ChatButton from '@/components/ChatButton.vue';
+import ChatBox from '@/components/ChatBox.vue';
+import ErrorModal from '@/components/ErrorModal.vue';
+import { useErrorStore } from './stores/errorStore';
 
 const errorStore = useErrorStore()
 const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 const hasFetchedUserInfo = ref(false)
+const selectedTeamId = ref(null)
+const showScrollIndicator = ref(false)
+const showDeleteButton = ref(null)
+const deleteButtonStyle = ref({})
+
+const isOwner = (teamId) => {
+  const userId = userStore.userId;
+  const ownerId = teamStore.teams.find((team) => team.id === teamId)?.ownerId;
+  return ownerId !== '' && userId === ownerId;
+};
+
+const leaveTeam = (teamId) => {
+  teamStore.leaveTeam(teamId);
+};
 
 const goingHome = () => {
-  router.push({ name: 'HomeView' })
-}
+  router.push({ name: 'HomeView' });
+};
 
 const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
-    await userStore.fetchUserInfo(userStore.userId)
-    const userInfo = userStore.userInfo
+    await userStore.fetchUserInfo(userStore.userId);
+    const userInfo = userStore.userInfo;
+
     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      await Promise.all(userInfo.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-      console.log('Teams:', teamStore.teams)
+      const newTeamIds = userInfo.teamList.filter(
+        (teamId) => !teamStore.teams.some((team) => team.id == teamId)
+      );
+      await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
-    hasFetchedUserInfo.value = true
+    teamStore.teams.sort((a, b) => a.id - b.id);
+    hasFetchedUserInfo.value = true;
   }
-}
+};
 
-onMounted(async () => {
-  await fetchUserTeams()
-})
+const showDeleteButtonAt = (event, teamId) => {
+  removeExistingDropdown();
 
-const teams = computed(() => teamStore.teams)
+  const dropdown = document.createElement('div');
+  dropdown.className = 'dropdown';
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = `${event.clientY}px`;
+  dropdown.style.left = `${event.clientX}px`;
+  dropdown.style.zIndex = 9999;
 
-// 챗봇
-const isChatOpen = ref(false)
+  if (isOwner(teamId)) {
+    const deleteButton = document.createElement('button');
+    deleteButton.innerHTML = 'Delete <br> Team';
+    deleteButton.className = 'btn btn-delete';
+    deleteButton.onclick = () => {
+      deleteTeam(teamId);
+      removeExistingDropdown();
+    };
+    dropdown.appendChild(deleteButton);
+  }
+
+  const leaveButton = document.createElement('button');
+  leaveButton.innerHTML = 'Leave <br> Team';
+  leaveButton.className = 'btn btn-leave';
+  leaveButton.onclick = () => {
+    leaveTeam(teamId);
+    removeExistingDropdown();
+  };
+  dropdown.appendChild(leaveButton);
+
+  document.body.appendChild(dropdown);
+  showDeleteButton.value = teamId;
+
+  document.addEventListener('click', (e) => handleOutsideClick(e, dropdown), { once: true });
+};
+
+const handleOutsideClick = (event, dropdown) => {
+  if (!dropdown.contains(event.target)) {
+    removeExistingDropdown();
+  }
+};
+
+const removeExistingDropdown = () => {
+  const existingDropdowns = document.querySelectorAll('.dropdown');
+  if (existingDropdowns.length > 0) {
+    existingDropdowns.forEach((dropdown) => dropdown.remove());
+  }
+  showDeleteButton.value = null;
+};
+
+const handleScroll = () => {
+  removeExistingDropdown();
+};
+
+const deleteTeam = async (teamId) => {
+  const currentRoute = router.currentRoute.value;
+  const response = await teamStore.deleteTeam(teamId);
+
+  if (response.isSuccess) {
+    showDeleteButton.value = null;
+    if (currentRoute.params.id == teamId) {
+      router.push({ name: 'HomeView' });
+    }
+  } else {
+    console.error(response.message);
+  }
+};
+const route = useRoute()
+
+onMounted(() => {
+  fetchUserTeams().then(() => {
+    teamStore.setCurrentTeam(route.params.id)
+    userStore.fetchAllUsers();
+  });
+
+});
+
+onBeforeUnmount(() => {
+  removeExistingDropdown();
+});
+
+const teams = computed(() => teamStore.teams);
+
+const isChatOpen = ref(false);
 const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value
-}
+  isChatOpen.value = !isChatOpen.value;
+};
 
-const showError = computed(() => errorStore.showError)
-const errorMessage = computed(() => errorStore.errorMessage)
+const showError = computed(() => errorStore.showErrorModal);
+const errorMessage = computed(() => errorStore.errorMessage);
 const closeError = () => {
-  errorStore.hideError()
-}
+  errorStore.hideError();
+};
+
+const selectTeam = (teamId) => {
+  selectedTeamId.value = teamId;
+};
+
+const checkScroll = () => {
+  const navContainer = document.querySelector('.nav-container');
+  nextTick(() => {
+    if (navContainer && navContainer.scrollHeight > navContainer.clientHeight) {
+      showScrollIndicator.value = true;
+    } else {
+      showScrollIndicator.value = false;
+    }
+  });
+};
+
+watch(teams, checkScroll, { immediate: true });
+
+watch(isLogin, (newValue, oldValue) => {
+  if (oldValue && !newValue) {
+    isChatOpen.value = false;
+  }
+});
+
+window.addEventListener('resize', checkScroll);
 </script>
+
 <style scoped>
 #app {
   display: flex;
@@ -125,14 +221,8 @@ const closeError = () => {
   background-color: #f5f5f5;
 }
 
-.no-decoration {
-  text-decoration: none;
-  color: inherit;
-}
-
 .sidebar {
-  
-  width: 70px;
+  width: 80px;
   height: 100vh;
   background-color: #f3e5f5;
   padding: 0;
@@ -157,30 +247,38 @@ const closeError = () => {
 }
 
 .sidebar .home {
-  width: 70px;
+  width: 80px;
   margin: 0 auto;
+  background-color: #f1d5f7;
 }
 
 .sidebar .btn-home {
-  margin: 0 auto;
-  padding: 0px 5px; /* 간격 조정 */
+  margin: 0px auto;
+  padding: 0px 5px;
 }
 
 .sidebar .btn-home img {
-  width: 60px; /* 크기 조정 */
-  margin: 10px auto;
+  width: 60px;
+  margin: 5px auto;
 }
 
-/* 구분선 */
-.sidebar .seperator {
-  padding: 0px;
-  margin: 0 10px;
-  border-bottom: 3px dashed #000000;
+.nav-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  position: relative;
 }
 
-/* 팀 목록 */
+.nav-container::-webkit-scrollbar {
+  display: none;
+}
+
 ul.nav {
-  margin-top: 10px;
+  width: 100%;
+}
+
+li.nav-item {
+  width: 100%;
+  border-bottom: 1px dashed rgb(220, 193, 246);
 }
 
 .sidebar .nav-link {
@@ -192,6 +290,8 @@ ul.nav {
   color: black;
   font-weight: bold;
   background-color: #f3e5f5;
+  width: 100%;
+  text-align: center;
 }
 
 .sidebar .nav-link.active,
@@ -200,13 +300,25 @@ ul.nav {
   color: #6a1b9a;
 }
 
-.sidebar .icon {
+.sidebar .btn-icon {
   font-size: 1.5rem;
+  margin: 5px;
 }
 
 .sidebar .link-text {
   margin-top: 0.2rem;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 85%;
+  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  box-orient: vertical;
+  white-space: normal;
 }
 
 .btn-icon {
@@ -215,21 +327,38 @@ ul.nav {
   justify-content: center;
 }
 
-/* 팀 추가 */
+.dropdown {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: #e1bee7;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.add-team {
+  margin: 0px auto;
+  padding: 20px 22px 0px 22px;
+  background-color: #f1d5f7;
+}
+
 .sidebar .btn-add {
   background-color: #f8bbd0;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   margin: 0 auto 1rem auto;
   font-size: 1.5rem;
 }
 
-.add-team {
-  margin-top: 20px;
+.no-decoration {
+  text-decoration: none;
+  color: inherit;
 }
 
-/* 하단 부분과의 구분 */
 .spacer {
   flex-grow: 1;
 }
@@ -237,7 +366,7 @@ ul.nav {
 main {
   flex-grow: 1;
   background-color: #fff;
-  margin-left: 70px;
+  margin-left: 80px;
 }
 
 .error-modal .error-content {
@@ -260,5 +389,30 @@ main {
 
 .error-modal .error-content button:hover {
   background: #d32f2f;
+}
+</style>
+
+<style>
+/* global style without scoped */
+.btn-delete, .btn-leave {
+  position: relative;
+  display: inline-block;
+  background-color: #aaa2b2;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  margin: 2px 0;
+  cursor: pointer;
+  z-index: 1000;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  width: 60px;
+  border-radius: 15px;
+}
+
+.btn-delete:hover, .btn-leave:hover {
+  background-color: #7d7783;
+  color: white;
 }
 </style>

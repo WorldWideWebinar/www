@@ -1,7 +1,11 @@
 <template>
   <div class="profile-view">
-    <Calendar />
-    <ProfileCard />
+    <div class="section-calendar">
+      <Calendar />
+    </div>
+    <div class="section-profilecard">
+      <ProfileCard />
+    </div>
   </div>
 </template>
 
@@ -13,26 +17,25 @@ import ProfileCard from '@/components/HomeView/ProfileCard.vue';
 <style scoped>
 .profile-view {
   display: flex;
-  justify-content: space-between;
-  padding: 2rem;
+  justify-content: center;
   background-color: #f5f5f5;
+  margin: auto;
+  min-height: 100vh;
 }
 
-.profile-card, .calendar-card {
-  flex: 1;
-  min-width: 300px;
-  max-width: 600px;
+.section-calendar, .section-profilecard {
+  margin: auto 50px; /* 둘 사이의 간격 */
 }
 
-/* 반응형 레이아웃: 화면이 1024px 이하로 작아질 경우 */
-@media (max-width: 1024px) {
+/* 반응형 레이아웃: 화면이 992px 이하로 작아질 경우 */
+@media (max-width: 992px) {
   .app-container {
     flex-direction: column;
-    align-items: center;
+    align-items: center;  
   }
 
-  .profile-card, .calendar-card {
-    max-width: 100%;
+  .section-profilecard {
+    display: none;
   }
 }
 </style>
