@@ -164,12 +164,8 @@ const handleSignOut = async () => {
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
 const loadMeetings = async (teamId) => {} 
-
-<<<<<<< HEAD
 const carouselReady = ref(false)
 
-=======
->>>>>>> 5c72a7a245c98ceff5d260e2c5f62b72d8d2d9b0
 const slideClass = (group) => {
   switch (group) {
     case 'PREV':
