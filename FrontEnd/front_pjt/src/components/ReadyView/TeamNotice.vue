@@ -514,7 +514,10 @@ template {
   border-radius: 4px;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
 }
+
 
 .btns {
   border: none;
@@ -537,17 +540,15 @@ template {
   background-color: #b380bc; /* hover 효과를 설정합니다. */
 }
 
-/* 기존의 search-result-item과 함께 사용하는 클래스 */
-.search-result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 5px;
-  background-color: #f9f9f9;
-  transition: background-color 0.2s ease;
+.btn-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
 }
 
 .btn-close:focus,
@@ -566,9 +567,10 @@ template {
 .search-member {
   /* flex: 1; */
   padding: 7.3px;
-  border-radius: 4px 0 0 4px;
+  border-radius: 4px;
   border: 1px solid #ddd;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-invite {
@@ -705,12 +707,16 @@ template {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 0px;
+  padding-left: 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  margin: 0px;
   margin-bottom: 5px;
   background-color: #f9f9f9;
   transition: background-color 0.2s ease;
+  box-sizing: border-box;
+  height: 40px; /* 높이 통일 */
 }
 
 .search-result-item:hover {
@@ -719,15 +725,25 @@ template {
 
 .search-result-item span {
   flex-grow: 1; /* 이름이 버튼과 함께 한 줄에 있도록 설정 */
-  font-size: 0.9rem;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.5;
 }
 
 .search-result-item .btn-invite {
-  margin-left: 10px; /* 버튼과 이름 사이의 간격 */
-  padding: 8px 12px; /* 버튼의 크기를 조정 */
-  border-radius: 4px; /* 버튼의 모서리 둥글게 */
-  font-size: 0.8rem;
+  padding: 10px 15px; 
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
   background-color: #6a1b9a;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-sizing: border-box;
+  height: 100%; /* 높이 통일 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search-result-item .btn-invite:hover {

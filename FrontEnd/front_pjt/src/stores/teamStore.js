@@ -4,6 +4,7 @@ import { useUserStore } from './userStore';
 import { useMeetingStore } from './meetingStore';
 import { useErrorStore } from './errorStore';
 import axiosInstance from '@/axios';
+import router from '@/router/index.js'
 
 export const useTeamStore = defineStore('team', {
   state: () => ({
@@ -143,8 +144,9 @@ export const useTeamStore = defineStore('team', {
           });
         }
 
-        if (response.data.isSuccess) {
+        if (response.data.success) {
           this.teams = this.teams.filter(team => team.id != teamId);
+          router.push({name : "HomeView"});
         } else {
           errorStore.showError(`Failed to delete team: ${response.data.message}`);
         }
@@ -162,7 +164,7 @@ export const useTeamStore = defineStore('team', {
       const userId = userStore.userId;
 
       try {
-        const response = await axiosInstance.put(`teams/${teamId}/${userId}`);
+        const response = await axiosInstance.put(`api/teams/${teamId}/${userId}`);
         if (response.data.success) {
           const team = this.teams.find(team => team.id == teamId);
           if (team) {
