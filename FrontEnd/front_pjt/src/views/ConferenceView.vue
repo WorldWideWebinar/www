@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -280,7 +280,7 @@ const leaveSession = async () => {
   session.value = null;
   const teamId = await sessionStore.getTeamId(meetingId);
   router.replace({ name: 'ReadyView', params: {id : teamId} })
-
+  }
 };
 
 const endConference = async () => {
@@ -377,6 +377,39 @@ onMounted(async () => {
   }
   await joinSession();
 });
+
+onUnmounted(() => {
+  // Close the WebSocket connection if it exists
+  if (socket) {
+    socket.close();
+  }
+
+  // Stop the audio processor and disconnect it from the audio context
+  if (processor && audioContext) {
+    processor.disconnect();
+    processor.onaudioprocess = null; // Remove the event handler
+    audioContext.close();
+  }
+
+  // Stop the media stream tracks if they are still active
+  if (publisher.value) {
+    const mediaStream = publisher.value.stream.getMediaStream();
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+    }
+  }
+  if (session.value) {
+    session.value.disconnect();
+    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+  }
+
+  // Reset relevant refs
+  participants.value = [];
+  myStreamManager.value = null;
+  screenPublisher.value = null;
+  isScreenSharing.value = false;
+});
+
 </script>
 
 <style scoped>
