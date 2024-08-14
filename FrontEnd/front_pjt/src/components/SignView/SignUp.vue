@@ -12,12 +12,14 @@
       <input v-model="password" type="password" placeholder="Password" required />
       <input v-model="passwordConfirmation" type="password" placeholder="Password Confirmation" required />
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-      <select v-model="selectedLanguage" @change="changeLanguage">
-        <option value="en">🇺🇸 English</option>
-        <option value="ko">🇰🇷 한국어</option>
-        <option value="ja">🇯🇵 日本語</option>
-        <option value="zh">🇨🇳 中国语</option>
-        <option value="es">🇪🇸 Español</option>
+      <select class="language-choice" v-model="selectedLanguage" @change="changeLanguage">
+        <option value="en">🇺🇸 &nbsp;English</option>
+        <option value="ko">🇰🇷 &nbsp;한국어</option>
+        <option value="ja">🇯🇵 &nbsp;日本語</option>
+        <option value="zh">🇨🇳 &nbsp;中国语</option>
+        <option value="es">🇪🇸 &nbsp;Español</option>
+        <option value="fr">🇫🇷 &nbsp;Français</option>
+        <option value="de">🇩🇪 &nbsp;Deutsche</option>
       </select>
       <button class="submit-btn" type="submit">Sign Up</button>
     </form>
@@ -288,4 +290,5 @@ form {
 .submit-btn {
   margin-top: 5%;
 }
+
 </style>

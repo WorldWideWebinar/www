@@ -44,13 +44,6 @@
         <span>{{ attendedNums.length }}</span> -->
       </div>
       <div class="footer-center">
-        <span style="font-weight: bold;">Attendance</span>
-        <span>{{ participants.length }}</span>
-      </div>
-      <!-- <div class="footer-right">
-        <span>Invite Alex, Joy</span>
-      </div> -->
-      <div class="footer-right">
         <div class="bottom-toolbar">
           <button v-if="!isOwner" class="btn-exit" @click="leaveSession">
             <span style="font-weight: bold; font-size: 1.2rem;">Exit&nbsp;</span>
@@ -61,6 +54,10 @@
             <img src="../assets/img/end.png" alt="End" />
           </button>
         </div>
+        <!-- <span style="font-weight: bold;">Attendance</span>
+        <span>{{ participants.length }}</span> -->
+      </div>
+      <div class="footer-right">
       </div>
     </div>
   </div>
@@ -592,6 +589,10 @@ onUnmounted(() => {
 
 .footer-left {
   margin-left: 260px;
+}
+
+.footer-center {
+  margin-left: 115px;
 }
 
 .footer-center {
