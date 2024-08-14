@@ -47,6 +47,8 @@ services:
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
       - RABBIT_USERNAME=${RABBIT_USERNAME}
       - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+      - EMOJI_API_KEY=${EMOJI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./resources/:/app/resources
     build:
