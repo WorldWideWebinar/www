@@ -161,6 +161,7 @@ const handleCreateTeam = async () => {
       teamName.value = ''
       selectedUsers.value = []
       selectedIcon.value = '🚀'
+      teamStore.clearTeamMeetings()
       await router.replace({ name: 'HomeView' })
     } catch (error) {
       errorStore.showError('Failed to create team.')
