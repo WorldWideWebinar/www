@@ -64,7 +64,7 @@
 
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -94,6 +94,7 @@ const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
 const userId = userStore.userId;
+const userName = userStore.userInfo.name
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = computed(() => sessionStore.sessionId)
@@ -149,7 +150,7 @@ const joinSession = async () => {
   });
 
   try {
-    await currentSession.connect(token, { clientData: userId });
+    await currentSession.connect(token, { clientData: userName });
 
     // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
     publisher.value = OV.initPublisher(undefined, {
@@ -377,6 +378,38 @@ onMounted(async () => {
     await sessionStore.fetchMeetingById(meetingId);  // 미팅 정보 가져오기
   }
   await joinSession();
+});
+
+onUnmounted(() => {
+  // Close the WebSocket connection if it exists
+  if (socket) {
+    socket.close();
+  }
+
+  // Stop the audio processor and disconnect it from the audio context
+  if (processor && audioContext) {
+    processor.disconnect();
+    processor.onaudioprocess = null; // Remove the event handler
+    audioContext.close();
+  }
+
+  // Stop the media stream tracks if they are still active
+  if (publisher.value) {
+    const mediaStream = publisher.value.stream.getMediaStream();
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+    }
+  }
+  if (session.value) {
+    session.value.disconnect();
+    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+  }
+
+  // Reset relevant refs
+  participants.value = [];
+  myStreamManager.value = null;
+  screenPublisher.value = null;
+  isScreenSharing.value = false;
 });
 
 </script>
