@@ -72,7 +72,7 @@
                     <div class="search-results">
                       <div v-for="user in filteredSearchResults" :key="user.userId" class="search-result-item">
                         <span>{{ user.id }}</span>
-                        <button @click="inviteMember(user)" class="btns btn-invite">Invite</button>
+                        <button @click="inviteMember(user)" class="btn-invite">Invite</button>
                       </div>
                     </div>
                   </div>
@@ -522,18 +522,32 @@ template {
   cursor: pointer;
 }
 
-.btn-close {
-  /* background-color: #6c757d; */
-  color: #5a6268;
-  font-size: xx-small;
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 2px;
-  outline: none;
-  background: none;
+.btn-invite {
+  padding: 5px 8px;
+  font-size: 0.5rem;
+  background-color: #6a1b9a; 
+  border-radius: 3px; 
+  color: white;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-invite:hover {
+  background-color: #b380bc; /* hover 효과를 설정합니다. */
+}
+
+/* 기존의 search-result-item과 함께 사용하는 클래스 */
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
 }
 
 .btn-close:focus,
@@ -681,5 +695,42 @@ template {
   .notice-table .meeting-name {
     width: 150px;
   }
+}
+
+.search-results {
+  margin-top: 10px;
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  background-color: #f1f1f1;
+}
+
+.search-result-item span {
+  flex-grow: 1; /* 이름이 버튼과 함께 한 줄에 있도록 설정 */
+  font-size: 0.9rem;
+}
+
+.search-result-item .btn-invite {
+  margin-left: 10px; /* 버튼과 이름 사이의 간격 */
+  padding: 8px 12px; /* 버튼의 크기를 조정 */
+  border-radius: 4px; /* 버튼의 모서리 둥글게 */
+  font-size: 0.8rem;
+  background-color: #6a1b9a;
+}
+
+.search-result-item .btn-invite:hover {
+  background-color: #b380bc;
 }
 </style>
