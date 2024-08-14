@@ -89,7 +89,7 @@
         <div class="my-meeting">
           <h3 style="font-weight: bolder">My Meetings</h3>
 
-          <div v-if="!groupMeetings.length">
+          <div v-if="!groupMeetings">
             <p>회의 없음.</p>
           </div>
           <div v-else class="carousel">
@@ -163,6 +163,7 @@ const handleSignOut = async () => {
 
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
+const loadMeetings = async (teamId) => {} 
 const carouselReady = ref(false)
 
 const slideClass = (group) => {
