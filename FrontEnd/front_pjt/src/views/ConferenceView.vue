@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -88,14 +88,14 @@ const attendedNums = computed(() => {
 
 // const sessionId = route.params.sessionId;
 const token = route.params.token;;
-const session = ref(null);
+const session = computed(() => sessionStore.session);
 const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
 const userId = userStore.userId;
 const participants = ref([]);
 const myStreamManager = ref(null);
-const meetingId = sessionStore.sessionId
+const meetingId = computed(() => sessionStore.sessionId)
 
 // 이미지 경로 지정
 import audioOffIcon from '@/assets/img/audio_off.png';
@@ -205,8 +205,8 @@ const createWebsocketConnection = ()=>{
 
   socket.onopen = () => {
     console.log('WebSocket connection opened');
-    console.log('Meeting ID:', sessionStore.meetingId);
-    socket.send(JSON.stringify({ meetingId: sessionStore.meetingId }));
+    console.log('Meeting ID:', sessionStore.sessionId);
+    socket.send(JSON.stringify({ meetingId: sessionStore.sessionId.toString() }));
   };
 
   socket.onclose = () => {
@@ -269,11 +269,17 @@ const leaveSession = async () => {
     session.value.disconnect();
     socket.close()
     session.value = null;
-    const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
-      await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
-        console.error('Router error:', err);
-      });
+    // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
+    //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
+    //     console.error('Router error:', err);
+    //   });
 
+  session.value.disconnect();
+  socket.close()
+  console.log('meetingId', meetingId)
+  session.value = null;
+  const teamId = await sessionStore.getTeamId(meetingId);
+  router.replace({ name: 'ReadyView', params: {id : teamId} })
   }
 };
 
@@ -291,6 +297,7 @@ const endConference = async () => {
       }
       // Ready Page로 이동
       const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
+      console.log('TeamID', teamId)
       await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
         console.error('Router error:', err);
       });
@@ -358,10 +365,6 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onMounted(() => {
-  joinSession();
-});
-
 onBeforeRouteLeave(async (to, from, next) => {
   await leaveSession();
   next();
@@ -372,8 +375,41 @@ onMounted(async () => {
   if (meetingId) {
     await sessionStore.fetchMeetingById(meetingId);  // 미팅 정보 가져오기
   }
-  joinSession();
+  await joinSession();
 });
+
+onUnmounted(() => {
+  // Close the WebSocket connection if it exists
+  if (socket) {
+    socket.close();
+  }
+
+  // Stop the audio processor and disconnect it from the audio context
+  if (processor && audioContext) {
+    processor.disconnect();
+    processor.onaudioprocess = null; // Remove the event handler
+    audioContext.close();
+  }
+
+  // Stop the media stream tracks if they are still active
+  if (publisher.value) {
+    const mediaStream = publisher.value.stream.getMediaStream();
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+    }
+  }
+  if (session.value) {
+    session.value.disconnect();
+    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+  }
+
+  // Reset relevant refs
+  participants.value = [];
+  myStreamManager.value = null;
+  screenPublisher.value = null;
+  isScreenSharing.value = false;
+});
+
 </script>
 
 <style scoped>

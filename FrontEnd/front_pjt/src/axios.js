@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
     // 오류가 발생할 때 originalRequest.url을 로깅하여 확인
     console.log('Original request URL:', originalRequest.url);
 
-    if (error.response.status === 403 && !originalRequest._retry && !userStore.userId != 0) {
+    if (error.response.status == 403 && !originalRequest._retry && !userStore.userId != 0) {
       originalRequest._retry = true;
       try {
         const response = await axios.get(

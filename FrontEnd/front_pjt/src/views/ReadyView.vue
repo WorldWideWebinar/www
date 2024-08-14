@@ -209,16 +209,6 @@ const isOwner = computed(() => {
   return teamData && teamData.ownerId === userStore.userId;
 });
 
-const toggleStatus = (meeting) => {
-  meeting.status = meeting.status === 'IN' ? 'OUT' : 'IN';
-};
-
-const buttonClass = (status) => {
-  return status === 'IN' ? 'btn-green' : 'btn-red';
-};
-
-const buttonText = (status) => status;
-
 const deleteMeeting = async () =>{
   const meetingId = selectedMeeting.value.meeting_id;
   console.log(meetingId)
@@ -241,10 +231,10 @@ const toggleFilesList = () => {
   showOverlay.value = showFilesList.value;
 };
 
-const toggleMembersList = () => {
-  showMembersList.value = !showMembersList.value;
-  showOverlay.value = showMembersList.value;
-};
+// const toggleMembersList = () => {
+//   showMembersList.value = !showMembersList.value;
+//   showOverlay.value = showMembersList.value;
+// };
 
 const previewFile = (file) => {
   previewUrl.value = file.link;

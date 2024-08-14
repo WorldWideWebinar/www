@@ -180,26 +180,26 @@ const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
 const carouselReady = ref(false)
 
-const groupMeetings = () => {
-  const groups = {
-    TODAY: [],
-    NEXT: [],
-    PREV: [],
-  }
-  const today = new Date().toISOString().split('T')[0]
-  const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
-  sortedMeetings.forEach((meeting) => {
-    if (meeting.date === today) {
-      groups.TODAY.push(meeting)
-    } else if (meeting.date > today) {
-      groups.NEXT.push(meeting)
-    } else {
-      groups.PREV.push(meeting)
-    }
-  })
-  groupedMeetings.value = groups
-  carouselReady.value = true
-}
+// const groupMeetings = () => {
+//   const groups = {
+//     TODAY: [],
+//     NEXT: [],
+//     PREV: [],
+//   }
+//   const today = new Date().toISOString().split('T')[0]
+//   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
+//   sortedMeetings.forEach((meeting) => {
+//     if (meeting.date === today) {
+//       groups.TODAY.push(meeting)
+//     } else if (meeting.date > today) {
+//       groups.NEXT.push(meeting)
+//     } else {
+//       groups.PREV.push(meeting)
+//     }
+//   })
+//   groupedMeetings.value = groups
+//   carouselReady.value = true
+// }
 
 const slideClass = (group) => {
   switch (group) {
@@ -219,8 +219,6 @@ const navigateToSignVeiw = (mode) => {
 }
 
 onMounted(async () => {
-  groupMeetings()
-  console.log(groupedMeetings.value.NEXT.key)
   if (userStore.userId != 0) {
   const teamList = userStore.userInfo.teamList || []
   for (const teamId of teamList) {
