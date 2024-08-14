@@ -85,7 +85,7 @@
       </div>
 
       <!-- 로그인 후 -->
-      <div class="lower" v-if="isLogin">
+      <!-- <div class="lower" v-if="isLogin">
         <div class="my-meeting">
           <h3 style="font-weight: bolder">My Meetings</h3>
 
@@ -128,7 +128,7 @@
             </Carousel>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- footer -->
