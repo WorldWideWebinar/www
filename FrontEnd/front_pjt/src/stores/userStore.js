@@ -189,14 +189,13 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async fetchUserMeetings(userId) {
-      const teamStore = useTeamStore();
-      teamList = teamStore.teams
-      const errorStore = useErrorStore();
-      try {
-        const response = await axiosInstance
-      }
-    }
+    // async fetchUserMeetings() {
+    //   const teamStore = useTeamStore();
+    //   teamList = teamStore.teams
+    //   const errorStore = useErrorStore();
+
+
+    // }
   },
   persist: {
     enabled: true,
