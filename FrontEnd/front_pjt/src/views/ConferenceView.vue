@@ -329,7 +329,7 @@ const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
   if (!isScreenSharing.value) {
-    screenPublisher.value = OV.initPublisher('screen-share-video', {
+    screenPublisher.value = OV.initPublisher(undefined, {
       videoSource: 'screen',
       publishAudio: true,
       publishVideo: true,
@@ -337,7 +337,7 @@ const toggleScreenShare = async () => {
     });
 
     session.value.publish(screenPublisher.value);
-    myStreamManager.value = screenPublisher.value; // 화면 공유 스트림을 메인 영역에 표시
+    screenPublisher.value.addVideoElement(document.getElementById('screen-share-video'));
     isScreenSharing.value = true;
   } else {
     // 화면 공유 중지
