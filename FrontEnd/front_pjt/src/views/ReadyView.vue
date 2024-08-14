@@ -219,7 +219,7 @@ const deleteMeeting = async () =>{
       const teamId = route.params.id;
       teamStore.fetchMeetings(teamId, false, false) // TODAY
       teamStore.fetchMeetings(teamId, false, true) // NEXT
-      teamStore.fetchMeetings(teamId, true, false), // PREV
+      teamStore.fetchMeetings(teamId, true, false) // PREV
     }
   } catch (error) {
     console.log(error)
