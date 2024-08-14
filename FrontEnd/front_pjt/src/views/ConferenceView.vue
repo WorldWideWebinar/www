@@ -300,6 +300,9 @@ const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
   if (!isScreenSharing.value) {
+    if (publisher.value) {
+      session.value.unpublish(publisher.value);
+    }
     screenPublisher.value = OV.initPublisher(undefined, {
       videoSource: 'screen',
       publishAudio: true,
@@ -316,7 +319,10 @@ const toggleScreenShare = async () => {
     screenPublisher.value = null;
     isScreenSharing.value = false;
 
-    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
+    if(publisher.value) {
+      session.value.publish(publisher.value);
+      myStreamManager.value = publisher.value;
+    }
   }
 };
 
