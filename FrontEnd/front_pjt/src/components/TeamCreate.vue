@@ -153,7 +153,6 @@ const handleCreateTeam = async () => {
   if (teamName.value.trim() && selectedUsers.value.length && selectedIcon.value) {
     const userIds = selectedUsers.value.map((user) => user.id)
     const ownerId = userStore.userId
-    console.log(teamName.value, ownerId, selectedIcon.value, userIds)
     try {
       await teamStore.createTeam(teamName.value, ownerId, selectedIcon.value, userIds)
       // Reset fields

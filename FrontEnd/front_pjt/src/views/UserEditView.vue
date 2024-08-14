@@ -90,10 +90,8 @@ function selectImage() {
 }
 
 async function handleImageChange(event) {
-  console.log("Image change triggered"); // 파일 선택 시 로그 확인
   const file = event.target.files[0];
   if (file) {
-    console.log("File selected:", file.name); // 파일 이름 로그 확인
     const formData = new FormData();
     formData.append('image', file);
 
@@ -105,7 +103,6 @@ async function handleImageChange(event) {
       });
       if (response.data) {
         image.value = response.data.result;
-        console.log("Image uploaded successfully:", image.value); // 업로드 성공 로그
       } else {
         throw new Error(response.data.message || 'Image upload failed');
       }
@@ -126,7 +123,6 @@ async function handleSubmit() {
 
 async function verifyPassword() {
   const result = await axiosInstance.post(`api/users/checkPassword`, {password: passwordInput.value});
-  console.log(result)
   if (result.data.success) {
     isPasswordVerified.value = true;
     showPasswordModal.value = false;
