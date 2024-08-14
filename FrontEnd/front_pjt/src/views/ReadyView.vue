@@ -342,7 +342,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
-  selectedMeeting.value=null;
+  closeMeetingDetails();
 });
 
 // 미팅 리스트 전용
