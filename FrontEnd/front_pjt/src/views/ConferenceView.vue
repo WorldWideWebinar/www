@@ -23,7 +23,7 @@
                 <img :src="isVideoEnabled ? videoOnIcon : videoOffIcon" alt="Toggle Video" />
               </button>
               <button class="btn-icon" @click="toggleScreenShare">
-                <img :src="isScreenSharing ? screenOnIcon : screenOffIcon" alt="Toggle Screen Share" />
+                <img :src="isScreenSharing ? screenOffIcon : screenOnIcon" alt="Toggle Screen Share" />
               </button>
             </div>
           </div>
