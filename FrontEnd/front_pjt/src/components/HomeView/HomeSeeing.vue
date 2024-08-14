@@ -89,12 +89,12 @@
         <div class="my-meeting">
           <h3 style="font-weight: bolder">My Meetings</h3>
 
-          <div v-if="!meetings.length">
+          <div v-if="!groupMeetings.length">
             <p>회의 없음.</p>
           </div>
           <div v-else class="carousel">
             <Carousel v-if="carouselReady" :itemsToShow="3" :wrapAround="true" :transition="500">
-              <Slide                v-for="(item, index) in groupedMeetings"
+              <Slide v-for="(item, index) in groupedMeetings"
                 :key="index"
                 class="slide"
                 :class="slideClass(index)"
@@ -111,8 +111,8 @@
                     </thead>
                     <tbody>
                       <tr v-for="(meeting, idx) in item" :key="idx">
-                        <td>{{ meeting.date }}</td>
-                        <td>{{ meeting.time }}</td>
+                        <td>{{ meeting.start_at }}</td>
+                        <td>{{ meeting.start_at }}</td>
                         <td>{{ meeting.agenda }}</td>
                       </tr>
                     </tbody>
@@ -153,7 +153,6 @@ const router = useRouter()
 const userStore = useUserStore()
 const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
-const teams = computed(() => teamStore.teams)
 
 const handleSignOut = async () => {
   const result = await userStore.signOut()
@@ -162,44 +161,9 @@ const handleSignOut = async () => {
   }
 }
 
-
-const meetings = ref([
-  // { date: '2024-11-15', agenda: '현대자동차', status: 'IN', time: '13PM-16PM' },
-  // { date: '2024-10-29', agenda: '현대오토에버', status: 'IN', time: '8AM-11AM' },
-  // { date: '2024-10-05', agenda: '현대케피코', status: 'IN', time: '16PM-18PM' },
-  // { date: '2024-09-15', agenda: '뱅킹 서비스', status: 'OUT', time: '8AM-10AM' },
-  // { date: '2024-08-26', agenda: '인스타그램', status: 'OUT', time: '11AM-13PM' },
-  // { date: '2024-07-31', agenda: '웹 RTC', status: 'IN', time: '15PM-17PM' },
-  // { date: '2024-06-28', agenda: 'TTS', status: 'IN', time: '14PM-16PM' },
-  // { date: '2024-06-23', agenda: 'AI 요약', status: 'OUT', time: '17PM-18PM' },
-  // { date: '2024-06-13', agenda: 'STT', status: 'IN', time: '20PM-22PM' },
-  // { date: '2024-05-14', agenda: '다국어 화상회의', status: 'IN', time: '11AM-15PM' }
-])
-
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
 const carouselReady = ref(false)
-
-// const groupMeetings = () => {
-//   const groups = {
-//     TODAY: [],
-//     NEXT: [],
-//     PREV: [],
-//   }
-//   const today = new Date().toISOString().split('T')[0]
-//   const sortedMeetings = [...meetings.value].sort((a, b) => new Date(b.date) - new Date(a.date))
-//   sortedMeetings.forEach((meeting) => {
-//     if (meeting.date === today) {
-//       groups.TODAY.push(meeting)
-//     } else if (meeting.date > today) {
-//       groups.NEXT.push(meeting)
-//     } else {
-//       groups.PREV.push(meeting)
-//     }
-//   })
-//   groupedMeetings.value = groups
-//   carouselReady.value = true
-// }
 
 const slideClass = (group) => {
   switch (group) {
