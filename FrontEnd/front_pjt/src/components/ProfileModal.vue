@@ -1,8 +1,8 @@
 <template>
     <div class="modal-overlay" @click.self="close">
       <div class="modal-content">
-        <h2>{{ user.username }}</h2>
-        <p>{{ user.email }}</p>
+        <h2>{{ user.id }}</h2>
+        <!-- <p>{{ user.email }}</p> -->
         <p>Other profile information...</p>
         <!-- <button @click="addMember(user)" class="btn btn-primary">추가버튼</button> -->
         <button @click="close" class="btn btn-secondary">Close</button>
