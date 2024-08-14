@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -44,7 +45,10 @@ public class ChatStompController {
             @Payload final ChatRequest request
     ) {
         String redisKey = "Chat:" + teamId;
-        String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        String timestamp = ZonedDateTime.now().toString();
+        System.out.println("---------Chat Time----------");
+        System.out.println(timestamp);
+        System.out.println("----------------------------");
 
         Map<String, String> chatData = new HashMap<>();
         chatData.put("senderId", String.valueOf(request.getSenderId()));
@@ -90,7 +94,7 @@ public class ChatStompController {
                                     log.debug(senderId + ":" + timestampStr + ":" + content + ":" + senderProfile);
                                     log.debug("----------------------------------");
 
-                                    LocalDateTime timestamp = LocalDateTime.parse(timestampStr, DATE_TIME_FORMATTER);
+                                    ZonedDateTime timestamp = ZonedDateTime.parse(timestampStr);
                                     User user = userService.findUserById(senderId);
 
                                     Chat chat = new Chat();

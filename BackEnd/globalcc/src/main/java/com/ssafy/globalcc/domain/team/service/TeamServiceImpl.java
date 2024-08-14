@@ -13,13 +13,18 @@ import com.ssafy.globalcc.domain.team.repository.TeamRepository;
 import com.ssafy.globalcc.domain.team.dto.TeamDetailDto;
 import com.ssafy.globalcc.domain.user.entity.User;
 import com.ssafy.globalcc.domain.user.entity.UserTeam;
+import com.ssafy.globalcc.domain.user.repository.UserMeetingRepository;
 import com.ssafy.globalcc.domain.user.repository.UserRepository;
 import com.ssafy.globalcc.domain.user.repository.UserTeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +38,11 @@ public class TeamServiceImpl implements TeamService{
     private final UserRepository userRepository;
     private final UserTeamRepository userTeamRepository;
     private final MeetingRepository meetingRepository;
-
+    private final UserMeetingRepository userMeetingRepository;
+    @Value("${emoji.base}")
+    private String baseEmojiURL;
+    @Value("${emoji.api.key}")
+    private String accessKey;
     @Override
     @Transactional
     public int addTeam(TeamDto dto) {
@@ -112,8 +121,12 @@ public class TeamServiceImpl implements TeamService{
     @Override
     @Transactional
     public void deleteTeam(int teamId, String userUid) {
-        int row = teamRepository.deleteTeamByTeamIdAndOwnerUid(teamId,userUid);
-        if(row == 0) throw new NotTeamOwnerException();
+        Team team = teamRepository.findById(teamId).orElseThrow(NoSuchTeamException::new);
+        List<Meeting> meetingList =  team.getMeeting();
+        if(meetingList != null && !meetingList.isEmpty()){
+            meetingRepository.deleteAll(meetingList);
+        }
+        teamRepository.delete(team);
     }
 
     @Override
@@ -170,6 +183,14 @@ public class TeamServiceImpl implements TeamService{
         userTeamRepository.saveAll(newUserTeams);
 
         teamRepository.save(team);
+    }
+
+    @Override
+    public ResponseEntity<?> getEmojis() {
+        RestClient client = RestClient.builder()
+                .baseUrl("https://emoji-api.com/emojis?access_key=" + accessKey)
+                .build();
+        return client.get().retrieve().toEntity(String.class);
     }
 
 }

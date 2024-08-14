@@ -1,119 +1,98 @@
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
 # from fastapi.logger import logger
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 import websockets
 import argparse
 
 import websockets.connection
-import whisper_online
+import deepl
 
 import json
-import translator
 import threading
 import asyncio
+import time
+
+from stomp_test import StompClient
+
 app = FastAPI()
 
-parser = argparse.ArgumentParser()
 SAMPLING_RATE = 16000
-whisper_online.add_shared_args(parser)
-parser.add_argument('--tgt_lan', '--target_language', type=str, default='en')
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-# @app.websocket("/stream/{src_lang}/{tgt_lang}")
-# async def stream_data(tgt_lang: str, websocket: WebSocket,src_lang = 'auto'):
-#     await websocket.accept()
-#     # make model prepared when websocket connected
-#     asr, online = whisper_online.new_asr_factory(tgt_lang=tgt_lang,src_lan=src_lang)
-#     logging.info("made whisper online model")
-#     # TODO : make warmup file
-#     try:
-#         while True:
-#             # TODO : make continuous reciving data
-#             out = []
-#             while sum(len(x) for x in out) < SAMPLING_RATE:
-#                 raw_bytes = await websocket.receive()
-#                 if not raw_bytes:
-#                     break
-#                 sf = soundfile.SoundFile(io.BytesIO(raw_bytes), channels=1,endian="LITTLE",samplerate=SAMPLING_RATE, subtype="PCM_16",format="RAW")
-#                 audio, _ = librosa.load(sf,sr=SAMPLING_RATE,dtype=np.float32)
-#                 out.append(audio)
-#             if not out:
-#                 return None
-#             out = np.concatenate(out)
-#             online.insert_audio_chunk(out)
-#             out = online.process_iter()
-#             if out[0] is None:
-#                 continue
-#             else:
-#                 websocket.send_text(out[2])
-#     except:
-#         await websocket.close()
-
-@app.websocket("/translate/{group_id}/{src_lang}/{tgt_lang}")
-async def translate_data(group_id : int, tgt_lang: str, websocket: WebSocket,src_lang = 'auto'):
-    await websocket.accept()
-    curTr = translator.translator_factory(tgt_lang,src_lang)
-    try:
-        while True :
-            text = await websocket.receive_text()
-            result = curTr.translate(text)
-            print(result)
-            await websocket.send_text(result)
-    except:
-        await websocket.close()
-
-@app.websocket("/stream/{src_lang}/{tgt_lang}")
-async def stream_data(src_lang : str, tgt_lang, websocket:WebSocket):
+@app.websocket("/stream")
+async def stream_data(websocket:WebSocket):
     await websocket.accept()
     stt_server_uri = "ws://localhost:9090"
     
     server_socket = await websockets.connect(stt_server_uri)
     client_details = await websocket.receive_json()
-    tr = threading.Thread(target=connect_from_ai_to_client,args=[server_socket,websocket])
+    
+    meetingId = client_details["meetingId"]
+    client_details["uid"] = meetingId
+    client_details["language"] = None
+    client_details["tgt_lang"] = "EN"
+    client_details["model"] = "large-v3"
+    client_details["task"] = "transcribe"
+    client_details["use_vad"] = False
+    clientSTT = StompClient(meeting_id = meetingId)
+    # asyncio.create_task(clientSTT.create_connection())
+    tr = threading.Thread(target=clientSTT.create_connection)
+    tr.daemon = True
     tr.start()
-    # print(client_details)
-    # await server_socket.send(json.dumps(
-    #     {
-    #             "uid": str(uuid.uuid4()),
-    #             "language": src_lang,
-    #             "task": "transcribe",
-    #             "model": "large-v3",
-    #             "use_vad": True
-    #         }
-    # ))
-    asyncio.create_task(connect_from_ai_to_client(server_socket,websocket))
+    
+    # src_lang = client_details["language"] = client_details["language"].lower()
+    src_lang = client_details["language"]
+    tgt_lang = client_details["tgt_lang"]
+    asyncio.create_task(connect_from_ai_to_client(server_socket,websocket, src_lang, tgt_lang, clientSTT))
     await server_socket.send(json.dumps(client_details))
     
     try:
         while True:
             audio_data = await websocket.receive_bytes()
-            # logging.debug(f"audio data is : {audio_data}")
-            # logging.debug(f"audio data type is : {type(audio_data)}")
+            logging.debug(f"audio data type is : {type(audio_data)}")
             await server_socket.send(audio_data)
 
     except Exception as e:
-        print(e)
         import traceback
         traceback.print_exception(e)
     finally :
-        await websocket.close()
         await server_socket.close()
+        await websocket.close()
+        tr.join()
 
 
-async def connect_from_ai_to_client(server_socket : WebSocket, websocket : WebSocket):
+async def connect_from_ai_to_client(server_socket : WebSocket, websocket : WebSocket, src_lang : str , tgt_lang : str, client):
+    transcript = []
+    last_segment = None
+    last_received_segment = None
+    startTime = time.time()
+    logging.info(f"startTime is : {startTime}")
     try:
         while True:
             recv = await server_socket.recv()
-            logging.debug(f"get message form ai server : {recv}")
             message = json.loads(recv)
-
+            logging.debug(f"get message form ai server : {message}")
+            transcribed = []
+            if "segments" in message.keys():
+                segments = message["segments"]
+                text = []
+                for i, seg in enumerate(segments):
+                    logging.info(f"start : from {seg['start']}" )
+                    seg['start'] = "{:.3f}".format(float(seg['start']) + startTime)
+                    logging.info(f"start : to {seg['start']}" )
+                    logging.info(f"end : from {seg['end']}" )
+                    seg['end'] = "{:.3f}".format(float(seg['end']) + startTime)
+                    logging.info(f"end : to {seg['end']}" )
+                client.on_send(segments[-3:])
             await websocket.send_json(message)
     except Exception as e:
+        await server_socket.close()
+        await client.close()
         logging.error(f"Error on connection_from_ai_to_client : {e}")
 
           

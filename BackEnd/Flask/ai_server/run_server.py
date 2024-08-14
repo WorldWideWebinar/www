@@ -36,15 +36,15 @@ if __name__ == "__main__":
 
     if "OMP_NUM_THREADS" not in os.environ:
         os.environ["OMP_NUM_THREADS"] = str(args.omp_num_threads)
-    os.environ['KMP_DUPLICATE_LIB_OK']="TRUE"
+
     from whisper_live.server import TranscriptionServer
     server = TranscriptionServer()
     server.run(
-        "0.0.0.0",
+        "localhost",
         port=args.port,
         backend=args.backend,
         faster_whisper_custom_model_path=args.faster_whisper_custom_model_path,
         whisper_tensorrt_path=args.trt_model_path,
         trt_multilingual=args.trt_multilingual,
-        single_model=not args.no_single_model,
+        single_model=False,
     )
