@@ -1,28 +1,6 @@
 import { defineStore } from 'pinia'
 import axiosInstance from '@/axios'
 
-// export const useMessageStore = defineStore('message', {
-//   state: () => ({
-//     messages: [],
-//   }),
-//   actions: {
-//     addMessage(message) {
-//       this.messages.push(message);
-//     },
-//     setMessages(newMessages) {
-//       this.messages = newMessages;
-//     },
-//     clearMessages() {
-//       this.messages = [];
-//     }
-//   },
-//   getters: {
-//     getMessagesByTeamId: (state) => (teamId) => {
-//       return state.messages.filter(message => message.team_id === teamId);
-//     }
-//   }
-
-// });
 export const useSTTStore = defineStore('stt', {
   state: () => ({
     transcript: [],
@@ -38,6 +16,8 @@ export const useSTTStore = defineStore('stt', {
     openConnection(token, meeting_id){
       this.ws = new WebSocket("https://i11a501.p.ssafy.io/api/stomp/stt");
       const stompClient = Stomp.over(this.ws)
+      this.ws.debug = null
+      stompClient.debug = null
 
       stompClient.connect(
         {
@@ -47,7 +27,6 @@ export const useSTTStore = defineStore('stt', {
           stompClient.subscribe(
             `/exchange/meetingSTT.exchange/meetingSTT.key${meeting_id}`,
             (message) => {
-              console.log('Received : ', message)
               const messageBody = JSON.parse(message.body);
               this.processSegments(messageBody["segments"]);
             }

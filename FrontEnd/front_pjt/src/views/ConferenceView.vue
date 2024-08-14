@@ -118,18 +118,14 @@ const joinSession = async () => {
   // const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
-
   // 스트림 생성 이벤트 핸들러
+  console.log("Team Owner? : ", isOwner.value)
   currentSession.on('streamCreated', (event) => {
-    console.log('스트림 생성됨:', event.stream);
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
 
-    console.log('구독된 스트림의 참가자 ID:', participantId);
-
     const participantInfo = userStore.userInfo;
-    console.log('참가자 정보:', participantInfo);
 
     if (participantInfo) {
       participants.value.push({
@@ -162,11 +158,12 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
       createWebsocketConnection()
       captureAudioStream(mediaStream)
+    }).on('streamAudioVolumeChange', () => {
+
     });
     console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
@@ -201,8 +198,6 @@ const joinSession = async () => {
   }
 };
 const createWebsocketConnection = ()=>{
-  if(socket != null) return
-
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
@@ -221,8 +216,8 @@ const createWebsocketConnection = ()=>{
   };
 }
 
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const captureAudioStream = (mediaStream) => {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
 
@@ -309,11 +304,17 @@ const endConference = async () => {
     }
   }
 };
-
 const toggleAudio = () => {
   if (publisher.value) {
     isAudioEnabled.value = !isAudioEnabled.value;
     publisher.value.publishAudio(isAudioEnabled.value);
+    if(!isAudioEnabled.value){
+      processor.disconnect()
+      socket.close();
+    }else {
+      createWebsocketConnection()
+      captureAudioStream(publisher.value.stream.getMediaStream())
+    }
   }
 };
 
