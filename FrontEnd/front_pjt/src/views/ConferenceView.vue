@@ -45,7 +45,7 @@
       </div>
       <div class="footer-center">
         <span style="font-weight: bold;">Attendance</span>
-        <span>{{ participants.length }}</span>
+        <span>{{ participants.length + 1}}</span>
       </div>
       <!-- <div class="footer-right">
         <span>Invite Alex, Joy</span>

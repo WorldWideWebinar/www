@@ -167,7 +167,7 @@ export const useTeamStore = defineStore('team', {
         if (response.data.success) {
           const team = this.teams.find(team => team.id == teamId);
           if (team) {
-            team.userList = team.userList.filter(user => user !== userId);
+            team.userList = team.userList.filter(user => user != userId);
           }
         } else {
           errorStore.showError(`Failed to remove user from team: ${response.data.message}`);
@@ -292,4 +292,7 @@ export const useTeamStore = defineStore('team', {
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
   },
+  persist: {
+    storage: sessionStorage,
+  }
 });
