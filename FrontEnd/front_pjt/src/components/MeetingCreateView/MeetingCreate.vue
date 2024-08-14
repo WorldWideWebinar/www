@@ -126,8 +126,6 @@ const setupFlatpickrStart = () => {
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
         start.value = selectedDate.toISOString();
-        console.log("Start Date for display:", start.value);
-        // console.log(new Date(start.value).toISOString())
         displayStartDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("startPicker").value = displayStartDate.value;
       }
@@ -149,7 +147,6 @@ const setupFlatpickrEnd = () => {
         const timezoneOffset = selectedDate.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(selectedDate.getTime() - timezoneOffset);
         end.value = selectedDate.toISOString();
-        console.log("End Date for display:", end.value);
         displayEndDate.value = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
         document.getElementById("endPicker").value = displayEndDate.value;
       }

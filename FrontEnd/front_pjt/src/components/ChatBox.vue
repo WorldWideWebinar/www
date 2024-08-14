@@ -105,7 +105,6 @@ const handleSelectTeam = async (teamId) => {
 
 const setupWebSocket = (teamId) => {
   if (stompClient && stompClient.connected && subscription) {
-    console.log('해제')
     subscription.unsubscribe(); // 기존 구독 해제
     subscription = null
   }
@@ -149,9 +148,6 @@ function sendMessage() {
 }
 
 function showMessage(content) {
-  console.log('수신 확인 ');
-
-
   const newMessage = {
     senderId: content.senderId, // 수정된 필드 이름
     teamId: content.teamId, // 수정된 필드 이름
@@ -186,7 +182,6 @@ const getTeamName = (teamId) => {
 
 
 const closeChat = () => {
-  console.log("Closing chat...");
   if (stompClient && stompClient.connected && subscription) {
     subscription.unsubscribe(); // 구독 해제
     subscription = null; // 구독 객체 초기화
@@ -204,7 +199,6 @@ watch(() => messageStore.messages, () => {
 });
 
 onMounted(() => {
-  console.log('열림')
   handleSelectTeam(props.selectedTeamId)
 });
 
@@ -215,9 +209,6 @@ onUnmounted(() => {
       subscription.unsubscribe();
       subscription = null;
     }
-    stompClient.disconnect(() => {
-      console.log('WebSocket disconnected');
-    });
   }
 });
 

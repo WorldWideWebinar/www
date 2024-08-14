@@ -63,15 +63,12 @@ watch(id, async (newId) => {
 
 async function checkId() {
   try {
-    console.log(`Checking ID: ${id.value}`);
     const isAvailable = await userStore.checkIdDuplication(id.value);
     idCheckMessage.value = isAvailable ? 'ID is available' : 'ID is not available';
     idCheck.value = isAvailable;
-    console.log(`ID Check Result: ${idCheckMessage.value}`);
   } catch (error) {
     idCheckMessage.value = `Error: ${error.message}`;
     idCheck.value = false;
-    console.error(`ID Check Error: ${error.message}`);
   }
 }
 
