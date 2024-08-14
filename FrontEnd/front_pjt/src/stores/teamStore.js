@@ -162,13 +162,12 @@ export const useTeamStore = defineStore('team', {
       const userStore = useUserStore();
       const errorStore = useErrorStore();
       const userId = userStore.userId;
-
       try {
         const response = await axiosInstance.put(`api/teams/${teamId}/${userId}`);
         if (response.data.success) {
           const team = this.teams.find(team => team.id == teamId);
           if (team) {
-            team.userList = team.userList.filter(user => user !== userId);
+            team.userList = team.userList.filter(user => user != userId);
           }
         } else {
           errorStore.showError(`Failed to remove user from team: ${response.data.message}`);
@@ -179,7 +178,9 @@ export const useTeamStore = defineStore('team', {
         return { isSuccess: false, message: error.message };
       }
     },
-
+    setCurrentTeam (teamId){
+      this.teamInfo = this.teams.find(team => team.id == teamId);
+    },
     async addMemberToTeam(invitedUser, teamId) {
       try {
         if (!this.teamInfo) {
@@ -291,4 +292,7 @@ export const useTeamStore = defineStore('team', {
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
   },
+  persist: {
+    storage: sessionStorage,
+  }
 });

@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { onMounted, computed, ref, nextTick, onBeforeUnmount, watch } from 'vue';
 import { useUserStore } from './stores/userStore';
 import { useTeamStore } from './stores/teamStore';
@@ -53,7 +53,6 @@ import ChatButton from '@/components/ChatButton.vue';
 import ChatBox from '@/components/ChatBox.vue';
 import ErrorModal from '@/components/ErrorModal.vue';
 import { useErrorStore } from './stores/errorStore';
-import { handleClickOutside } from './utils';
 
 const errorStore = useErrorStore()
 const userStore = useUserStore()
@@ -90,7 +89,7 @@ const fetchUserTeams = async () => {
       );
       await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
-
+    teamStore.teams.sort((a, b) => a.id - b.id);
     hasFetchedUserInfo.value = true;
   }
 };
@@ -162,11 +161,14 @@ const deleteTeam = async (teamId) => {
     console.error(response.message);
   }
 };
+const route = useRoute()
 
 onMounted(() => {
   fetchUserTeams().then(() => {
+    teamStore.setCurrentTeam(route.params.id)
     userStore.fetchAllUsers();
   });
+
 });
 
 onBeforeUnmount(() => {

@@ -169,9 +169,8 @@ const joinSession = async () => {
       mediaStream = event.stream.getMediaStream();
       createWebsocketConnection()
       captureAudioStream(mediaStream)
-    }).on('streamAudioVolumeChange', () => {
+    })
 
-    });
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
 

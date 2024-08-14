@@ -22,7 +22,7 @@
           </tbody>
         </table>
         <div v-else class="notice-item">
-          <p class="no-meeting">There's no meeting today :)</p>
+          <p class="no-meeting">There's no meeting :)</p>
         </div>
       </div>
     </section>
@@ -142,6 +142,7 @@ const toggleMemberListDropdown = () => {
 };
 
 const toggleInviteMemberInput = () => {
+  console.log(teamStore.teamInfo)
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 

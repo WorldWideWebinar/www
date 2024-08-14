@@ -8,6 +8,7 @@ import SignView from '@/views/SignView.vue'
 import TeamCreateView from '@/views/TeamCreateView.vue'
 import MeetingCreateView from '@/views/MeetingCreateView.vue'
 import UserEditView from '@/views/UserEditView.vue'
+import { useTeamStore } from '@/stores/teamStore.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

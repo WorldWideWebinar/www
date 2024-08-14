@@ -216,11 +216,7 @@ const departmentName = computed(() => {
   return teamData ? teamData.teamName : '';
 });
 
-const isOwner = computed(() => {
-  const teamId = parseInt(route.params.id, 10);
-  const teamData = teamStore.getTeamById(teamId);
-  return teamData && teamData.ownerId === userStore.userId;
-});
+const isOwner = computed(() => teamStore.teamInfo.ownerId == userStore.userId);
 
 const deleteMeeting = async () =>{
   const meetingId = selectedMeeting.value.meeting_id;
@@ -295,7 +291,7 @@ const loadData = async () => {
 onMounted(async () => {
   isLoading.value = true;
   const teamId = parseInt(route.params.id, 10);
-
+  
   await loadData(teamId);
   isLoading.value = false;
 });
