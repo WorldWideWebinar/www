@@ -26,18 +26,11 @@ export const useUserStore = defineStore('user', {
   actions: {
     async fetchUserInfo(userId) {
       const errorStore = useErrorStore()
-      const teamStore = useTeamStore()
       try {
         const response = await axiosInstance.get(`api/users/${userId}`)
         const userData = response.data.result
         this.userInfo = userData
-
-
         // teamList를 이용해 teamStore에 팀 정보 추가
-        if (Array.isArray(userData.teamList) && userData.teamList.length > 0) {
-          await Promise.all(userData.teamList.map((teamId) => teamStore.fetchTeamById(teamId)))
-        }
-
         return userData
       } catch (error) {
         errorStore.showError('Failed to fetch user info')
