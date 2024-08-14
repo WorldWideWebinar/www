@@ -148,6 +148,7 @@ import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
 import 'vue3-carousel/dist/carousel.css'
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
+import axiosInstance from '@/axios'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -155,10 +156,8 @@ const teamStore = useTeamStore()
 const isLogin = computed(() => userStore.isLogin)
 
 const handleSignOut = async () => {
-  const result = await userStore.signOut()
-  if (result.success) {
-    router.push({ name: 'HomeView' })
-  }
+  await userStore.signOut()
+  router.push({ name: 'HomeView' })
 }
 
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
