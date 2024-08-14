@@ -1,8 +1,8 @@
 <template>
-  <div v-if="streamManager">
+  <div v-if="streamManager" class="stream">
     <ov-video :stream-manager="streamManager" ref="videoContainer"/>
     <!-- {{ clientData }}이게 내 현재 이름임 -->
-    <!-- <div><p>{{ clientData }}</p></div> -->
+    <div class="profile">{{ clientData }}</div>
   </div>
 </template>
 
@@ -40,3 +40,14 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.stream {
+  margin: 12px 0px;
+}
+
+.profile {
+  text-align: center;
+  font-weight: bold;
+}
+</style>

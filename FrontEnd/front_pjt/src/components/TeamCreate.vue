@@ -76,7 +76,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axiosInstance from '@/axios.js'
 import { useUserStore } from '@/stores/userStore'
 import { useTeamStore } from '@/stores/teamStore'
 import { useErrorStore } from '@/stores/errorStore'

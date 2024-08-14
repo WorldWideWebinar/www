@@ -71,7 +71,6 @@
         <section :class="{ 'meeting-detail-section': true, 'hidden-detail-section': !selectedMeeting }">
           <template v-if="selectedMeeting">
             <div class="meeting-detail-header">
-              <button @click="deleteMeeting()" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">🗑️</button>
               <p :style="{ 'padding-left': (!isOwner || new Date().getTime() >= new Date(selectedMeeting?.start_at).getTime()) ? '25px' : '0' }">&nbsp;{{ selectedMeeting?.name }}&nbsp;</p>
               <button @click="closeMeetingDetails">X</button>
             </div>
@@ -116,35 +115,48 @@
                 <tr>
                   <td><strong>Files</strong></td>
                   <td class="before-dropdown" @click="toggleFilesList">
-                    <ul v-show="showFilesList" class="detail-dropdown dropdown">
+                    <!-- <ul v-show="showFilesList" class="detail-dropdown dropdown">
                       <li v-for="file in selectedMeeting?.files" :key="file.name">
                         <a @click.prevent="previewFile(file)" href="#">{{ file.name }}</a> uploaded
                         by {{ file.uploader }}
                       </li>
-                    </ul>
+                    </ul> -->
+                    <a href="#" @click.prevent="downloadSummary" class="file-link">
+                      📂summary
+                    </a>
+                    <a href="#" @click.prevent="previewFile({ name: 'record.pdf', link: selectedMeeting.record })" class="file-link">
+                      📁record
+                    </a>
                   </td>
                 </tr>
               </table>
-              <div class="dash-separator"></div>
-              <div class="files-section">
+              <!-- <div class="files-section">
                 <table class="files-table">
                   <thead>
                     <tr>
                       <td>
-                        <a href="#" @click.prevent="downloadSummary" class="file-link">📂summary</a>
+                        <a href="#" @click.prevent="downloadSummary" class="file-link">
+                          📂summary
+                        </a>
                       </td>
                       <td>
-                        <a href="#" @click.prevent="
-                          previewFile({ name: 'record.pdf', link: selectedMeeting.record })
-                          " class="file-link">📁record</a>
+                        <a href="#" @click.prevent="previewFile({ name: 'record.pdf', link: selectedMeeting.record })" class="file-link">
+                          📁record
+                        </a>
                       </td>
                     </tr>
                   </thead>
                 </table>
-              </div>
+              </div> -->
               <div v-if="previewUrl" class="file-preview">
                 <iframe :src="previewUrl" width="100%" height="400px"></iframe>
                 <a :href="previewUrl" download>Download</a>
+              </div>
+              <div class="delete-meeting" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">
+                <div class="dash-separator"></div>
+                <button class="delete-btn" @click="deleteMeeting()">
+                  🗑️ Delete Meeting
+                </button>
               </div>
             </div>
           </template>
@@ -461,6 +473,7 @@ const formatDateRange = (startDateTime, endDateTime) => {
 }
 
 .meeting-detail-section {
+  position: relative;
   flex: 1.5;
   background-color: #ffffff;
   padding: 0 1rem;
@@ -469,6 +482,7 @@ const formatDateRange = (startDateTime, endDateTime) => {
   border: 2px dashed rgb(232, 231, 234);
   width: 100%;
   height: auto;
+  margin: 0 auto;
 }
 
 .meeting-header {
@@ -658,12 +672,9 @@ button {
   color: black;
   font-size: medium;
   text-decoration: none;
+  margin-right: 8px;
 }
 
-.dash-separator {
-  border-top: 2px dashed #ccc;
-  margin: 1.5rem 0 0.7rem 0;
-}
 
 .file-preview {
   margin-top: 10px;
@@ -767,6 +778,40 @@ button {
   margin-top: 10px;
   font-size: 16px;
   color: #333;
+}
+
+.dash-separator {
+  border-top: 2px dashed #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.delete-meeting {
+  position: absolute; /* 부모 요소를 기준으로 위치를 설정하기 위해 추가 */
+  bottom: 20px; /* 하단에서 20px 위에 위치하게 설정 */
+  left: 50%;
+  transform: translateX(-50%); /* 중앙 정렬 */
+  width: 90%;
+  margin: 0 auto;
+}
+
+.delete-meeting .delete-btn {
+  font-size: 12px;
+  color: black;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #e8e8e8;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 12px 35px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 80ms ease-in;
+  margin: 10px 30px 0px 30px;
+}
+
+.delete-meeting .delete-btn:hover {
+  background-color: #9c9c9c;
 }
 
 @media (max-width: 992px) {

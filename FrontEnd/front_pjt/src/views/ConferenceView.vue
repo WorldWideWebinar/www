@@ -62,6 +62,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -93,6 +94,7 @@ const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
 const userId = userStore.userId;
+const userName = userStore.userInfo.name
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = computed(() => sessionStore.sessionId)
@@ -116,18 +118,14 @@ const joinSession = async () => {
   // const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
-
   // 스트림 생성 이벤트 핸들러
+  console.log("Team Owner? : ", isOwner.value)
   currentSession.on('streamCreated', (event) => {
-    console.log('스트림 생성됨:', event.stream);
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
 
-    console.log('구독된 스트림의 참가자 ID:', participantId);
-
     const participantInfo = userStore.userInfo;
-    console.log('참가자 정보:', participantInfo);
 
     if (participantInfo) {
       participants.value.push({
@@ -148,7 +146,7 @@ const joinSession = async () => {
   });
 
   try {
-    await currentSession.connect(token, { clientData: userId });
+    await currentSession.connect(token, { clientData: userName });
 
     // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
     publisher.value = OV.initPublisher(undefined, {
@@ -160,11 +158,12 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
       createWebsocketConnection()
       captureAudioStream(mediaStream)
+    }).on('streamAudioVolumeChange', () => {
+
     });
     console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
@@ -199,8 +198,6 @@ const joinSession = async () => {
   }
 };
 const createWebsocketConnection = ()=>{
-  if(socket != null) return
-
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
@@ -219,8 +216,8 @@ const createWebsocketConnection = ()=>{
   };
 }
 
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const captureAudioStream = (mediaStream) => {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
 
@@ -264,22 +261,20 @@ const sendDataToBackend = (data) => {
 };
 
 const leaveSession = async () => {
+  console.log("leave Session !!!!!!!!!");
   if (session.value) {
-    console.log(meetingId)
+    console.log("session value        ");
     session.value.disconnect();
-    socket.close()
+    socket.close();
     session.value = null;
     // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
     //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
     //     console.error('Router error:', err);
     //   });
-
-  session.value.disconnect();
-  socket.close()
-  console.log('meetingId', meetingId)
-  session.value = null;
-  const teamId = await sessionStore.getTeamId(meetingId);
-  router.replace({ name: 'ReadyView', params: {id : teamId} })
+    console.log('meetingId')
+    console.log(meetingId.value);
+    const teamId = await sessionStore.getTeamId(meetingId.value);
+    router.replace({ name: 'ReadyView', params: {id : teamId} });
   }
 };
 
@@ -307,11 +302,17 @@ const endConference = async () => {
     }
   }
 };
-
 const toggleAudio = () => {
   if (publisher.value) {
     isAudioEnabled.value = !isAudioEnabled.value;
     publisher.value.publishAudio(isAudioEnabled.value);
+    if(!isAudioEnabled.value){
+      processor.disconnect()
+      socket.close();
+    }else {
+      createWebsocketConnection()
+      captureAudioStream(publisher.value.stream.getMediaStream())
+    }
   }
 };
 
@@ -327,7 +328,10 @@ const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
   if (!isScreenSharing.value) {
-    screenPublisher.value = OV.initPublisher('screen-share-video', {
+    if (publisher.value) {
+      session.value.unpublish(publisher.value);
+    }
+    screenPublisher.value = OV.initPublisher(undefined, {
       videoSource: 'screen',
       publishAudio: true,
       publishVideo: true,
@@ -335,7 +339,7 @@ const toggleScreenShare = async () => {
     });
 
     session.value.publish(screenPublisher.value);
-    myStreamManager.value = screenPublisher.value; // 화면 공유 스트림을 메인 영역에 표시
+    screenPublisher.value.addVideoElement(document.getElementById('screen-share-video'));
     isScreenSharing.value = true;
   } else {
     // 화면 공유 중지
@@ -343,7 +347,10 @@ const toggleScreenShare = async () => {
     screenPublisher.value = null;
     isScreenSharing.value = false;
 
-    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
+    if(publisher.value) {
+      session.value.publish(publisher.value);
+      myStreamManager.value = publisher.value;
+    }
   }
 };
 
@@ -365,10 +372,10 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onBeforeRouteLeave(async (to, from, next) => {
-  await leaveSession();
-  next();
-});
+// onBeforeRouteLeave(async (to, from, next) => {
+//   await leaveSession();
+//   next();
+// });
 
 onMounted(async () => {
   const meetingId = sessionStore.meetingId;
@@ -400,7 +407,7 @@ onUnmounted(() => {
   }
   if (session.value) {
     session.value.disconnect();
-    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+    // sessionStore.clearSession();
   }
 
   // Reset relevant refs
@@ -477,8 +484,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding: 1rem 1rem 0 1rem;
-  margin-top: 80px;
-  /* margin-bottom: 20px; */
+  margin-top: 20px;
 }
 
 .participant {

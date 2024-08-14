@@ -68,7 +68,6 @@ const selectedTeamId = ref(null)
 const showScrollIndicator = ref(false)
 const showDeleteButton = ref(null)
 const deleteButtonStyle = ref({})
-const dropdownRef = ref(null)
 
 const isOwner = (teamId) => {
   const userId = userStore.userId
@@ -104,12 +103,6 @@ const showDeleteButtonAt = (event, teamId) => {
     zIndex: 1000,
   };
   showDeleteButton.value = teamId;
-
-  // nextTick(() => {
-  //   if (dropdownRef.value) {
-  //     document.addEventListener('click', outsideClickHandler);
-  //   }
-  // });
 };
 
 const deleteTeam = async (teamId) => {
@@ -128,12 +121,6 @@ const deleteTeam = async (teamId) => {
   }
 };
 
-// // 외부 클릭 감지 핸들러
-// const outsideClickHandler = handleClickOutside(dropdownRef, () => {
-//   console.log("click outside click");
-//   showDeleteButton.value = null;
-//   removeOutsideClickListener();
-// });
 
 const addEventClickOutside = (el)=>{
   document.addEventListener('click',handleClickOutside(el,()=>{
