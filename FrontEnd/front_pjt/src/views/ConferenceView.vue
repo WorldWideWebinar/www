@@ -93,6 +93,7 @@ const publisher = ref(null);
 const isAudioEnabled = ref(true);
 const isVideoEnabled = ref(true);
 const userId = userStore.userId;
+const userName = userStore.userInfo.name
 const participants = ref([]);
 const myStreamManager = ref(null);
 const meetingId = computed(() => sessionStore.sessionId)
@@ -148,7 +149,7 @@ const joinSession = async () => {
   });
 
   try {
-    await currentSession.connect(token, { clientData: userId });
+    await currentSession.connect(token, { clientData: userName });
 
     // 모든 참가자가 initPublisher를 호출하여 자신의 스트림을 퍼블리싱
     publisher.value = OV.initPublisher(undefined, {
