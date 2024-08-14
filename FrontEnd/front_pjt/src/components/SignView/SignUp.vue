@@ -96,7 +96,6 @@ async function handleSignUp() {
 
   const result = await userStore.signUp(signUpData);
   if (result.success) {
-    alert('Sign up successful');
     router.push({ name: 'HomeView' });
   } else {
     errorMessage.value = `Sign up failed: ${result.message}`;
