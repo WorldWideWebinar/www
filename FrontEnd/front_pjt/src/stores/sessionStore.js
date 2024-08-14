@@ -104,7 +104,6 @@ export const useSessionStore = defineStore('session', {
       } catch (error) {
         console.error('Failed to finish meeting:', error.response ? error.response.data : error.message);
       }
-    }
-
+    },
   },
 });
