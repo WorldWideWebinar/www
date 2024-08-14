@@ -51,10 +51,15 @@
         <span>Invite Alex, Joy</span>
       </div> -->
       <div class="footer-right">
-        <span style="font-weight: bold;">Exit</span>
         <div class="bottom-toolbar">
-          <button v-if="!isOwner" class="btn-icon" @click="leaveSession"><img src="../assets/img/end.png" alt="refresh"></button>
-          <button v-else-if="isOwner" class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
+          <button v-if="!isOwner" class="btn-exit" @click="leaveSession">
+            <span style="font-weight: bold; font-size: 1.2rem;">Exit&nbsp;</span>
+            <img src="../assets/img/end.png" alt="Exit" />
+          </button>
+          <button v-else-if="isOwner" class="btn-exit" @click="endConference">
+            <span style="font-weight: bold; font-size: 1.2rem;">Exit&nbsp;</span>
+            <img src="../assets/img/end.png" alt="End" />
+          </button>
         </div>
       </div>
     </div>
@@ -573,7 +578,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 1rem;
-  padding-bottom: 0rem;
   background-color: #f3e5f5;
   border-radius: 0px 0px 8px 8px;
   margin-left: 36px;
@@ -597,9 +601,11 @@ onUnmounted(() => {
 .bottom-toolbar {
   display: flex;
   flex-direction: row;
+  
   justify-content: center;
-  margin-right: 100px;
-  background-color: #ffffff;
+  margin: auto;
+  margin-right: 120px;
+  background-color: none;
 }
 
 .btn-icon {
@@ -621,8 +627,33 @@ onUnmounted(() => {
   margin: auto;
 }
 
-/* 화상 영역 */
+.btn-exit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  width: auto; /* 자동으로 너비 조정 */
+  padding: 5px 10px; /* 버튼 내 패딩 조정 */
+  border-radius: 10px;
+  cursor: pointer;
+}
 
+.btn-exit:hover {
+  background-color: #a6a6a6;
+}
+
+.btn-exit img {
+  width: 25px; /* 이미지 크기 조정 */
+  height: 25px;
+}
+
+.btn-exit span {
+  font-size: 14px;
+  color: #333; /* 텍스트 색상 */
+}
+
+/* 화상 영역 */
 .video-container {
   width: 100%;
   height: 100%;
