@@ -55,12 +55,15 @@ import ErrorModal from '@/components/ErrorModal.vue';
 import { useErrorStore } from './stores/errorStore';
 import { handleClickOutside } from './utils';
 
-const errorStore = useErrorStore();
-const userStore = useUserStore();
-const teamStore = useTeamStore();
-const isLogin = computed(() => userStore.isLogin);
-const hasFetchedUserInfo = ref(false);
-const showDeleteButton = ref(null);
+const errorStore = useErrorStore()
+const userStore = useUserStore()
+const teamStore = useTeamStore()
+const isLogin = computed(() => userStore.isLogin)
+const hasFetchedUserInfo = ref(false)
+const selectedTeamId = ref(null)
+const showScrollIndicator = ref(false)
+const showDeleteButton = ref(null)
+const deleteButtonStyle = ref({})
 
 const isOwner = (teamId) => {
   const userId = userStore.userId;

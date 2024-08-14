@@ -53,8 +53,8 @@
       <div class="footer-right">
         <span style="font-weight: bold;">Exit</span>
         <div class="bottom-toolbar">
-          <button class="btn-icon" @click="leaveSession"><img src="../assets/img/refresh.png" alt="refresh"></button>
-          <button class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
+          <button v-if="!isOwner" class="btn-icon" @click="leaveSession"><img src="../assets/img/end.png" alt="refresh"></button>
+          <button v-else-if="isOwner" class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
         </div>
       </div>
     </div>
@@ -69,6 +69,7 @@ import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
+import { useErrorStore } from '@/stores/errorStore.js'
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 import TranscriptionText from '@/components/ConferenceView/TranscriptionText.vue'
 import TranslatedText from '@/components/ConferenceView/TranslatedText.vue'
@@ -81,7 +82,7 @@ const sessionStore = useSessionStore();
 const conferenceName = computed(() => {
   return sessionStore.meetingInfo ? sessionStore.meetingInfo.name : '';
 });
-
+const errorStore = useErrorStore()
 const attendedNums = computed(() => {
   return sessionStore.participants ? sessionStore.participants : '';
 });
@@ -117,18 +118,13 @@ const joinSession = async () => {
   // const OV = new OpenVidu();
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
-
   // 스트림 생성 이벤트 핸들러
   currentSession.on('streamCreated', (event) => {
-    console.log('스트림 생성됨:', event.stream);
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
 
-    console.log('구독된 스트림의 참가자 ID:', participantId);
-
     const participantInfo = userStore.userInfo;
-    console.log('참가자 정보:', participantInfo);
 
     if (participantInfo) {
       participants.value.push({
@@ -145,7 +141,6 @@ const joinSession = async () => {
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
-    console.log('스트림이 파괴됨, 참가자 ID:', participantId);
   });
 
   try {
@@ -161,13 +156,13 @@ const joinSession = async () => {
       frameRate: 30,
       insertMode: 'APPEND'
     }).on('streamCreated', (event) => {
-      console.log("streamCreated", event);
       let mediaStream
       mediaStream = event.stream.getMediaStream();
       createWebsocketConnection()
       captureAudioStream(mediaStream)
+    }).on('streamAudioVolumeChange', () => {
+
     });
-    console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
 
@@ -178,7 +173,6 @@ const joinSession = async () => {
         const participantId = JSON.parse(stream.connection.data).clientData;
 
         const participantInfo = userStore.userInfo;
-        console.log('참가자 정보:', participantInfo);
 
         if (participantInfo) {
           participants.value.push({
@@ -196,22 +190,14 @@ const joinSession = async () => {
       participants.value = team.userList.filter(user => user.id !== userId);
     }
   } catch (error) {
-    console.error('Error connecting to session:', error);
+    errorStore.showError(error.message);
   }
 };
 const createWebsocketConnection = ()=>{
-  if(socket != null) return
-
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
-    console.log('WebSocket connection opened');
-    console.log('Meeting ID:', sessionStore.sessionId);
     socket.send(JSON.stringify({ meetingId: sessionStore.sessionId.toString() }));
-  };
-
-  socket.onclose = () => {
-    console.log('WebSocket connection closed');
   };
 
   socket.onerror = (error) => {
@@ -220,8 +206,8 @@ const createWebsocketConnection = ()=>{
   };
 }
 
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const captureAudioStream = (mediaStream) => {
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioContext.createMediaStreamSource(mediaStream);
   processor = audioContext.createScriptProcessor(4096, 1, 1);
 
@@ -252,12 +238,6 @@ const resampleTo16kHz = (audioData, originalSampleRate) => {
 
 const sendDataToBackend = (data) => {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    // const audioBuffer = new Int16Array(data.length);
-    // for (let i = 0; i < data.length; i++) {
-    //   audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
-    // }
-    // socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
-    console.log('sending data');
     socket.send(data.buffer)
   } else {
     console.error('WebSocket is not open');
@@ -266,39 +246,24 @@ const sendDataToBackend = (data) => {
 
 const leaveSession = async () => {
   if (session.value) {
-    console.log(meetingId)
     session.value.disconnect();
-    socket.close()
+    socket.close();
     session.value = null;
-    // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
-    //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
-    //     console.error('Router error:', err);
-    //   });
-
-  session.value.disconnect();
-  socket.close()
-  console.log('meetingId', meetingId)
-  session.value = null;
-  const teamId = await sessionStore.getTeamId(meetingId);
-  router.replace({ name: 'ReadyView', params: {id : teamId} })
+    const teamId = await sessionStore.getTeamId(meetingId.value);
+    router.replace({ name: 'ReadyView', params: {id : teamId} });
   }
 };
 
 const endConference = async () => {
-  console.log("click!!!");
   if (sessionStore && sessionStore.endSession) {
-    console.log(sessionStore);
     try {
       const success = await sessionStore.endSession(sessionStore.meetingId);
       if (success) {
         // session.value.disconnect(); // 유사 로직 백엔드 존재
         session.value = null;
-      } else {
-        console.error('Failed to end the session on the server.');
       }
       // Ready Page로 이동
       const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
-      console.log('TeamID', teamId)
       await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
         console.error('Router error:', err);
       });
@@ -308,11 +273,17 @@ const endConference = async () => {
     }
   }
 };
-
 const toggleAudio = () => {
   if (publisher.value) {
     isAudioEnabled.value = !isAudioEnabled.value;
     publisher.value.publishAudio(isAudioEnabled.value);
+    if(!isAudioEnabled.value){
+      processor.disconnect()
+      socket.close();
+    }else {
+      createWebsocketConnection()
+      captureAudioStream(publisher.value.stream.getMediaStream())
+    }
   }
 };
 
@@ -328,6 +299,9 @@ const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
   if (!isScreenSharing.value) {
+    if (publisher.value) {
+      session.value.unpublish(publisher.value);
+    }
     screenPublisher.value = OV.initPublisher(undefined, {
       videoSource: 'screen',
       publishAudio: true,
@@ -344,7 +318,10 @@ const toggleScreenShare = async () => {
     screenPublisher.value = null;
     isScreenSharing.value = false;
 
-    myStreamManager.value = publisher.value; // 원래 스트림을 다시 표시
+    if(publisher.value) {
+      session.value.publish(publisher.value);
+      myStreamManager.value = publisher.value;
+    }
   }
 };
 
@@ -366,10 +343,10 @@ onMounted(() => {
   scrollToBottom(originalContent.value);
 });
 
-onBeforeRouteLeave(async (to, from, next) => {
-  await leaveSession();
-  next();
-});
+// onBeforeRouteLeave(async (to, from, next) => {
+//   await leaveSession();
+//   next();
+// });
 
 onMounted(async () => {
   const meetingId = sessionStore.meetingId;
@@ -401,7 +378,7 @@ onUnmounted(() => {
   }
   if (session.value) {
     session.value.disconnect();
-    sessionStore.clearSession(); // Assuming you have a method to clear the session data
+    // sessionStore.clearSession();
   }
 
   // Reset relevant refs

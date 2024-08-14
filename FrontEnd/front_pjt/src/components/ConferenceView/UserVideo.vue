@@ -32,13 +32,6 @@ function getConnectionData() {
   return JSON.parse(connection.data);
 }
 
-onMounted(() => {
-  if (videoContainer.value) {
-    console.log('Video container is successfully created:', videoContainer.value);
-  } else {
-    console.log('Video container creation failed');
-  }
-});
 </script>
 
 <style scoped>

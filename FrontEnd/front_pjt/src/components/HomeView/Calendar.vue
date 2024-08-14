@@ -74,10 +74,6 @@ const selectedMeetings = computed(() => {
   )
 })
 
-onMounted(async () => {
-  console.log('Meetings:', userStore.meetings) // 디버깅용
-})
-
 function selectDay(day) {
   selectedDate.value = day.date
 }

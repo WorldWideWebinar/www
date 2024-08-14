@@ -178,31 +178,35 @@ export const useTeamStore = defineStore('team', {
       }
     },
 
-    async addMemberToTeam(teamId, invitedUserList) {
-      const team = this.teams.find(team => team.id === teamId);
-      if (team) {
-        // 현재 teamInfo의 userList에 새로운 유저들을 추가
-        const updatedUserList = [...team.userList, ...invitedUserList.filter(userId => !team.userList.includes(userId))];
-
-        try {
-          // 서버에 업데이트된 팀 정보를 PUT 요청으로 전송
-          await axiosInstance.put(`/api/teams/${teamId}`, {
-            ...team,
-            userList: updatedUserList, // 새로 추가된 멤버를 포함한 userList를 전송
-          });
-
-          // teamInfo도 업데이트
-          if (this.teamInfo.id === teamId) {
-            this.teamInfo.userList = updatedUserList;
-          }
-
-        } catch (error) {
-          const errorStore = useErrorStore();
-          errorStore.showError(`Failed to update team ${teamId}: ${error.message}`);
+    async addMemberToTeam(invitedUser, teamId) {
+      try {
+        if (!this.teamInfo) {
+          throw new Error('Team information is not loaded.');
         }
-      } else {
+    
+        // Extract existing user IDs from teamUserInfo
+        const existingUserIds = this.teamUserInfo.map(user => user.id);
+    
+        // Check if the invited user's id is already in the list
+        if (!existingUserIds.includes(invitedUser.id)) {
+          // Add the invited user's id to the list
+          existingUserIds.push(invitedUser.id);
+        } 
+        const payload = {
+          teamName: this.teamInfo.teamName,
+          ownerId: this.teamInfo.ownerId,
+          emoji: this.teamInfo.emoji,
+          userList: existingUserIds,
+        };
+    
+        // Send the updated team info via PUT request
+        await axiosInstance.put(`/api/teams/${teamId}`, payload);
+
         const errorStore = useErrorStore();
-        errorStore.showError(`Team ${teamId} not found`);
+        errorStore.showError('Invite successful!')
+      } catch (error) {
+        console.error('Failed to add member to team:', error);
+        throw error;
       }
     },
 
@@ -265,9 +269,22 @@ export const useTeamStore = defineStore('team', {
       if (!prev && !next) {
         this.groupedMeetings.TODAY = sortMeetingsByDateTime(meetings);
       }
-    }
+    },
     
-    
+    async loadData(teamId) {
+      try {
+        await this.fetchTeamById(teamId);
+        await Promise.all([
+          this.fetchTeamUsers(),
+          this.fetchMeetings(teamId, false, false), // TODAY meetings
+          this.fetchMeetings(teamId, false, true),  // NEXT meetings
+          this.fetchMeetings(teamId, true, false)   // PREV meetings
+        ]);
+      } catch (error) {
+        const errorStore = useErrorStore();
+        errorStore.showError(`Failed to load team data: ${error.message}`);
+      }
+    },
   },
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),

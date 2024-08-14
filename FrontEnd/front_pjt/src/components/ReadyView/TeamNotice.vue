@@ -56,7 +56,7 @@
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
+                  <button v-if="isOwner" class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
@@ -68,7 +68,12 @@
                     <button @click="cancelInvite" class="btns btn-close"></button>
                     <div class="invite-member-row">
                       <input class="search-member" v-model="newMemberId" placeholder="Enter ID" />
-                      <button @click="inviteMember" class="btns btn-invite">Invite</button>
+                    </div>
+                    <div class="search-results">
+                      <div v-for="user in filteredSearchResults" :key="user.userId" class="search-result-item">
+                        <span>{{ user.id }}</span>
+                        <button @click="inviteMember(user)" class="btn-invite">Invite</button>
+                      </div>
                     </div>
                   </div>
                 </transition>
@@ -88,7 +93,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils.js';
 import { useUserStore } from '@/stores/userStore.js'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
@@ -108,6 +113,7 @@ const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const isOwner = computed(() => teamStore.teamInfo.ownerId == userStore.userId);
 const router = useRouter();
+const route = useRoute();
 const sessionStore = useSessionStore();
 
 function formatDate(meetingList) {
@@ -139,14 +145,26 @@ const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
-const inviteMember = async () => {
-  if (newMemberId.value) {
-    try {
-      showInviteMemberInput.value = false;
-      newMemberId.value = '';
-    } catch (error) {
-      console.error('Failed to invite member:', error);
-    }
+const filteredUsers = computed(() => {
+  const teamUserIds = teamStore.teamUserList;
+  return userStore.userList.filter(user => !teamUserIds.includes(user.userId));
+});
+
+// 검색된 사용자 목록 필터링
+const filteredSearchResults = computed(() => {
+  if (!newMemberId.value) {
+    return [];
+  }
+  return filteredUsers.value.filter(user => user.id.toLowerCase().includes(newMemberId.value.toLowerCase()));
+});
+
+const inviteMember = async (user) => {
+  const teamId = route.params.id
+  try {
+    await teamStore.addMemberToTeam(user, teamId);
+    teamStore.loadData(teamId)
+  } catch (error) {
+    // 오류 처리 (예: 오류 메시지 표시)
   }
 };
 
@@ -504,18 +522,32 @@ template {
   cursor: pointer;
 }
 
-.btn-close {
-  /* background-color: #6c757d; */
-  color: #5a6268;
-  font-size: xx-small;
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 2px;
-  outline: none;
-  background: none;
+.btn-invite {
+  padding: 5px 8px;
+  font-size: 0.5rem;
+  background-color: #6a1b9a; 
+  border-radius: 3px; 
+  color: white;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-invite:hover {
+  background-color: #b380bc; /* hover 효과를 설정합니다. */
+}
+
+/* 기존의 search-result-item과 함께 사용하는 클래스 */
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
 }
 
 .btn-close:focus,
@@ -663,5 +695,42 @@ template {
   .notice-table .meeting-name {
     width: 150px;
   }
+}
+
+.search-results {
+  margin-top: 10px;
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  background-color: #f1f1f1;
+}
+
+.search-result-item span {
+  flex-grow: 1; /* 이름이 버튼과 함께 한 줄에 있도록 설정 */
+  font-size: 0.9rem;
+}
+
+.search-result-item .btn-invite {
+  margin-left: 10px; /* 버튼과 이름 사이의 간격 */
+  padding: 8px 12px; /* 버튼의 크기를 조정 */
+  border-radius: 4px; /* 버튼의 모서리 둥글게 */
+  font-size: 0.8rem;
+  background-color: #6a1b9a;
+}
+
+.search-result-item .btn-invite:hover {
+  background-color: #b380bc;
 }
 </style>

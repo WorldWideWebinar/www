@@ -198,7 +198,6 @@ const isLoading = ref(true);
 const members = computed(() => teamStore.teamUserInfo);
 
 const filteredMeetings = computed(() => {
-  console.log(teamStore.groupedMeetings)
   if (activeTab.value === 'PREV') {
     return teamStore.groupedMeetings.PREV;
   } else if (activeTab.value === 'TODAY') {
@@ -223,7 +222,6 @@ const isOwner = computed(() => {
 
 const deleteMeeting = async () =>{
   const meetingId = selectedMeeting.value.meeting_id;
-  console.log(meetingId)
   try {
     const success = await meetingStore.deleteMeeting(meetingId);
     if(success){
@@ -233,7 +231,7 @@ const deleteMeeting = async () =>{
       teamStore.fetchMeetings(teamId, false, true) // NEXT
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -256,7 +254,6 @@ const downloadSummary = async () => {
     console.error('No meeting selected');
     return;
   }
-  console.log(selectedMeeting.value)
   try {
     await meetingStore.downloadSummary(
         selectedMeeting.value.team_id, selectedMeeting.value.meeting_id);
@@ -303,7 +300,6 @@ onMounted(async () => {
 watch(() => route.params.id, async (newId) => {
   isLoading.value = true;
   teamStore.clearTeamMeetings();
-  console.log(newId)
   await loadData(newId);
   isLoading.value = false;
 });
@@ -317,7 +313,6 @@ const selectMeeting = (meeting) => {
     detailType.value = 'NEXT';
   }
   selectedMeeting.value = meeting;
-  console.log('Selected meeting:', selectedMeeting.value); // Debug log
   selectedMeetingMembers.value = members.value.slice(0, meeting.members);
   showMembersList.value = false;
   showFilesList.value = false;
