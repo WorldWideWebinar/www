@@ -100,7 +100,7 @@ function nextMonth() {
 }
 
 onMounted(() => {
-  userStore.fetchUserMeetings();
+  // userStore.fetchUserMeetings();
 });
 </script>
 <style scoped>
