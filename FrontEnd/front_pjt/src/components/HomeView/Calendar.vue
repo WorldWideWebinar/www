@@ -98,6 +98,10 @@ function previousMonth() {
 function nextMonth() {
   currentMonth.value = currentMonth.value.add(1, 'month')
 }
+
+onMounted(() => {
+  userStore.fetchUserMeetings();
+});
 </script>
 <style scoped>
 .cal-container {

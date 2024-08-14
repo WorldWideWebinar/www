@@ -291,8 +291,4 @@ export const useTeamStore = defineStore('team', {
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),
   },
-  persist: {
-    key: 'teamStore',
-    storage: sessionStorage,
-  },
 });

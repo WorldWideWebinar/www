@@ -31,7 +31,7 @@ import ProfileCard from '@/components/HomeView/ProfileCard.vue';
 @media (max-width: 992px) {
   .app-container {
     flex-direction: column;
-    align-items: center;
+    align-items: center;  
   }
 
   .section-profilecard {
