@@ -162,7 +162,6 @@ export const useTeamStore = defineStore('team', {
       const userStore = useUserStore();
       const errorStore = useErrorStore();
       const userId = userStore.userId;
-
       try {
         const response = await axiosInstance.put(`api/teams/${teamId}/${userId}`);
         if (response.data.success) {
@@ -179,7 +178,9 @@ export const useTeamStore = defineStore('team', {
         return { isSuccess: false, message: error.message };
       }
     },
-
+    setCurrentTeam (teamId){
+      this.teamInfo = this.teams.find(team => team.id == teamId);
+    },
     async addMemberToTeam(invitedUser, teamId) {
       try {
         if (!this.teamInfo) {
