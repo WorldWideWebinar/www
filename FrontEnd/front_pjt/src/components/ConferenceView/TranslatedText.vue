@@ -1,14 +1,15 @@
 <template>
-  <h5>Translated Version <span class="language-icon">🌐
-    <select v-model="textStore.target_language">
-      <option value="en-us">🇺🇸 English</option>
-      <option value="ko">🇰🇷 한국어</option>
-      <option value="ja">🇯🇵 日本語</option>
-      <option value="zh">🇨🇳 中国语</option>
-      <option value="es">🇪🇸 Español</option>
-      <option value="fr">FR Français</option>
+  <h5>Translated Version
+    <select class="language-choice" v-model="textStore.target_language">
+      <option value="en-us">🇺🇸 &nbsp;English</option>
+      <option value="ko">🇰🇷 &nbsp;한국어</option>
+      <option value="ja">🇯🇵 &nbsp;日本語</option>
+      <option value="zh">🇨🇳 &nbsp;中国语</option>
+      <option value="es">🇪🇸 &nbsp;Español</option>
+      <option value="fr">🇫🇷 &nbsp;Français</option>
+      <option value="de">🇩🇪 &nbsp;Deutsche</option>
     </select>
-  </span></h5>
+  </h5>
   <div class="translated-content" ref="translatedContent">
     <!-- Translated messages -->
     <div v-for="(script , idx) in textStore.translated" :key="idx"> >
@@ -82,6 +83,20 @@ select {
 .translated-content::-webkit-scrollbar-track {
   background-color: #f0f0f0;
   border-radius: 4px;
+}
+
+select {
+  /* -moz-appearance: none;
+  -webkit-appearance: none; */
+  /* appearance: none; */
+  margin-left: 20px;
+  font-weight: bold;
+}
+
+.language-choice {
+  width: 150px;
+  border: none;
+  padding: 5px 10px;
 }
 
 </style>

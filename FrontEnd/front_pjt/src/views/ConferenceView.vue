@@ -10,8 +10,7 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <video id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
-            <!-- <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" /> -->
+            <video id="screen-share-video" autoplay muted style="width: 700px; height: 350px;"></video>
           </div>
           <div class="right-side">
             <user-video class="right-side-video" :stream-manager="myStreamManager" />

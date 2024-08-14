@@ -6,26 +6,22 @@
           <img src="../src/assets/img/chat.png" alt="logo">
         </button>
       </div>
-      <div class="nav-container flex-grow-1">
+      <div class="nav-container flex-grow-1" @scroll="handleScroll">
         <ul class="nav flex-column">
           <li 
-          class="nav-item" 
-          v-for="team in teams" 
-          :key="team.id"
-          @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
+            class="nav-item" 
+            v-for="team in teams" 
+            :key="team.id"
+            @contextmenu.prevent="showDeleteButtonAt($event, team.id)"
           >
             <RouterLink 
               class="nav-link" 
               :to="{ name: 'ReadyView', params: { id: team.id } }" 
               active-class="active"
-              >
+            >
               <span class="btn-icon">{{ team.emoji }}</span>
               <span class="link-text" :title="team.teamName">{{ team.teamName }}</span>
             </RouterLink>
-            <div v-show="showDeleteButton === team.id" :ref="(el) => {addEventClickOutside(el)}" class="dropdown">
-              <button v-if="isOwner(team.id)" @click="deleteTeam(team.id)" class="btn btn-delete">Delete <br> Team</button>
-              <button @click="leaveTeam(team.id)" class="btn btn-delete">Leave <br> Team</button>
-            </div>
           </li>
         </ul>
       </div>
@@ -48,41 +44,37 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, computed, ref, watch, nextTick, onBeforeUnmount } from 'vue'
-import { useUserStore } from './stores/userStore'
-import { useTeamStore } from './stores/teamStore'
-import router from './router'
-import ChatButton from '@/components/ChatButton.vue'
-import ChatBox from '@/components/ChatBox.vue'
-import ErrorModal from '@/components/ErrorModal.vue'
-import { useErrorStore } from './stores/errorStore'
-import { handleClickOutside } from './utils'
+import { RouterLink, RouterView } from 'vue-router';
+import { onMounted, computed, ref, nextTick, onBeforeUnmount, watch } from 'vue';
+import { useUserStore } from './stores/userStore';
+import { useTeamStore } from './stores/teamStore';
+import router from './router';
+import ChatButton from '@/components/ChatButton.vue';
+import ChatBox from '@/components/ChatBox.vue';
+import ErrorModal from '@/components/ErrorModal.vue';
+import { useErrorStore } from './stores/errorStore';
+import { handleClickOutside } from './utils';
 
-const errorStore = useErrorStore()
-const userStore = useUserStore()
-const teamStore = useTeamStore()
-const isLogin = computed(() => userStore.isLogin)
-const hasFetchedUserInfo = ref(false)
-const selectedTeamId = ref(null)
-const showScrollIndicator = ref(false)
-const showDeleteButton = ref(null)
-const deleteButtonStyle = ref({})
-const dropdownRef = ref(null)
+const errorStore = useErrorStore();
+const userStore = useUserStore();
+const teamStore = useTeamStore();
+const isLogin = computed(() => userStore.isLogin);
+const hasFetchedUserInfo = ref(false);
+const showDeleteButton = ref(null);
 
 const isOwner = (teamId) => {
-  const userId = userStore.userId
+  const userId = userStore.userId;
   const ownerId = teamStore.teams.find((team) => team.id === teamId)?.ownerId;
   return ownerId !== '' && userId === ownerId;
-}
+};
 
 const leaveTeam = (teamId) => {
-  teamStore.leaveTeam(teamId)
-}
+  teamStore.leaveTeam(teamId);
+};
 
 const goingHome = () => {
-  router.push({ name: 'HomeView' })
-}
+  router.push({ name: 'HomeView' });
+};
 
 const fetchUserTeams = async () => {
   if (isLogin.value && !hasFetchedUserInfo.value) {
@@ -90,7 +82,9 @@ const fetchUserTeams = async () => {
     const userInfo = userStore.userInfo;
 
     if (userInfo && Array.isArray(userInfo.teamList) && userInfo.teamList.length > 0) {
-      const newTeamIds = userInfo.teamList.filter(teamId => !teamStore.teams.some(team => team.id == teamId));
+      const newTeamIds = userInfo.teamList.filter(
+        (teamId) => !teamStore.teams.some((team) => team.id == teamId)
+      );
       await Promise.all(newTeamIds.map((teamId) => teamStore.fetchTeamById(teamId)));
     }
 
@@ -99,17 +93,57 @@ const fetchUserTeams = async () => {
 };
 
 const showDeleteButtonAt = (event, teamId) => {
-  deleteButtonStyle.value = {
-    position: 'fixed',
-    zIndex: 1000,
+  removeExistingDropdown();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'dropdown';
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = `${event.clientY}px`;
+  dropdown.style.left = `${event.clientX}px`;
+  dropdown.style.zIndex = 9999;
+
+  if (isOwner(teamId)) {
+    const deleteButton = document.createElement('button');
+    deleteButton.innerHTML = 'Delete <br> Team';
+    deleteButton.className = 'btn btn-delete';
+    deleteButton.onclick = () => {
+      deleteTeam(teamId);
+      removeExistingDropdown();
+    };
+    dropdown.appendChild(deleteButton);
+  }
+
+  const leaveButton = document.createElement('button');
+  leaveButton.innerHTML = 'Leave <br> Team';
+  leaveButton.className = 'btn btn-leave';
+  leaveButton.onclick = () => {
+    leaveTeam(teamId);
+    removeExistingDropdown();
   };
+  dropdown.appendChild(leaveButton);
+
+  document.body.appendChild(dropdown);
   showDeleteButton.value = teamId;
 
-  // nextTick(() => {
-  //   if (dropdownRef.value) {
-  //     document.addEventListener('click', outsideClickHandler);
-  //   }
-  // });
+  document.addEventListener('click', (e) => handleOutsideClick(e, dropdown), { once: true });
+};
+
+const handleOutsideClick = (event, dropdown) => {
+  if (!dropdown.contains(event.target)) {
+    removeExistingDropdown();
+  }
+};
+
+const removeExistingDropdown = () => {
+  const existingDropdowns = document.querySelectorAll('.dropdown');
+  if (existingDropdowns.length > 0) {
+    existingDropdowns.forEach((dropdown) => dropdown.remove());
+  }
+  showDeleteButton.value = null;
+};
+
+const handleScroll = () => {
+  removeExistingDropdown();
 };
 
 const deleteTeam = async (teamId) => {
@@ -118,32 +152,12 @@ const deleteTeam = async (teamId) => {
 
   if (response.isSuccess) {
     showDeleteButton.value = null;
-    removeOutsideClickListener();
-
     if (currentRoute.params.id == teamId) {
       router.push({ name: 'HomeView' });
     }
   } else {
     console.error(response.message);
   }
-};
-
-// // 외부 클릭 감지 핸들러
-// const outsideClickHandler = handleClickOutside(dropdownRef, () => {
-//   console.log("click outside click");
-//   showDeleteButton.value = null;
-//   removeOutsideClickListener();
-// });
-
-const addEventClickOutside = (el)=>{
-  document.addEventListener('click',handleClickOutside(el,()=>{
-      showDeleteButton.value = null;
-    })
-  )
-}
-
-const removeOutsideClickListener = (handler) => {
-  document.removeEventListener('click', handler);
 };
 
 onMounted(() => {
@@ -153,52 +167,46 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  removeOutsideClickListener();
+  removeExistingDropdown();
 });
 
+const teams = computed(() => teamStore.teams);
 
-const teams = computed(() => teamStore.teams)
-
-// 챗봇
-
-const isChatOpen = ref(false)
+const isChatOpen = ref(false);
 const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value
-  // if (!isChatOpen.value) {
-  //   selectedTeamId.value = null;
-  // }
-}
+  isChatOpen.value = !isChatOpen.value;
+};
 
-const showError = computed(() => errorStore.showErrorModal)
-const errorMessage = computed(() => errorStore.errorMessage)
+const showError = computed(() => errorStore.showErrorModal);
+const errorMessage = computed(() => errorStore.errorMessage);
 const closeError = () => {
-  errorStore.hideError()
-}
+  errorStore.hideError();
+};
+
 const selectTeam = (teamId) => {
-  selectedTeamId.value = teamId
-}
+  selectedTeamId.value = teamId;
+};
 
-onMounted(() => {
-  const navContainer = ref(null)
-  const checkScroll = () => {
-    nextTick(() => {
-      if (navContainer.value && navContainer.value.scrollHeight > navContainer.value.clientHeight) {
-        showScrollIndicator.value = true
-      } else {
-        showScrollIndicator.value = false
-      }
-    })
-  }
+const checkScroll = () => {
+  const navContainer = document.querySelector('.nav-container');
+  nextTick(() => {
+    if (navContainer && navContainer.scrollHeight > navContainer.clientHeight) {
+      showScrollIndicator.value = true;
+    } else {
+      showScrollIndicator.value = false;
+    }
+  });
+};
 
-  watch(teams, checkScroll, { immediate: true })
-  window.addEventListener('resize', checkScroll)
-})
+watch(teams, checkScroll, { immediate: true });
 
 watch(isLogin, (newValue, oldValue) => {
   if (oldValue && !newValue) {
     isChatOpen.value = false;
   }
 });
+
+window.addEventListener('resize', checkScroll);
 </script>
 
 <style scoped>
@@ -242,27 +250,16 @@ watch(isLogin, (newValue, oldValue) => {
 .sidebar .btn-home {
   margin: 0px auto;
   padding: 0px 5px;
-  /* 간격 조정 */
 }
 
 .sidebar .btn-home img {
   width: 60px;
-  /* 크기 조정 */
   margin: 5px auto;
 }
 
-/* 구분선 */
-.sidebar .seperator {
-  padding: 0px;
-  margin: 0px;
-  border-bottom: 3px dashed #000000;
-}
-
-/* 팀 목록 */
 .nav-container {
   flex-grow: 1;
   overflow-y: auto;
-  /* 세로 스크롤 가능 */
   position: relative;
 }
 
@@ -271,7 +268,6 @@ watch(isLogin, (newValue, oldValue) => {
 }
 
 ul.nav {
-  /* margin-top: 10px; */
   width: 100%;
 }
 
@@ -308,22 +304,16 @@ li.nav-item {
   margin-top: 0.2rem;
   font-size: 0.7rem;
   word-wrap: break-word;
-  /* 길면 줄바꿈 */
   overflow: hidden;
-  /* 넘치는 부분 숨기기 */
   text-overflow: ellipsis;
-  /* 넘치는 부분을 생략(...)으로 표시 */
   max-width: 85%;
-  /* 최대 너비를 설정하여 오른쪽 영역 침범 방지 */
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  /* 표시할 최대 줄 수 */
   -webkit-box-orient: vertical;
   line-clamp: 2;
   box-orient: vertical;
   white-space: normal;
-  /* 두 줄로 표시 */
 }
 
 .btn-icon {
@@ -332,30 +322,18 @@ li.nav-item {
   justify-content: center;
 }
 
-/* 팀 삭제 */
 .dropdown {
   position: fixed;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  z-index: 1000;
-  left: 80px;
-  margin-top: -75px;
-}
-
-.btn-delete {
+  justify-content: center;
+  z-index: 9999;
   background-color: #e1bee7;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
 }
 
-.btn-delete:hover {
-  background-color: #8c8593;
-}
-
-/* 팀 추가 */
 .add-team {
   margin: 0px auto;
   padding: 20px 22px 0px 22px;
@@ -376,7 +354,6 @@ li.nav-item {
   color: inherit;
 }
 
-/* 하단 부분과의 구분 */
 .spacer {
   flex-grow: 1;
 }
@@ -407,5 +384,30 @@ main {
 
 .error-modal .error-content button:hover {
   background: #d32f2f;
+}
+</style>
+
+<style>
+/* global style without scoped */
+.btn-delete, .btn-leave {
+  position: relative;
+  display: inline-block;
+  background-color: #aaa2b2;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  margin: 2px 0;
+  cursor: pointer;
+  z-index: 1000;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  width: 60px;
+  border-radius: 15px;
+}
+
+.btn-delete:hover, .btn-leave:hover {
+  background-color: #7d7783;
+  color: white;
 }
 </style>
