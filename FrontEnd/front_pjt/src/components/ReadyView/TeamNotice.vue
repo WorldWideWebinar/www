@@ -12,7 +12,7 @@
               <td class="bold meeting-name">{{ meeting.name }}</td>
               <td class="join-td">
                 <button v-if="isOwner" @click="handleStartConference(meeting.meeting_id)" class="join-button">
-                  <img class="play-button" src="@/assets/img/play.png" alt="play">
+                  <img class="play-button" src="@/assets/img/playbutton.png" alt="play">
                 </button>
                 <button v-else @click="handleJoinConference(meeting.meeting_id)" class="join-button">
                   <img class="play-button" src="@/assets/img/play.png" alt="play">
