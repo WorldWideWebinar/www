@@ -154,9 +154,11 @@
               </div>
               <div class="delete-meeting" v-if="new Date().getTime() < new Date(selectedMeeting?.start_at).getTime()&& isOwner">
                 <div class="dash-separator"></div>
-                <button class="delete-btn" @click="deleteMeeting()">
-                  🗑️ Delete Meeting
-                </button>
+                <div class="delete-btn-case">
+                  <button class="delete-btn" @click="deleteMeeting()">
+                    🗑️ Delete Meeting
+                  </button>
+                </div>
               </div>
             </div>
           </template>
@@ -229,6 +231,7 @@ const deleteMeeting = async () =>{
       const teamId = route.params.id;
       teamStore.fetchMeetings(teamId, false, false) // TODAY
       teamStore.fetchMeetings(teamId, false, true) // NEXT
+      teamStore.fetchMeetings(teamId, true, false) // PREV
     }
   } catch (error) {
     console.error(error)
@@ -339,6 +342,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
+  selectedMeeting.value=null;
 });
 
 // 미팅 리스트 전용
@@ -624,7 +628,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* margin-left: 25px; */
+  padding-left: 25px;
 }
 
 .meeting-detail-header p {
@@ -806,6 +810,11 @@ button {
 
 .delete-meeting .delete-btn:hover {
   background-color: #9c9c9c;
+}
+
+.delete-btn-case {
+  display: flex;
+  justify-content: center;
 }
 
 @media (max-width: 992px) {
