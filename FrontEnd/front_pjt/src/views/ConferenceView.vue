@@ -62,6 +62,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
@@ -478,8 +479,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding: 1rem 1rem 0 1rem;
-  margin-top: 80px;
-  /* margin-bottom: 20px; */
+  margin-top: 20px;
 }
 
 .participant {
