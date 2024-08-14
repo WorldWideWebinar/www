@@ -18,6 +18,10 @@ export const useSTTStore = defineStore('stt', {
       const stompClient = Stomp.over(this.ws)
       this.ws.debug = null
       stompClient.debug = null
+      this.transcript = []
+      this.translated = []
+      this.last_received_segment= null
+      this.last_received_translated= null
 
       stompClient.connect(
         {
