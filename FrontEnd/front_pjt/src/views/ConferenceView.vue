@@ -41,12 +41,12 @@
     </main>
     <div class="footer">
       <div class="footer-left">
-        <span style="font-weight: bold;">Duration</span>
-        <span>{{ attendedNums.length }}</span>
+        <!-- <span style="font-weight: bold;">Duration</span>
+        <span>{{ attendedNums.length }}</span> -->
       </div>
       <div class="footer-center">
         <span style="font-weight: bold;">Attendance</span>
-        <span>{{ attendedNums.length }} / {{ participants.length }}</span>
+        <span>{{ participants.length }}</span>
       </div>
       <!-- <div class="footer-right">
         <span>Invite Alex, Joy</span>

@@ -15,9 +15,7 @@ export const useUserStore = defineStore('user', {
     userList: [
       
     ],
-    meetings: [
-      
-    ]
+    meetings: []
   }),
   getters: {
     isLogin: (state) => state.userId != 0
@@ -109,7 +107,6 @@ export const useUserStore = defineStore('user', {
     async signOut() {
       const errorStore = useErrorStore()
       const teamStore = useTeamStore()
-      const meetingStore = useMeetingStore()
       try {
         const response = await axiosInstance.post('api/users/logout', { userId: this.userId })
                   this.userId = 0
@@ -189,6 +186,15 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         errorStore.showError('Failed to update user info');
         return { success: false, message: error.message };
+      }
+    },
+
+    async fetchUserMeetings(userId) {
+      const teamStore = useTeamStore();
+      teamList = teamStore.teams
+      const errorStore = useErrorStore();
+      try {
+        const response = await axiosInstance
       }
     }
   },
