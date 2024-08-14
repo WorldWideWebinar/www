@@ -162,9 +162,7 @@ const handleSignOut = async () => {
 
 const groupedMeetings = ref({ PREV: [], TODAY: [], NEXT: [] })
 
-const loadMeetings = async (teamId) => {
-  await axiosInstance.get
-} 
+const loadMeetings = async (teamId) => {} 
 const carouselReady = ref(false)
 
 const slideClass = (group) => {
