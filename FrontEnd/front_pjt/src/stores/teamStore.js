@@ -183,20 +183,27 @@ export const useTeamStore = defineStore('team', {
         if (!this.teamInfo) {
           throw new Error('Team information is not loaded.');
         }
-        
-        if (!this.teamInfo.userList.includes(invitedUser.userId)) {
-          const newUserList = this.teamInfo.userList.push(invitedUser.userId)
-
-          const payload = {
-            teamName: this.teamInfo.teamName,
-            ownerId: this.teamInfo.ownerId,
-            emoji: this.teamInfo.emoji,
-            userList: newUserList,
-          };
-
-          // Send the updated team info via PUT request
-          await axiosInstance.put(`/api/teams/${teamId}`, payload);
+    
+        // Extract existing user IDs from teamUserInfo
+        const existingUserIds = this.teamUserInfo.map(user => user.id);
+    
+        // Check if the invited user's id is already in the list
+        if (!existingUserIds.includes(invitedUser.id)) {
+          // Add the invited user's id to the list
+          existingUserIds.push(invitedUser.id);
         } 
+        const payload = {
+          teamName: this.teamInfo.teamName,
+          ownerId: this.teamInfo.ownerId,
+          emoji: this.teamInfo.emoji,
+          userList: existingUserIds,
+        };
+    
+        // Send the updated team info via PUT request
+        await axiosInstance.put(`/api/teams/${teamId}`, payload);
+
+        const errorStore = useErrorStore();
+        errorStore.showError('Invite successful!')
       } catch (error) {
         console.error('Failed to add member to team:', error);
         throw error;
@@ -262,9 +269,22 @@ export const useTeamStore = defineStore('team', {
       if (!prev && !next) {
         this.groupedMeetings.TODAY = sortMeetingsByDateTime(meetings);
       }
-    }
+    },
     
-    
+    async loadData(teamId) {
+      try {
+        await this.fetchTeamById(teamId);
+        await Promise.all([
+          this.fetchTeamUsers(),
+          this.fetchMeetings(teamId, false, false), // TODAY meetings
+          this.fetchMeetings(teamId, false, true),  // NEXT meetings
+          this.fetchMeetings(teamId, true, false)   // PREV meetings
+        ]);
+      } catch (error) {
+        const errorStore = useErrorStore();
+        errorStore.showError(`Failed to load team data: ${error.message}`);
+      }
+    },
   },
   getters: {
     getTeamById: (state) => (id) => state.teams.find(team => team.id === id),

@@ -56,7 +56,7 @@
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
+                  <button v-if="isOwner" class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
@@ -142,7 +142,6 @@ const toggleMemberListDropdown = () => {
 };
 
 const toggleInviteMemberInput = () => {
-  console.log("검색 가능 유저:", filteredUsers.value)
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
@@ -163,7 +162,7 @@ const inviteMember = async (user) => {
   const teamId = route.params.id
   try {
     await teamStore.addMemberToTeam(user, teamId);
-    
+    teamStore.loadData(teamId)
   } catch (error) {
     // 오류 처리 (예: 오류 메시지 표시)
   }
