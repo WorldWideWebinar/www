@@ -10,8 +10,7 @@
       <div class="center">
         <div class="upper-section">
           <div class="presentation">
-            <video id="screen-share-video" autoplay muted style="width: 450px; height: 350px;"></video>
-            <!-- <img src="https://via.placeholder.com/450x350" alt="Presentation Screenshot" /> -->
+            <video id="screen-share-video" autoplay muted style="width: 700px; height: 350px;"></video>
           </div>
           <div class="right-side">
             <user-video class="right-side-video" :stream-manager="myStreamManager" />
@@ -23,7 +22,7 @@
                 <img :src="isVideoEnabled ? videoOnIcon : videoOffIcon" alt="Toggle Video" />
               </button>
               <button class="btn-icon" @click="toggleScreenShare">
-                <img :src="isScreenSharing ? screenOnIcon : screenOffIcon" alt="Toggle Screen Share" />
+                <img :src="isScreenSharing ? screenOffIcon : screenOnIcon" alt="Toggle Screen Share" />
               </button>
             </div>
           </div>
@@ -54,8 +53,8 @@
       <div class="footer-right">
         <span style="font-weight: bold;">Exit</span>
         <div class="bottom-toolbar">
-          <button class="btn-icon" @click="leaveSession"><img src="../assets/img/refresh.png" alt="refresh"></button>
-          <button class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
+          <button v-if="!isOwner" class="btn-icon" @click="leaveSession"><img src="../assets/img/end.png" alt="refresh"></button>
+          <button v-else-if="isOwner" class="btn-icon" @click="endConference"><img src="../assets/img/end.png" alt="end"></button>
         </div>
       </div>
     </div>
@@ -115,6 +114,8 @@ let processor = null;
 const OV = new OpenVidu();
 // const isOwner = computed(() => teamStore.currentTeam?.ownerId === userStore.userId);
 const isOwner = computed(() => sessionStore.meetingId != null);
+const isScreenSharing = ref(false);
+const isScreenShared = ref(false);
 const joinSession = async () => {
   // const OV = new OpenVidu();
   const currentSession = OV.initSession();
@@ -124,22 +125,27 @@ const joinSession = async () => {
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
     const participantId = JSON.parse(event.stream.connection.data).clientData;
-
     const participantInfo = userStore.userInfo;
-
-    if (participantInfo) {
-      participants.value.push({
-        id: participantId,
-        name: participantInfo.name,
-        streamManager: subscriber,
-      });
+    if (subscriber.stream.typeOfVideo === "SCREEN") {
+      isScreenShared.value = true;
+      subscriber.addVideoElement(document.getElementById("screen-share-video"))
+      sessionStore.addStream(subscriber.stream)
+      return
     }
-
+    participants.value.push({
+      id: participantId,
+      name: participantInfo.name,
+      streamManager: subscriber,
+    });
     sessionStore.addStream(subscriber.stream);
   });
 
   // 스트림 파괴 이벤트 핸들러
   currentSession.on('streamDestroyed', (event) => {
+    if(event.stream.typeOfVideo === "SCREEN"){
+      isScreenShared.value = false;
+
+    }
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
   });
@@ -169,12 +175,18 @@ const joinSession = async () => {
 
     // 새 참가자가 기존 스트림 구독
     currentSession.streamManagers.forEach(stream => {
+      // stream = stream.stream
       if (stream.connection.connectionId !== currentSession.connection.connectionId) {
         const subscriber = currentSession.subscribe(stream, undefined);
         const participantId = JSON.parse(stream.connection.data).clientData;
 
         const participantInfo = userStore.userInfo;
-
+        if (subscriber.stream.typeOfVideo === "SCREEN") {
+          isScreenShared.value = true;
+          subscriber.addVideoElement(document.getElementById("screen-share-video"))
+          sessionStore.addStream(subscriber.stream)
+          return
+        }
         if (participantInfo) {
           participants.value.push({
             id: participantId,
@@ -191,7 +203,7 @@ const joinSession = async () => {
       participants.value = team.userList.filter(user => user.id !== userId);
     }
   } catch (error) {
-    errorStore.showError(error.message);
+    // errorStore.showError(error.message);
   }
 };
 const createWebsocketConnection = ()=>{
@@ -295,14 +307,14 @@ const toggleVideo = () => {
   }
 };
 
-const isScreenSharing = ref(false);
 const screenPublisher = ref(null);
 
 const toggleScreenShare = async () => {
+  if(isScreenShared.value){
+    errorStore.showError("한번에 한사람만 화면 공유가 가능합니다.")
+    return
+  }
   if (!isScreenSharing.value) {
-    if (publisher.value) {
-      session.value.unpublish(publisher.value);
-    }
     screenPublisher.value = OV.initPublisher(undefined, {
       videoSource: 'screen',
       publishAudio: true,

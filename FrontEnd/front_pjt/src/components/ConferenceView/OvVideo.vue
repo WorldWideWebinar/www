@@ -17,6 +17,7 @@ const props = defineProps({
 
 const videoEl = ref(null);
 
+
 onMounted(() => {
   if (props.streamManager && videoEl.value) {
     props.streamManager.addVideoElement(videoEl.value);
