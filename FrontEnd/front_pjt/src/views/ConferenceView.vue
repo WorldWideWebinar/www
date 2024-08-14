@@ -70,6 +70,7 @@ import { OpenVidu } from 'openvidu-browser';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { useUserStore } from '@/stores/userStore';
+import { useErrorStore } from '@/stores/errorStore.js'
 import UserVideo from '@/components/ConferenceView/UserVideo.vue';
 import TranscriptionText from '@/components/ConferenceView/TranscriptionText.vue'
 import TranslatedText from '@/components/ConferenceView/TranslatedText.vue'
@@ -82,7 +83,7 @@ const sessionStore = useSessionStore();
 const conferenceName = computed(() => {
   return sessionStore.meetingInfo ? sessionStore.meetingInfo.name : '';
 });
-
+const errorStore = useErrorStore()
 const attendedNums = computed(() => {
   return sessionStore.participants ? sessionStore.participants : '';
 });
@@ -119,7 +120,6 @@ const joinSession = async () => {
   const currentSession = OV.initSession();
   sessionStore.setSession(currentSession);
   // 스트림 생성 이벤트 핸들러
-  console.log("Team Owner? : ", isOwner.value)
   currentSession.on('streamCreated', (event) => {
 
     const subscriber = currentSession.subscribe(event.stream, undefined);
@@ -142,7 +142,6 @@ const joinSession = async () => {
   currentSession.on('streamDestroyed', (event) => {
     const participantId = JSON.parse(event.stream.connection.data).clientData;
     participants.value = participants.value.filter(p => p.id !== participantId);
-    console.log('스트림이 파괴됨, 참가자 ID:', participantId);
   });
 
   try {
@@ -165,7 +164,6 @@ const joinSession = async () => {
     }).on('streamAudioVolumeChange', () => {
 
     });
-    console.log('publisher stream:', publisher.value.stream)
     currentSession.publish(publisher.value);
     myStreamManager.value = publisher.value;
 
@@ -176,7 +174,6 @@ const joinSession = async () => {
         const participantId = JSON.parse(stream.connection.data).clientData;
 
         const participantInfo = userStore.userInfo;
-        console.log('참가자 정보:', participantInfo);
 
         if (participantInfo) {
           participants.value.push({
@@ -194,20 +191,14 @@ const joinSession = async () => {
       participants.value = team.userList.filter(user => user.id !== userId);
     }
   } catch (error) {
-    console.error('Error connecting to session:', error);
+    errorStore.showError(error.message);
   }
 };
 const createWebsocketConnection = ()=>{
   socket = new WebSocket('wss://i11a501.p.ssafy.io/api/meetingSTT/audio');
 
   socket.onopen = () => {
-    console.log('WebSocket connection opened');
-    console.log('Meeting ID:', sessionStore.sessionId);
     socket.send(JSON.stringify({ meetingId: sessionStore.sessionId.toString() }));
-  };
-
-  socket.onclose = () => {
-    console.log('WebSocket connection closed');
   };
 
   socket.onerror = (error) => {
@@ -248,12 +239,6 @@ const resampleTo16kHz = (audioData, originalSampleRate) => {
 
 const sendDataToBackend = (data) => {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    // const audioBuffer = new Int16Array(data.length);
-    // for (let i = 0; i < data.length; i++) {
-    //   audioBuffer[i] = data[i] * 0x7FFF; // Convert to 16-bit PCM
-    // }
-    // socket.send(audioBuffer.buffer);  // send the ArrayBuffer representation of the Int16Array
-    console.log('sending data');
     socket.send(data.buffer)
   } else {
     console.error('WebSocket is not open');
@@ -261,38 +246,25 @@ const sendDataToBackend = (data) => {
 };
 
 const leaveSession = async () => {
-  console.log("leave Session !!!!!!!!!");
   if (session.value) {
-    console.log("session value        ");
     session.value.disconnect();
     socket.close();
     session.value = null;
-    // const teamId = await sessionStore.getTeamId(sessionStore.sessionId);
-    //   await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
-    //     console.error('Router error:', err);
-    //   });
-    console.log('meetingId')
-    console.log(meetingId.value);
     const teamId = await sessionStore.getTeamId(meetingId.value);
     router.replace({ name: 'ReadyView', params: {id : teamId} });
   }
 };
 
 const endConference = async () => {
-  console.log("click!!!");
   if (sessionStore && sessionStore.endSession) {
-    console.log(sessionStore);
     try {
       const success = await sessionStore.endSession(sessionStore.meetingId);
       if (success) {
         // session.value.disconnect(); // 유사 로직 백엔드 존재
         session.value = null;
-      } else {
-        console.error('Failed to end the session on the server.');
       }
       // Ready Page로 이동
       const teamId = await sessionStore.getTeamId(sessionStore.meetingId);
-      console.log('TeamID', teamId)
       await router.replace({ name: 'ReadyView', params: {id : teamId}  }).catch(err => {
         console.error('Router error:', err);
       });

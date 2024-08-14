@@ -92,8 +92,3 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
-
-router.beforeEach((to, from, next) => {
-  console.log(`Navigating to: ${to.name}`);
-  next();
-});
