@@ -142,6 +142,7 @@ const toggleMemberListDropdown = () => {
 };
 
 const toggleInviteMemberInput = () => {
+  console.log(teamStore.teamInfo)
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
