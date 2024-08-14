@@ -305,6 +305,7 @@ watch(() => route.params.id, async (newId) => {
   teamStore.clearTeamMeetings();
   await loadData(newId);
   isLoading.value = false;
+  selectedMeeting.value=null;
 });
 
 const selectMeeting = (meeting) => {
@@ -342,7 +343,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside(selectedMeetingMembers, closeDropdowns));
-  closeMeetingDetails();
+  // closeMeetingDetails();
 });
 
 // 미팅 리스트 전용
