@@ -56,7 +56,7 @@
               <td style="position: relative;">
                 <div class="members-row" @click="toggleMemberListDropdown" ref="memberDropdown">
                   {{ members.length }} members
-                  <button class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
+                  <button v-if="isOwner" class="add-member-btn" @click.stop="toggleInviteMemberInput">+</button>
                 </div>
                 <ul v-show="showMemberListDropdown" class="members-dropdown dropdown">
                   <li v-for="member in members" :key="member.name" class="member">
@@ -68,7 +68,12 @@
                     <button @click="cancelInvite" class="btns btn-close"></button>
                     <div class="invite-member-row">
                       <input class="search-member" v-model="newMemberId" placeholder="Enter ID" />
-                      <button @click="inviteMember" class="btns btn-invite">Invite</button>
+                    </div>
+                    <div class="search-results">
+                      <div v-for="user in filteredSearchResults" :key="user.userId" class="search-result-item">
+                        <span>{{ user.id }}</span>
+                        <button @click="inviteMember(user)" class="btns btn-invite">Invite</button>
+                      </div>
                     </div>
                   </div>
                 </transition>
@@ -88,7 +93,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { formatTime, handleClickOutside } from '@/utils.js';
 import { useUserStore } from '@/stores/userStore.js'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '@/stores/sessionStore';
 
 const teamStore = useTeamStore();
@@ -108,6 +113,7 @@ const newMemberId = ref('');
 const members = computed(() => teamStore.teamUserInfo);
 const isOwner = computed(() => teamStore.teamInfo.ownerId == userStore.userId);
 const router = useRouter();
+const route = useRoute();
 const sessionStore = useSessionStore();
 
 function formatDate(meetingList) {
@@ -139,14 +145,26 @@ const toggleInviteMemberInput = () => {
   showInviteMemberInput.value = !showInviteMemberInput.value;
 };
 
-const inviteMember = async () => {
-  if (newMemberId.value) {
-    try {
-      showInviteMemberInput.value = false;
-      newMemberId.value = '';
-    } catch (error) {
-      console.error('Failed to invite member:', error);
-    }
+const filteredUsers = computed(() => {
+  const teamUserIds = teamStore.teamUserList;
+  return userStore.userList.filter(user => !teamUserIds.includes(user.userId));
+});
+
+// 검색된 사용자 목록 필터링
+const filteredSearchResults = computed(() => {
+  if (!newMemberId.value) {
+    return [];
+  }
+  return filteredUsers.value.filter(user => user.id.toLowerCase().includes(newMemberId.value.toLowerCase()));
+});
+
+const inviteMember = async (user) => {
+  const teamId = route.params.id
+  try {
+    await teamStore.addMemberToTeam(user, teamId);
+    teamStore.loadData(teamId)
+  } catch (error) {
+    // 오류 처리 (예: 오류 메시지 표시)
   }
 };
 
